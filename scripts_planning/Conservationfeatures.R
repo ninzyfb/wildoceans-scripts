@@ -1,12 +1,7 @@
 # ---------------------------------
-# DEFINE WORKING DIRECTORY
-# ---------------------------------
-setwd(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"))
-
-# ---------------------------------
 # DATA
 # ---------------------------------
-files = list.files(pattern = "ensemblemean.tif", recursive = TRUE) # find file names
+files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE) # find file names
 
 # ---------------------------------
 # FORMATTING
@@ -38,11 +33,6 @@ rm(i)
 
 # turn species scientific to upper case
 featurenames$species_scientific = toupper(featurenames$species_scientific)
-
-# ---------------------------------
-# DEFINE WORKING DIRECTORY
-# ---------------------------------
-setwd(paste0(path,"Dropbox/6-WILDOCEANS/Planning"))
 
 # ---------------------------------
 # FORMATTING

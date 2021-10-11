@@ -1,11 +1,11 @@
 
 # filter to only keep models of choice and associated targets for each species
 aseasonal_features = featurenames %>%
-    filter(modeltype == "Aseasonal")
+    filter(MODELTYPE == "Aseasonal")
 summer_features = featurenames %>%
-  filter(modeltype %in% c("summer"))
+  filter(MODELTYPE %in% c("summer"))
 winter_features = featurenames %>%
-  filter(modeltype %in% c("winter"))
+  filter(MODELTYPE %in% c("winter"))
 
 # create list with targets
 list_targets = list(aseasonal_features,summer_features,winter_features)
@@ -34,13 +34,14 @@ rm(feature_stack_aseasonal,feature_stack_summer,feature_stack_winter)
 
 # check that species targets and names in stack are in the same order
 for(i in 1:length(list_stacks)){
-check = names(list_stacks[[i]]) == list_targets[[i]][["featurename"]]
+check = names(list_stacks[[i]]) == list_targets[[i]][["FEATURENAME"]]
 print(unique(check) == TRUE)}
 rm(check,i)
 
 # run each problems based on the three subscenarios (of increasing target %)
 # each season (aseasonal, summer, winter) is run three times (low, medium, high targets)
 p = 0 # problem number
+penalty = 0
 list_problems = list()
 
 for(i in 1:length(list_stacks)){

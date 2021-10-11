@@ -29,10 +29,10 @@ library(readxl)
 # ---------------------------------
 
 # all the subscripts are in the scripts folder
-# make sure you set the directory to the same one within which the scripts are found
-# the scripts can be in a separate folder in this directory, they just need to be somewhere within the directory
+# all the data is in the planning folder
+# make sure you set the directory to the overall WILDOCEANS folder so you can find both
 path = "/Users/nfb/"
-setwd(paste0(path,"Dropbox/6-WILDOCEANS/Scripts"))
+setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
 # ---------------------------------
 # 1 - DEFINE PLANNING SCENARIO 

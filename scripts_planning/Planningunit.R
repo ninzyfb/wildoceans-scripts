@@ -7,4 +7,4 @@ options(tibble.width = Inf)
 
 # planning unit
 # the pixel value should represent the cost of that pixel
-pu = raster(list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Planning/"),pattern = "template.tif")) # raster of planning unit
+pu = raster(list.files(pattern = "template.tif",full.names = TRUE,recursive = TRUE)) # raster of planning unit
