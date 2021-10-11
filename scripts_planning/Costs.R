@@ -27,6 +27,10 @@ files = list.files(pattern = "sharknets.tif" , recursive = TRUE)
 sharknetsraster = stack(files)
 rm(files) # remove
 
+# ---------------------------------
+# formatting
+# ---------------------------------
+
 # add all pressures to the planning unit
 # this means all units with no pressures will keep their value of 1
 # other planning units will have the sum of all pressures

@@ -1,47 +1,44 @@
-# this script is to prepare the various aggregation spot rasters
+# ---------------------------------------------------------------------------------
+######### Shark and ray species conservation planning using prioritizr - Lockedin script
+#AUTHOR: Nina Faure Beaulieu (2021)
+#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+#!Run each script one at a time as running the whole at once seems to cause some bugs
+#the output line describes what each script produces
+# ---------------------------------------------------------------------------------
 
-# packages
-library(raster)
-library(dplyr)
-library(sf)
-library(fasterize)
+####
+#THIS SCRIPT: this script is to prepare the various aggregation spot rasters
+####
 
-# template raster
-template = raster(list.files(pattern = "template.tif"))
+# ---------------------------------
+# DATA
+# ---------------------------------
 
-# 1 - estuaries
+# estuaries
+estuaries = st_read(list.files(pattern = "estuaries.shp",recursive=TRUE,full.names = TRUE))
 
-# load data
-estuaries_raw = read.csv(list.files(pattern = "estuaries",recursive=TRUE))
-table(estuaries_raw$Estuary_class.)
-# classify as factor
-estuaries_raw$Estuary_class. = as.factor(estuaries_raw$Estuary_class.)
-estuaries = estuaries_raw %>%
-  filter(as.integer(Estuary_class.)==1)
-# add spatial info
-estuaries_sf = st_as_sf(estuaries,coords = c("Longitude","Latitude"))
-estuaries_sf$id = 1
+# aggregation spots
+aggregations = st_read(list.files(pattern = "aggregationspots_final.shp",recursive=TRUE,full.names = TRUE))
+
+# mpas
+mpas = raster(list.files(pattern = "mpalayer_2.tif",recursive=TRUE,full.names = TRUE))
+
+# ---------------------------------
+# FORMATTING
+# ---------------------------------
+
 # rasterize
-estuaries_raster = rasterize(estuaries_sf,template,field = "id")
-plot(estuaries_raster)
-writeRaster(estuaries_raster,"estuaries_planninglayers.tif")
+estuaries_raster = fasterize(estuaries,pu)
+estuaries_raster = fasterize(st_collection_extract(estuaries,"POLYGON"),pu, field = "OBJECTID")
 
-# 2 aggregation spots - estuaries
+aggregations_raster = rasterize(aggregations,pu)
 
-# load data
-spots_raw = shapefile(list.files(pattern = "aggregationspots.shp",recursive=TRUE))
-# add spatial info
-spots_raw_sf = st_as_sf(spots_raw)
-spots_raw_sf$id = 1
-plot(spots_raw_sf)
-spots = as(spots_raw_sf,Class = "Spatial")
-# rasterize
-spots_raw_raster = rasterize(spots_raw,template)
-plot(spots_raw_raster)
-writeRaster(estuaries_raster,"estuaries_planninglayers.tif")
+# standardize crs
+estuaries_raster = projectRaster(estuaries_raster,pu)
+aggregations_raster = projectRaster(aggregations_raster,pu)
+mpas = projectRaster(mpas,pu)
 
-cellFromXY(template,coordinates(spots))
-
-table(values(spots_raw_raster))
-
+# stack
+lockedin = stack(estuaries_raster,aggregations_raster,mpas)
+plot(lockedin)
 

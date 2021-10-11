@@ -23,6 +23,7 @@ library(rgeos)
 library(raster)
 library(scales)
 library(readxl)
+library(fasterize)
 
 # ---------------------------------
 # DEFINE WORKING DIRECTORY
@@ -91,10 +92,6 @@ source(list.files(pattern = "Problem.R", recursive = TRUE))
 # 7 - CONSTRAINTS
 # output: 
 # ---------------------------------
-# this will be for locked in constraints
-# mpalayer_1.tif: all mpas, but protected have value of 2 and semi-protected have value of 3)
-# mpalayer_2.tif: only protected mpas
-# template.tif: no mpas
 
 # ---------------------------------
 # 8 - SOLUTION
