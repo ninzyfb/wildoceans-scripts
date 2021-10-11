@@ -50,10 +50,6 @@ master_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/data_summary_mas
 master_sheet = master_sheet %>%
   filter(Round3_static == "yes")
 
-# split species into demersal and pelagic
-#demersal = master_sheet[str_detect(master_sheet$Zone, "Demersal"),]
-#pelagic = master_sheet[str_detect(master_sheet$Zone, "Pelagic"),]
-
 # ---------------------------------
 # 2 - PLANNING UNITS
 # output: planning unit grid (eez with no values)
@@ -64,8 +60,14 @@ source(list.files(pattern = "Planningunit.R", recursive = TRUE))
 # 3 - COSTS
 # output: 
 # ---------------------------------
-if(costs == "yes"){
-source(list.files(pattern = "Costs.R", recursive = TRUE))}
+source(list.files(pattern = "Costs.R", recursive = TRUE))
+
+# ---------------------------------
+# 3 - LOCKED IN AREAS
+# output: 
+# ---------------------------------
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+
 
 # ---------------------------------
 # 4 - CONSERVATION FEATURES
