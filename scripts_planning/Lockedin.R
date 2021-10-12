@@ -28,8 +28,9 @@ mpas = raster(list.files(pattern = "mpalayer_2.tif",recursive=TRUE,full.names = 
 # ---------------------------------
 
 # rasterize
-estuaries_raster = fasterize(estuaries,pu)
-estuaries_raster = fasterize(st_collection_extract(estuaries,"POLYGON"),pu, field = "OBJECTID")
+estuaries_raster = rasterize(estuaries,pu)
+estuaries_raster = rasterize(st_collection_extract(estuaries,"POLYGON"),pu, field = "Ecoregion")
+plot(estuaries_raster)
 
 aggregations_raster = rasterize(aggregations,pu)
 
