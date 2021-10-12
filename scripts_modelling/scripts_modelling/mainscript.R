@@ -42,7 +42,7 @@ library(readxl)
 # for me it changed based on if i was working on pc or mac
 #path =  "C:/Users/Administrator/"
 path =  "/Users/nfb/"
-setwd(paste0(path,"Dropbox/6-WILDOCEANS/Modelling"))
+setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
 # ---------------------------------
 #  - ENVIRONMENTAL VARIABLES 
