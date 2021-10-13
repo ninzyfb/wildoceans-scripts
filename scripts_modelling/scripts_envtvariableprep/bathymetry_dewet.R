@@ -1,12 +1,12 @@
 library(raster)
 
 # data
-bathy1 = raster(list.files(pattern = "bathymetry_deWet.grd",recursive = TRUE))
+bathy1 = raster(list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/",pattern = "bathymetry_deWet.grd",recursive = TRUE, full.names = TRUE))
 
 # Template raster
 # raster from which the extent and resolution will be taken from for the 5km models
 # This is one of the daily SST rasters
-template = raster(list.files(pattern = "template.tif", recursive = TRUE))
+template = raster(list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/",pattern = "template.tif", recursive = TRUE, full.names = TRUE))
 plot(template)
 crs(template)
 

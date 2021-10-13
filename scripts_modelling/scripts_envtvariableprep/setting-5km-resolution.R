@@ -17,7 +17,7 @@ plot(template)
 # the technique is use is ngb which means nearest neighbour.
 
 # list each environmental layer that we want to use for modelling
-files = list.files("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS/") 
+files = list.files("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS/",full.names = TRUE) 
 
 # project continuous variables using bilinear method
 continuous = files[-length(files)] # remove substrate simplified
