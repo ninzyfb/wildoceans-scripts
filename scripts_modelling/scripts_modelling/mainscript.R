@@ -45,10 +45,20 @@ path =  "/Users/nfb/"
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
 # ---------------------------------
-#  - ENVIRONMENTAL VARIABLES 
+#  - ENVIRONMENTAL VARIABLES
 # output: a predictor variable stack (stack)
 # ---------------------------------
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE))
+stack_master = stack
+# ---------------------------------
+#  - MARINE REGIONS
+# output: three marine regions to distinguish different ranges in EEZ
+# ---------------------------------
+
+# three marine regions as defined by EBERT et al.
+regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,full.names = TRUE))
+# turn regions to upper case
+regions$Region = toupper(regions$Region)
 
 # ---------------------------------
 #  - DEFINE MODEL PARAMETERS 
@@ -66,17 +76,22 @@ master = read_xlsx(paste0(path,"Dropbox/6-WILDOCEANS/data_summary_master.xlsx"))
 
 count = 1 # this is relevant for the prevalence script
 list = list() # this is relevant for the prevalence script
+list_abundance = list()
 
 for(i in 1:nrow(master)){
+  
+  # redefine stack of envt variables
+  stack = stack_master
+  
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
   # ---------------------------------
   target = master$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = master$Round3_Substrate[i] # include substrate layer (species dependent based on species sheets and workshops)
-  seasonal = master$Round3_seasonal[i] # run seasonal (summer & winter) model?
-  fisheries = master$Round3_Fisheries[i] # incorporate fisheries data?
+  substrate = master$Substrate[i] # include substrate layer (species dependent based on species sheets and workshops)
+  seasonal = master$Seasonality[i] # run seasonal (summer & winter) model?
+  fisheries = master$Fisheries[i] # incorporate fisheries data?
   restrictedrange = master$Restricted_range[i] # is the range restricted? (this is  species dependent based on their species sheets and workshops)
   if(restrictedrange == "yes"){ # specify range if needs to be clipped to
     range = toupper(master$areas[i]) # extract areas
@@ -87,8 +102,8 @@ for(i in 1:nrow(master)){
   #  - LOAD SPECIES DATA
   # outputs: occurrences (obs.data) and when applicable polygon occurrences (obs.data_poly)
   # ---------------------------------
-  source(list.files(pattern = "species_data.R", recursive = TRUE)) # finds script in directory
-  rm(folder,group) # no longer needed
+  source(list.files(pattern = "species_data.R", recursive = TRUE,full.names = TRUE)) # finds script in directory
+  rm(folder) # no longer needed
   
   if(length(files)>0){
   
@@ -106,14 +121,21 @@ for(i in 1:nrow(master)){
   # output: occurrence points can now be grouped by season (summer and winter)
   # ---------------------------------
   # run seasonality script
-  if(seasonal == "yes"){source(list.files(pattern = "seasonality.R", recursive = TRUE))}
+  if(seasonal == "yes"){source(list.files(pattern = "seasonality.R", recursive = TRUE, full.names = TRUE))}
   # running an aseasonal model only then simply format data
   if(seasonal == "no"){
     obs.data$LONGITUDE = as.numeric(obs.data$LONGITUDE)
     obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
     coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
     # set CRS of observations based on CRS of template
-    template = raster(list.files(pattern = "template.tif", recursive = TRUE))
+    template = raster(list.files(pattern = "template.tif", recursive = TRUE,full.names = TRUE))
+    crs(obs.data) = crs(template)}
+  if(seasonal == "unclear"){
+    obs.data$LONGITUDE = as.numeric(obs.data$LONGITUDE)
+    obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
+    coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
+    # set CRS of observations based on CRS of template
+    template = raster(list.files(pattern = "template.tif", recursive = TRUE,full.names = TRUE))
     crs(obs.data) = crs(template)}
   
   # ---------------------------------
@@ -121,17 +143,20 @@ for(i in 1:nrow(master)){
   # output: refines the range that will be modelled if required for the target species
   # ---------------------------------
   if(restrictedrange == "yes"){ # defined in model parameters
-    source(list.files(pattern = "modelextent.R", recursive = TRUE))}
+    source(list.files(pattern = "modelextent.R", recursive = TRUE,full.names = TRUE))}
 
   # ---------------------------------
   #  - PREVALENCE
   # output: refines the range that will be modelled if required for the target species
   # ---------------------------------
-  source(list.files(pattern = "Prevalence.R", recursive = TRUE))
+  source(list.files(pattern = "Prevalence.R", recursive = TRUE,full.names = TRUE))
   
   }
   if(exists("perc")){
   list[[count]] = perc}else{list[[count]] = 0}
+  if(exists("abundance")){
+    list_abundance[[count]] = abundance}else{list_abundance[[count]] = 0}
+  
   count = count+1
   rm(perc)
 }
@@ -144,16 +169,23 @@ rm(allcells,count,restrictedrange,range,seasonal,substrate,target,i,files,table,
 
 # Get all prevalence scores in a data frame
 prevalence = as.data.frame(unlist(list))
+# Get all abundance scores in a data frame
+abundance = as.data.frame(unlist(list_abundance))
 # add species name
 prevalence$species = master$SPECIES_SCIENTIFIC
+# add abundance values
+prevalence = cbind(prevalence,abundance)
+
 # round to 1 integer
 # as a rule we are only keeping species with a prevalence of 1 or above
 names(prevalence)[1] = "prevalence"
+names(prevalence)[3] = "abundance"
 prevalence$rounded = round(prevalence$prevalence, digits = 0)
 # filter to keep only species with prevalence values of 1 or higher
 species_keep = prevalence %>%
   filter(rounded >=1 )
 rm(prevalence,list) # remove
+write.csv(species_keep,"species_tokeep.csv")
 
 # ---------------------------------
 # - CREATE RAW PLOTS

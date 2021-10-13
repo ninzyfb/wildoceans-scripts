@@ -12,12 +12,6 @@
 # DATA
 # ---------------------------------
 
-# three marine regions as defined by EBERT et al.
-regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE))
-
-# turn regions to upper case
-regions$Region = toupper(regions$Region)
-
 # define the new extent using the regions specified in model paramters
 subset = regions[regions$Region %in% range,]
 
@@ -26,4 +20,3 @@ stack = raster::crop(stack,extent(subset))
 stack = stack(stack)
 stack$substrate_simplified = as.factor(stack$substrate_simplified) # turn substrate to a factor
 
-rm(regions) # remove uneccesary variables

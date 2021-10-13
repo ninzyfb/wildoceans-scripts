@@ -12,30 +12,30 @@
 # ---------------------------------
 
 # add raster data if available
-files = list.files(path = "Singlespecies_Rasters",pattern = target, ignore.case = TRUE)
+files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Singlespecies_Rasters"),pattern = target, ignore.case = TRUE,full.names = TRUE)
 if(length(files)>0){
 list_coords = list() # empty list
-for(i in 1:length(files)){ # add any raster files to list
-  list_coords[[i]] = raster(list.files(pattern = files[i], recursive = TRUE))
+for(a in 1:length(files)){ # add any raster files to list
+  list_coords[[a]] = raster(files[a])
 }
 fishingdata = stack(list_coords) # stack the rasters
-rm(list_coords,files,i)
+rm(list_coords,files,a)
 
 # add value of 1 to any presence cell
-for(i in 1:nlayers(fishingdata)){
-  values(fishingdata[[i]])[values(!is.na(fishingdata[[i]]))] = 1}
-rm(i) # remove unnecessary variables
+for(b in 1:nlayers(fishingdata)){
+  values(fishingdata[[b]])[values(!is.na(fishingdata[[b]]))] = 1}
+rm(b) # remove unnecessary variables
 
 # the following loop extracts coordinates for presence for each season
 list_coords = list()
-for(i in 1:nlayers(fishingdata)){
-  cells = which(values(fishingdata[[i]]) == 1) # identify cells with a value of 1
-  list_coords[[i]] = xyFromCell(fishingdata[[i]],cells) # get xy (coordinates) from those cells
+for(c in 1:nlayers(fishingdata)){
+  cells = which(values(fishingdata[[c]]) == 1) # identify cells with a value of 1
+  list_coords[[c]] = xyFromCell(fishingdata[[c]],cells) # get xy (coordinates) from those cells
   season = str_split(names(fishingdata)[i], pattern = "_")[[1]][4] # extract which seasons each fishing data layer came from
-  length  = nrow(list_coords[[i]]) # get total number of coordinates/cells for each season
+  length  = nrow(list_coords[[c]]) # get total number of coordinates/cells for each season
   season = rep(season,length) # assign the season to those coordinates
-  list_coords[[i]] = as.data.frame(cbind(list_coords[[i]],season))} # convert to a dataframe
-rm(cells,i,length,season) # remove unnecessary variables
+  list_coords[[c]] = as.data.frame(cbind(list_coords[[c]],season))} # convert to a dataframe
+rm(cells,c,length,season) # remove unnecessary variables
 
 # ---------------------------------
 # FORMATTING

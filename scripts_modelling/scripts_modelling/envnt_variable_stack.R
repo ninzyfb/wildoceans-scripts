@@ -18,4 +18,4 @@ rm(variable_names) # remove unnecessary variable
 # ---------------------------------
 # DEFINE WORKING DIRECTORY
 # ---------------------------------
-setwd(paste0(path,"Dropbox/6-WILDOCEANS/Modelling"))
+setwd(paste0(path,"Dropbox/6-WILDOCEANS"))

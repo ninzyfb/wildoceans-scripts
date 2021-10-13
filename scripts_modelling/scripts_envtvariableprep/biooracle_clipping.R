@@ -3,10 +3,10 @@ library(raster) # package for raster manipulation
 library(sf) # package for shapefile data
 
 # Set directory
-setwd("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling")
+setwd("/Users/nfb/Dropbox/6-WILDOCEANS")
 getwd()
 
-template = raster("template.tif") # load template file
+template = raster(list.files(pattern = "template.tif", full.names=TRUE, recursive = TRUE)) # load template file
 
 setwd("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/environmental_variables/BioOracle")
 

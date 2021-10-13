@@ -15,8 +15,8 @@
 # the folder is specified in mainscript.R
 files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = paste(toupper(target),".rds",sep=""))
 if(length(files)>0){
-obs.data = readRDS(paste(folder,toupper(target),".rds",sep="")) 
-obs.data_poly = read.csv(list.files(pattern = "polygondata_clean.csv",recursive=TRUE))
+obs.data = readRDS(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/",folder,toupper(target),".rds",sep="")) 
+obs.data_poly = read.csv(list.files(pattern = "polygondata_clean.csv",recursive=TRUE, full.names = TRUE))
 
 # ---------------------------------
 # FORMATTING
@@ -56,3 +56,5 @@ print(table(dups)) # print number of duplicate records
 obs.data = obs.data[!dups,] # remove duplicates from data
 rm(dups) # remove variable from environment
 }
+
+abundance = nrow(obs.data)
