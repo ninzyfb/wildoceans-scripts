@@ -66,8 +66,6 @@ rm(substrate) # no longer needed
 # WRITING DATA
 # ---------------------------------
 
-# save chosen variables for species in question
-write.csv(variable_selection$pred_sel,paste0("Outputs/selectedvariables/",target,"_variables.csv"))
+# save chosen variables for species in question 
+write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_variables.csv"))
 rm(variable_selection) # remove unnecessary variables
-
-print("test")

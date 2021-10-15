@@ -1,7 +1,6 @@
-library(biomod2)
 
 ## Plot 2D response curves
-temp <- BIOMOD_LoadModels(static_ensemblemodel)[1]
+temp <- BIOMOD_LoadModels(static_ensemblemodel)
 rp2 = response.plot2(
     models = temp,
     Data = get_formal_data(static_ensemblemodel, 'expl.var'),

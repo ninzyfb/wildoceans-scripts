@@ -28,7 +28,7 @@ static_models <- BIOMOD_Modeling(
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
   modeling.output = static_models, # your models object
   chosen.models = 'all', # use all your models
-  em.by='all', # the way the models will be combined to build the ensemble models.
+  em.by='PA_dataset+repet', # the way the models will be combined to build the ensemble models.
   eval.metric = 'TSS', # which metric to use to keep models for the ensemble (requires the threshold below)
   eval.metric.quality.threshold = c(0.7), # only keep models with a TSS score >0.7
   prob.mean = T, #  Estimate the mean probabilities across predictions
@@ -62,7 +62,7 @@ thresh = Find.Optim.Stat(Stat='TSS',
                          Nb.thresh.test = 100,
                          Fixed.thresh = NULL)[2]
 thresh = as.data.frame(thresh) # save the output as a dataframe
-write.csv(thresh,paste("Outputs/thresholds/",model_type,target,"thresh.csv")) # save the dataframe
+write.csv(thresh,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/thresholds/",model_type,target,"thresh.csv")) # save the dataframe
 rm(predictions,response) # remove unnecessary variables
 
 # ---------------------------------
@@ -88,7 +88,7 @@ plot = levelplot(temp,
   layer(sp.polygons(sa_coast,col = "black",lwd= 1))
 
 # this saves the plot to a folder
-png(file=paste0("Outputs/prettyplots/",target,"_",model_type,"_","continuous_ensemble.png"), width=3000, height=3000, res=300)
+png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_","continuous_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
 rm(temp,plot) # remove unnecessary variables

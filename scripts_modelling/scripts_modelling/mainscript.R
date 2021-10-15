@@ -197,7 +197,7 @@ source(list.files(pattern = "rawplots.R", recursive = TRUE))
 #  - MODEL PLOTTING PARAMETERS
 # output: additional features required for plotting (eez, provinces, contours)
 # ---------------------------------
-source(list.files(pattern = "plottingparameters.R", recursive = TRUE))
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
 
 # ---------------------------------
 # - RUN MODELLING WORKFLOW ON SPECIES WITH HIGH ENOUGH PREVALENCE
@@ -209,7 +209,7 @@ master_keep = master %>%
 # ! If you just want to run the modelling code you can
 # just follow the steps below
 master_keep = master %>%
-  filter(SPECIES_SCIENTIFIC == "RAJA OCELLIFERA")
+  filter(SPECIES_SCIENTIFIC == "ACROTERIOBATUS ANNULATUS")
 
 # looping through each species to produce the model
 for(i in 1:nrow(master_keep)){
@@ -239,7 +239,7 @@ for(i in 1:nrow(master_keep)){
   # outputs: occurrences (obs.data) and when applicable polygon occurrences (obs.data_poly)
   # ---------------------------------
   source(list.files(pattern = "species_data.R", recursive = TRUE)) # finds script in directory
-  rm(folder,group) # no longer needed
+  rm(folder) # no longer needed
   
     # ---------------------------------
     #  - ADD FISHERIES DATA

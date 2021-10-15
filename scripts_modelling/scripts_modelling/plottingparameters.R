@@ -12,10 +12,10 @@
 # ---------------------------------
 
 # eez
-eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE)) # load eez
+eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE, full.names = TRUE)) # load eez
 
 # 250m isobath
-contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE)) 
+contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, full.names=TRUE)) 
 
 # provinces
 sa  <- getData("GADM",country="South Africa",level=1)
