@@ -19,8 +19,11 @@ if(restrictedrange == "yes"){
   template = crop(template,extent(subset))
 }
 rm(subset)
+
 # crop to template
 obs.data = crop(obs.data, template)
+
+# if there is still observation data after cropping
 if(length(obs.data)>0){
 # find number of cells with data
 obscells = cellFromXY(template, obs.data)

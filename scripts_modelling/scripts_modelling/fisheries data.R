@@ -11,10 +11,10 @@
 # DATA
 # ---------------------------------
 
-# add raster data if available
+# add raster data for target species if available
 files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Singlespecies_Rasters"),pattern = target, ignore.case = TRUE,full.names = TRUE)
 if(length(files)>0){
-list_coords = list() # empty list
+list_coords = list() # create empty list
 for(a in 1:length(files)){ # add any raster files to list
   list_coords[[a]] = raster(files[a])
 }
@@ -26,7 +26,7 @@ for(b in 1:nlayers(fishingdata)){
   values(fishingdata[[b]])[values(!is.na(fishingdata[[b]]))] = 1}
 rm(b) # remove unnecessary variables
 
-# the following loop extracts coordinates for presence for each season
+# the following loop extracts coordinates for presence cells for each season
 list_coords = list()
 for(c in 1:nlayers(fishingdata)){
   cells = which(values(fishingdata[[c]]) == 1) # identify cells with a value of 1
@@ -51,7 +51,7 @@ fishingdata$LATITUDE = as.numeric(fishingdata$LATITUDE) # convert lat and lon to
 fishingdata$SEASON = as.factor(fishingdata$SEASON) # convert season to a factor
 fishingdata$DATASET = "DEFF" # assign correct owner of dataset
 
-# add to main observation data
+# add to main observation data if it exists
 if(exists('fishingdata')){
   obs.data = full_join(obs.data,fishingdata)
 }

@@ -5,8 +5,11 @@
 # ---------------------------------------------------------------------------------
 
 ####
-#THIS SCRIPT: loads in occurrence data from both dataframes and shapefiles and formats it properly
+#THIS SCRIPT: loads in occurrence data and formats it properly
+#IMPORTANT! THIS SCRIPT NEEDS TO BE RUN FROM THE MAIN SCRIPT WHICH SPECIFIES TARGET SPECIES
+####
 
+# detach biomod2 if attached as it messes with other packages i.e. tidyr
 detach(package:biomod2,unload=TRUE)
 
 # ---------------------------------
@@ -14,9 +17,9 @@ detach(package:biomod2,unload=TRUE)
 # ---------------------------------
 
 # reads in data points of target species from specified folder
-# the folder is specified in mainscript.R
 files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = paste(toupper(target),".rds",sep=""))
-if(length(files)>0){
+if(length(files)>0){ # if species has associated data run rest of script
+  # load in data file (point and polygon formats)
 obs.data = readRDS(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/",folder,toupper(target),".rds",sep="")) 
 obs.data_poly = read.csv(list.files(pattern = "polygondata_clean.csv",recursive=TRUE, full.names = TRUE))
 
@@ -28,6 +31,7 @@ obs.data_poly = read.csv(list.files(pattern = "polygondata_clean.csv",recursive=
 obs.data_poly$X = NULL
 colnames(obs.data_poly) = toupper(colnames(obs.data_poly))
 obs.data_poly$SPECIES_SCIENTIFIC = toupper(obs.data_poly$SPECIES_SCIENTIFIC) # turn to upper case
+# if species has no associated polygon data then this will simplY become an empty data frame
 obs.data_poly = obs.data_poly %>%
   filter(SPECIES_SCIENTIFIC == target)
 
@@ -53,8 +57,7 @@ obs.data = obs.data %>%
 
 # verify duplicates (for latitude, longitude, and date)
 dups = duplicated(obs.data[c("LATITUDE","LONGITUDE", "DATE2")])
-table(dups) # TRUE are number of duplicate records
-print(table(dups)) # print number of duplicate records
+print(table(dups)) # print number of duplicate records, TRUE are number of duplicates
 obs.data = obs.data[!dups,] # remove duplicates from data
 rm(dups) # remove variable from environment
 }

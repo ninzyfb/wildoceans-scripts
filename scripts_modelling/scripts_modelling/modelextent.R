@@ -16,7 +16,6 @@
 subset = regions[regions$Region %in% range,]
 
 # crop raster stack to new regions
-stack = raster::crop(stack,extent(subset))
-stack = stack(stack)
-stack$substrate_simplified = as.factor(stack$substrate_simplified) # turn substrate to a factor
-
+stack_subset = raster::crop(stack,extent(subset))
+stack_subset = stack(stack_subset)
+stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified) # turn substrate to a factor

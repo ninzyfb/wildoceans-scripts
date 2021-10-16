@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------------
 
 ####
-#THIS SCRIPT: seperates the data into a summer and winter season
+#THIS SCRIPT: separates the data into austral summer and winter
 
 # ---------------------------------
 # FORMATTING

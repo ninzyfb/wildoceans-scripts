@@ -36,6 +36,7 @@ static_ensemblemodel  <- BIOMOD_EnsembleModeling(
 )
 
 # Individual model projections over current environmental variables
+if(exists("stack_subset")){
 static_modelprojections =
   BIOMOD_Projection(
     proj.name = target, # new folder will be created with this name
@@ -45,7 +46,16 @@ static_modelprojections =
     binary.meth = 'TSS', # model evaluation method
     compress = 'xz', # to do with how r stores the file
     build.clamping.mask = FALSE,
-    output.format = '.grd')
+    output.format = '.grd')}else{static_modelprojections =
+      BIOMOD_Projection(
+        proj.name = target, # new folder will be created with this name
+        modeling.output = static_models, # your modelling output object
+        new.env = stack, # same environmental variables on which model will be projected
+        selected.models = "all", # which models to project, in this case only the full ones
+        binary.meth = 'TSS', # model evaluation method
+        compress = 'xz', # to do with how r stores the file
+        build.clamping.mask = FALSE,
+        output.format = '.grd')}
 
 # Ensemble model projection 
 static_ensembleprojection = BIOMOD_EnsembleForecasting(
@@ -113,11 +123,12 @@ plot = levelplot(temp,
 png(file=paste0("Outputs/prettyplots/",target,"_",model_type,"_","binary_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
-rm(temp,plot) # remove unnecessary variables
+rm(plot) # remove unnecessary variables
 
-# PLOT 3 and 4 - PLANNING SOFTWARE PLOTS
+# PLOT 3, 4 and 5 - PLANNING SOFTWARE PLOTS
 # these are the plots to use in the planning software
 # they are simple rasters with probability values from 0 to 1000
 # both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
 writeRaster(en_preds[[1]],paste0("Outputs/sdms/",target,"_",model_type,"ensemblemean.tiff"), overwrite = TRUE)
 writeRaster(en_preds[[2]],paste0("Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
+writeRaster(temp,paste0("Outputs/sdms/",target,"_",model_type,"ensemblemeanthreshold.tiff"),  overwrite = TRUE)
