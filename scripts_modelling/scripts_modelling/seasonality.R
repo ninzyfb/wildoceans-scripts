@@ -63,7 +63,7 @@ if(length(table)>0){
 # look at distribution per season
 # there is likely to also be bias in sampling effort and location per season
 # this is dealt with accordingly in the subsampling and pseudo-absence scripts
-#ggplot(data = st_as_sf(obs.data)) +
-#  geom_sf(aes(col=SEASON),size = 1)+
-#  theme_bw()
+ggplot(data = st_as_sf(obs.data)) +
+  geom_sf(aes(col=SEASON),size = 1)+
+  theme_bw()
 

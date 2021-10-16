@@ -52,6 +52,12 @@ static_ensembleprojection = BIOMOD_EnsembleForecasting(
   EM.output = static_ensemblemodel,
   projection.output = static_modelprojections)
 
+# get all models evaluation scores
+all_evals = get_evaluations(static_models, as.data.frame = TRUE)
+ensemble_evals = get_evaluations(static_ensemblemodel, as.data.frame = TRUE)
+write.csv(all_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"allevals.csv"))
+write.csv(ensemble_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"ensembleevals.csv"))
+
 # Threshold calculation
 # this function calculates the threshold at which a probability can be considered a presence
 response = get_formal_data(static_models,"resp.var") # response variable 

@@ -8,6 +8,12 @@
 #THIS SCRIPT: prepares the data so that it can be run vie the biomod package
 
 # ---------------------------------
+# PACKAGES
+# biomod2 is loaded in seperately as it intercats with functions from other packages
+# ---------------------------------
+library(biomod2)
+
+# ---------------------------------
 # FORMATTING
 # ---------------------------------
 

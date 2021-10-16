@@ -1,39 +1,25 @@
 
 ## Plot 2D response curves
-temp <- BIOMOD_LoadModels(static_ensemblemodel)
-rp2 = response.plot2(
+temp <- BIOMOD_LoadModels(static_models, models = "GLM")
+pdf.options(width = 10, height = 10, pointsize = 20)
+response.plot2(
     models = temp,
-    Data = get_formal_data(static_ensemblemodel, 'expl.var'),
-    show.variables = get_formal_data(static_ensemblemodel,'expl.var.names'),
+    Data = get_formal_data(static_models, 'expl.var'),
+    show.variables = get_formal_data(static_models,'expl.var.names'),
     do.bivariate = FALSE,
     fixed.var.metric = 'median',
-    col = c("blue", "red"),
-    legend = TRUE,
-    data_species = get_formal_data(static_ensemblemodel, 'resp.var')
-  )
-
-## Plot 3D response curves
+    legend = FALSE,
+    data_species = get_formal_data(static_models, 'resp.var'),
+    save.file = "pdf",
+    name = paste0(target,"responseplotsGLM"))
+temp <- BIOMOD_LoadModels(static_models, models = "MAXENT.Phillips")
 response.plot2(
-  models = GLMs[1],
-  Data = get_formal_data(static, 'expl.var'), 
-  show.variables = get_formal_data(static, 'expl.var.names'),
-  do.bivariate = TRUE,
+  models = temp,
+  Data = get_formal_data(static_models, 'expl.var'),
+  show.variables = get_formal_data(static_models,'expl.var.names'),
+  do.bivariate = FALSE,
   fixed.var.metric = 'median',
-  data_species = get_formal_data(static, 'resp.var'),
-  display_title = FALSE
-)
-
-look = get_predictions(static)
-dimnames(look)
-
-
-# get all models evaluation scores
-all_evals = get_evaluations(static_models)
-ensemble_evals = get_evaluations(ensemble)
-
-# Print TSS and ROC scores of all models
-dimnames(all_evals) # print the dimnames
-all_evals[c("TSS"),"Testing.data",,,]
-
-# Print TSS and ROC scores of ensemble model
-ensemble_evals
+  legend = FALSE,
+  data_species = get_formal_data(static_models, 'resp.var'),
+  save.file = "pdf",
+  name = paste0(target,"responseplotsMAXENT"))

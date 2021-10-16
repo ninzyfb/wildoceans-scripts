@@ -7,6 +7,8 @@
 ####
 #THIS SCRIPT: loads in occurrence data from both dataframes and shapefiles and formats it properly
 
+detach(package:biomod2,unload=TRUE)
+
 # ---------------------------------
 # DATA
 # ---------------------------------
@@ -57,4 +59,3 @@ obs.data = obs.data[!dups,] # remove duplicates from data
 rm(dups) # remove variable from environment
 }
 
-abundance = nrow(obs.data)

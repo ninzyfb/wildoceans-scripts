@@ -14,7 +14,7 @@
 library(tidyr) # this package seems to mess with other packages so best to only load when needed
 pts_env_temporary = pts_env %>% # create temporary duplicate of presence absence data without NAs
   drop_na()
-# detach tidyre package 
+# detach tidyr package 
 detach(package:tidyr,unload=TRUE)
 
 # remove substrate which is categorical variable and doesn't work with function
