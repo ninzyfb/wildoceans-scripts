@@ -10,8 +10,9 @@
 ####
 
 # detach biomod2 if attached as it messes with other packages i.e. tidyr
-detach(package:biomod2,unload=TRUE)
-
+if("biomod2" %in% (.packages())){
+  detach("package:biomod2", unload=TRUE) 
+}
 # ---------------------------------
 # DATA
 # ---------------------------------
@@ -62,3 +63,4 @@ obs.data = obs.data[!dups,] # remove duplicates from data
 rm(dups) # remove variable from environment
 }
 
+abundance = nrow(obs.data)

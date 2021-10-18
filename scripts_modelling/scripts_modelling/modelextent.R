@@ -12,10 +12,13 @@
 # DATA
 # ---------------------------------
 
+# turn region names to upper case
+regions$Region = toupper(regions$Region)
+
 # define the new extent using the regions specified in model paramters
-subset = regions[regions$Region %in% range,]
+subset = regions[regions$Region%in%range,]
 
 # crop raster stack to new regions
-stack_subset = raster::crop(stack,extent(subset))
-stack_subset = stack(stack_subset)
-stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified) # turn substrate to a factor
+stack_new = raster::crop(stack,extent(subset))
+stack_new = stack(stack_new)
+stack_new$substrate_simplified = as.factor(stack_new$substrate_simplified) # turn substrate to a factor

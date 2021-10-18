@@ -20,7 +20,7 @@ absences = SpatialPoints(randomPoints(template, 10*length(pts_sub)))
 # extract environmental variables (static points)
 pa = rbind(pts_sub,absences) # combine presences and absences
 # extract environmental values
-if(exists("stack_subset")){vars = as.data.frame(raster::extract(stack_subset, pa))}else{vars = as.data.frame(raster::extract(stack, pa))}
+vars = as.data.frame(raster::extract(stack, pa))
 # create a data frame
 pa = as.data.frame(c(rep(1,length(pts_sub)),rep(0,length(absences)))) # add column of 1s and 0s for preseces and absences respectively
 colnames(pa) = "pa" # rename that column pa (for presence absence)
@@ -44,7 +44,7 @@ rm(i) # remove unnecessary variables
 pts_env_seasons = list()
 for(i in 1:length(pts_sub_seasons)){ # same as for static model but carry it out for both seasons in the list
   pa = rbind(pts_sub_seasons[[i]],absences[[i]])
-  if(exists("stack_subset")){vars = as.data.frame(raster::extract(stack_subset, pa))}else{vars = as.data.frame(raster::extract(stack, pa))}
+  vars = as.data.frame(raster::extract(stack, pa))
   pa = as.data.frame(c(rep(1,length(pts_sub_seasons[[i]])),rep(0,length(absences[[i]]))))
   colnames(pa) = "pa"
   coords = as.data.frame(rbind(coordinates(pts_sub_seasons[[i]]),coordinates(absences[[i]])))

@@ -35,10 +35,12 @@ pts_env$substrate_simplified = as.factor(pts_env$substrate_simplified)
 rm(keep) # remove unnecessary variables
 
 # filter stack to only keep chosen variables
-stack_subset = subset(stack,names(pts_env))
-stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )
-rm(stack) # remove unnecessary variables
-
+if(exists("stack_new")){
+stack_subset = subset(stack_new,names(pts_env))
+stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )}else{
+  stack_subset = subset(stack,names(pts_env))
+  stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )
+}
 # run same code for seasonal data
 if(exists("pts_env_seasons")){
 # filter dfs to only keep chosen variables (seasonal)
@@ -58,7 +60,6 @@ if(substrate == "no"){
   if(exists("pts_env_seasons")){
   pts_env_seasons[[1]]$substrate_simplified = NULL
   pts_env_seasons[[2]]$substrate_simplified = NULL}
-  names(stack_subset)
   stack_subset = dropLayer(stack_subset,1)}
 rm(substrate) # no longer needed
 
@@ -68,4 +69,4 @@ rm(substrate) # no longer needed
 
 # save chosen variables for species in question 
 write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_variables.csv"))
-rm(variable_selection) # remove unnecessary variables
+rm(variable_selection,stack_new) # remove unnecessary variables

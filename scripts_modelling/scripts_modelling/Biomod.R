@@ -18,7 +18,7 @@ library(biomod2)
 # ---------------------------------
 
 # Set model parameters
-Print_Default_ModelingOptions() # these are the default parameters used for each model
+#Print_Default_ModelingOptions() # these are the default parameters used for each model
 
 # specify MAXENT path, and polynomial GLM
 mxtPh = BIOMOD_ModelingOptions(MAXENT = list(path_to_maxent.jar = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/maxent")),

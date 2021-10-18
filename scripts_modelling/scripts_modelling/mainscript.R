@@ -85,7 +85,7 @@ list_prevalence = list() # list of prevalence values
 list_abundance = list() # list of abundance values
 
 for(i in 1:nrow(master)){
-  
+
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: extracts species-specific model parameters from master sheet
@@ -93,7 +93,6 @@ for(i in 1:nrow(master)){
   target = master$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master$Substrate[i] # inclusion or not of substrate layer?
-  seasonal = master$Seasonality[i] # run seasonal (summer & winter) model?
   fisheries = master$Fisheries[i] # incorporate fisheries data?
   restrictedrange = master$Restricted_range[i] # range restriction?
   if(restrictedrange == "yes"){ # specify which areas to clip range to
@@ -123,15 +122,7 @@ for(i in 1:nrow(master)){
   #  - SEASONALITY 
   # output: occurrence points are grouped by austral summer and winter
   # ---------------------------------
-  if(seasonal == "yes"){source(list.files(pattern = "seasonality.R", recursive = TRUE, full.names = TRUE))}
-  
-  # format data
-  template = raster(list.files(pattern = "template.tif", recursive = TRUE,full.names = TRUE))
-  if(seasonal == ("no"|"unclear")){
-    obs.data$LONGITUDE = as.numeric(obs.data$LONGITUDE)
-    obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
-    coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE) # create spatial data frame
-    crs(obs.data) = crs(template)}  # set CRS of observations based on CRS of template
+  source(list.files(pattern = "seasonality.R", recursive = TRUE, full.names = TRUE))
   
   # ---------------------------------
   #  - CROP MODEL EXTENT
@@ -148,25 +139,26 @@ for(i in 1:nrow(master)){
   
   }
   if(exists("perc")){  # if applicable fill list with prevalence value
-  list[[count]] = perc}else{list[[count]] = 0}
+    list_prevalence[[count]] = perc}else{list_prevalence[[count]] = 0}
   if(exists("abundance")){  # if applicable fill list with abundance value
     list_abundance[[count]] = abundance}else{list_abundance[[count]] = 0}
   
   count = count+1 # increase count
-  rm(perc, abundance) # clear for next species
+  rm(perc, abundance,stack_subset) # clear for next species
 }
 
 # remove
-rm(allcells,count,restrictedrange,range,seasonal,substrate,target,i,files,table,obs.data,stack_temp)
+rm(allcells,count,restrictedrange,range,seasonal,substrate,target,i,files,table,obs.data,stack)
 
 # ---------------------------------
 #  - REFINE SPECIES TO MODEL BASED ON PREVALENCE
 # ---------------------------------
 
 # Get all prevalence scores in a data frame
-prevalence = as.data.frame(unlist(list))
+prevalence = as.data.frame(unlist(list_prevalence))
 # Get all abundance scores in a data frame
 abundance = as.data.frame(unlist(list_abundance))
+rm(list_abundance,list_prevalence) # remove
 # add species name
 prevalence$species = master$SPECIES_SCIENTIFIC
 # add abundance values
@@ -180,8 +172,8 @@ prevalence$rounded = round(prevalence$prevalence, digits = 0)
 # as a rule we are only keeping species with a prevalence of 1 or above
 species_keep = prevalence %>%
   filter(rounded >=1 )
-rm(prevalence,list) # remove
 write.csv(species_keep,"species_tokeep.csv") # write csv of kept species
+write.csv(prevalence,"species_all.csv") # write csv of all species
 
 # ---------------------------------
 # - CREATE RAW PLOTS
@@ -189,20 +181,18 @@ write.csv(species_keep,"species_tokeep.csv") # write csv of kept species
 # ---------------------------------
 source(list.files(pattern = "rawplots.R", recursive = TRUE))
 
-
 # ---------------------------------
 # - MODELLING WORKFLOW
 # the following loop will now run through each kept species again and run the models
 # ---------------------------------
+species_keep = read.csv(list.files(pattern ="species_tokeep.csv" ,full.names=TRUE,recursive = TRUE))
 
 # if prevalence loop was run then filter master file to only keep relevant species
-if(exists("master_keep")){
-master_keep = master %>%
-  filter(SPECIES_SCIENTIFIC %in% species_keep$species)}
+if(exists("species_keep")){master_keep = master %>% filter(SPECIES_SCIENTIFIC %in% species_keep$species)}else{
+  # if wanting to model a specific species enter species name
+  master_keep = master %>% filter(SPECIES_SCIENTIFIC == "SPECIES NAME HERE")}
 
-# if wanting to model a specific species enter species name
-master_keep = master %>%
-  filter(SPECIES_SCIENTIFIC == "SPECIES NAME HERE")
+rm(master,species_keep)
 
 # ---------------------------------
 #  - PLOTTING LAYERS
@@ -210,8 +200,16 @@ master_keep = master %>%
 # ---------------------------------
 source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
 
+# ---------------------------------
+#  - ENVIRONMENTAL VARIABLES 
+# output: a predictor variable stack (stack)
+# ---------------------------------
+source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
+
+
 # loop goes through each species to run and project the models
 for(i in 1:nrow(master_keep)){
+  
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
@@ -219,19 +217,14 @@ for(i in 1:nrow(master_keep)){
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master_keep$Substrate[i] # include substrate layer?
-  seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
+  seasonal = "no"
+  #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
   fisheries = master_keep$Fisheries[i] # incorporate fisheries data?
   restrictedrange = master_keep$Restricted_range[i] # is the range restricted?
   if(restrictedrange == "yes"){ # specify range if applicable
     range = toupper(master_keep$areas[i]) # extract areas
     range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them
   }
-  
-  # ---------------------------------
-  #  - ENVIRONMENTAL VARIABLES 
-  # output: a predictor variable stack (stack)
-  # ---------------------------------
-  source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
   
   # ---------------------------------
   #  - LOAD SPECIES DATA
@@ -293,17 +286,21 @@ for(i in 1:nrow(master_keep)){
 
     model_type = "Aseasonal" # specify model_type
     data = biomod_obj # specify which biomod_obj
-    source(list.files(pattern = "modelling", recursive = TRUE, full.names = TRUE))
+    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+    #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
     
     if(seasonal == "yes"){
       model_type = "summer" # specify model_type
       season = 1
       data = biomod_obj_seasons[[season]] # specify which biomod_obj
-      source(list.files(pattern = "modelling", recursive = TRUE, full.names = TRUE))
+      source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+      #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
       
       model_type = "winter" # specify model_type
       season = 2
       data = biomod_obj_seasons[[season]] # specify which biomod_obj
-      source(list.files(pattern = "modelling", recursive = TRUE, full.names = TRUE))}
-
+      source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+      #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
+    }
+    rm(stack_subset,stack_new)
 }
