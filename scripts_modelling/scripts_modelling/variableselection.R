@@ -36,9 +36,9 @@ rm(keep) # remove unnecessary variables
 
 # filter stack to only keep chosen variables
 if(exists("stack_new")){
-stack_subset = subset(stack_new,names(pts_env))
+stack_subset = subset(stack_new,names(pts_env)[-c(1:3)])
 stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )}else{
-  stack_subset = subset(stack,names(pts_env))
+  stack_subset = subset(stack,names(pts_env)[-c(1:3)])
   stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )
 }
 # run same code for seasonal data
