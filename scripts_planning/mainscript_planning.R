@@ -58,26 +58,25 @@ master_sheet = master_sheet %>%
 source(list.files(pattern = "Planningunit.R", recursive = TRUE)) 
 
 # ---------------------------------
-# 3 - COSTS
-# output: 
-# ---------------------------------
-source(list.files(pattern = "Costs.R", recursive = TRUE))
-
-# ---------------------------------
-# 3 - LOCKED IN AREAS
-# output: 
-# ---------------------------------
-source(list.files(pattern = "Lockedin.R", recursive = TRUE))
-
-
-# ---------------------------------
-# 4 - CONSERVATION FEATURES
+# 3 - CONSERVATION FEATURES
 # output: 
 # ---------------------------------
 source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE)) 
 
 # ---------------------------------
-# 5 - CONSERVATION TARGETS
+# 4 - COSTS
+# output: 
+# ---------------------------------
+source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
+
+# ---------------------------------
+# 5 - LOCKED IN AREAS
+# output: 
+# ---------------------------------
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+
+# ---------------------------------
+# 6 - CONSERVATION TARGETS
 # output: 
 # ---------------------------------
 source(list.files(pattern = "Speciestargets.R", recursive = TRUE)) 
