@@ -34,7 +34,8 @@ library(sdmvspecies)
 # all the subscripts are in the scripts folder
 # all the data is in the planning folder
 # make sure you set the directory to the overall WILDOCEANS folder so you can find both
-path = "/Users/nfb/"
+path = "/home/nina/Documents/" # linux path
+path = "/Users/nfb/" # mac path
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
 # ---------------------------------
@@ -57,7 +58,7 @@ master_sheet = master_sheet %>%
 # 2 - PLANNING UNITS
 # output: planning unit grid (eez with no values)
 # ---------------------------------
-source(list.files(pattern = "Planningunit.R", recursive = TRUE)) 
+source(list.files(pattern = "Planningunit.R", recursive = TRUE, full.names = TRUE)) 
 
 # ---------------------------------
 # 3 - CONSERVATION FEATURES
