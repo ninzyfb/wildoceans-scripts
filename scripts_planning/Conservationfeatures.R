@@ -1,23 +1,24 @@
 # ---------------------------------
 # DATA
 # ---------------------------------
-files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE) # find file names
+
+# species distribution file names
+files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
+feature_stack = stack()
+for(i in 1:length(files)){
+  temp = raster(files[i])
+  temp = projectRaster(temp,pu)
+  feature_stack = addLayer(feature_stack,temp)
+}
+rm(files) # remove unnecessary variables
+# turn all NA values to 0
+values(feature_stack)[is.na(values(feature_stack))] = 0
+# mask with pu
+feature_stack = mask(feature_stack,pu)
 
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-
-# create empty stack
-feature_stack = stack() 
-
-# for every file
-for(i in 1:length(files)){
-  temp = raster(files[i]) # read the file
-  temp = projectRaster(temp,pu) # project it to planning unit
-  feature_stack = addLayer(feature_stack,temp) # add to stack
-}
-
-rm(temp,i,files) # remove unnecessary variables
 
 # extract scientific name from stack of distributions
 featurenames = as.data.frame(names(feature_stack))
@@ -29,9 +30,9 @@ for(i in 1:nrow(featurenames)){
   # extract scientific name by pasting genus and species name from file name
   featurenames$species_scientific[i] = paste(strsplit(featurenames$featurename,"_")[[i]][1] ,strsplit(featurenames$featurename,"_")[[i]][2])}
 
-rm(i)
+rm(i) # remove unnecessary variables
 
-# turn species scientific to upper case
+# turn species names to upper case
 featurenames$species_scientific = toupper(featurenames$species_scientific)
 
 # ---------------------------------

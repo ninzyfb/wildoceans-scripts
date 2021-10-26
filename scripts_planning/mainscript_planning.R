@@ -14,6 +14,7 @@
 # PACKAGES
 # ---------------------------------
 library(dplyr)
+library(tidyr)
 library(prioritizr)
 library(gurobi)
 library(stringr)
@@ -24,6 +25,7 @@ library(raster)
 library(scales)
 library(readxl)
 library(fasterize)
+library(sdmvspecies)
 
 # ---------------------------------
 # DEFINE WORKING DIRECTORY
