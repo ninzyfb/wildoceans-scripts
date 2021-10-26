@@ -1,5 +1,3 @@
-
-
 # solve problem
 list_solutions = list()
 for(i in 1:length(list_problems)){
@@ -29,8 +27,11 @@ plot(list_solutions[[i]], col = c("grey90", "darkgreen"), main = paste("Scenario
 plot(mpas,add = TRUE)
 dev.off()
 }
-# plot replacement importance
-#rc = problem %>%
-#  add_gurobi_solver(time_limit = 60) %>%
-#  eval_replacement_importance(solution)
-#plot(rc, main = "replacement cost")
+
+# calculate importance scores using replacement cost scores
+
+test <- eval_replacement_importance(list_problems[[1]], list_solutions[[1]])
+plot(test)
+
+
+
