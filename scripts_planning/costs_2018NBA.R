@@ -19,6 +19,7 @@ nbafiles = list.files(pattern = "NBA5km.tif", recursive = TRUE,full.names = TRUE
 costs = stack(nbafiles)
 # project to planning unit
 costs = projectRaster(costs,pu)
+rm(nbafiles)
 
 # fishing threats
 threats = read_xlsx(list.files(pattern = "fisheries-risk.xlsx", recursive = TRUE,full.names = TRUE),skip=1)
@@ -32,11 +33,13 @@ names = vector()
 for(i in 1:length(names(costs))){
   names[i] = str_split(names(costs),"_NBA5km")[[i]][1]}
 names(costs) = names
+rm(names)
 
 # pivot threats 
 threats_v2 = threats %>%
   pivot_longer(!species_scientific,names_to = "fisheries",values_to = "affected" ) %>%
   filter(!is.na(affected))
+rm(threats)
 
 sppthreatsstack = stack()
 for(i in unique(threats_v2$species_scientific)){
