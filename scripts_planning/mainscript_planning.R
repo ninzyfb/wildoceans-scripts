@@ -50,7 +50,7 @@ scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scena
 # load data summary sheet
 master_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/data_summary_master.xlsx"),sheet = 1)
 
-# filter to only keep modelled species
+# filter to only keep modeled species
 master_sheet = master_sheet %>%
   filter(Round3_static == "yes")
 

@@ -54,3 +54,4 @@ feature_stack = raster::clamp(feature_stack, lower = 1e-6, useValues = TRUE)
 feature_stack = stack(feature_stack)
 
 rm(i) # remove unnecessary variables
+
