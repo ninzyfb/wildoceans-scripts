@@ -28,8 +28,13 @@ scenario = 1
 count = 0 # count for solution number (problem number)
 for(i in 1:length(list_solutions)){
 # plotted with the mpas
-png(file=paste0("Planning/Outputs/solutions/","p",count+i,"_scenario",scenario,"_targets",target_group[i],"_",season_order[i],".png"), width=3000, height=3000, res=300)
-plot(list_solutions[[i]], col = c("grey90", "darkgreen"), main = paste("Scenario:",scenario,"\nSeason:",season_order[i],"| Targets:",target_group[i],"\nPenalty:", penalty), sub = paste("Problem number:",count+i),legend = FALSE)
+png(file=paste0("Planning/Outputs/solutions/","p",count+i,"_scenario",scenario,"_targets",target_group[i],"_",season_order[i],".png"),width=3000, height=3000, res=300)
+plot(list_solutions[[i]], col = c("grey90", "darkgreen"),
+     # add scenario parameters as title
+     main = paste("Scenario:",scenario,"\nSeason:",season_order[i],"| Targets:",target_group[i],"\nPenalty:", penalty),
+     # add problem number and % of EEZ taken to subtitle
+     sub = paste("Problem number:",count+i,"\nPercentage of EEZ = ",round(performances$prop_eez[i],0),"%"),
+     legend = FALSE)
 plot(mpas,add = TRUE)
 dev.off()
 }
@@ -40,7 +45,7 @@ for(i in 1:length(list_solutions)){
   for(j in 1:length(range)){
     # subset range
     subset = regions[regions$Region%in%range[j],]
-    png(file=paste0("Planning/Outputs/solutions/","p",count+i,"_scenario",scenario,"_targets",target_group[i],"_",season_order[i],".png"), width=3000, height=3000, res=300)
+    png(file=paste0("Planning/Outputs/solutions/","p",count+i,"_scenario",scenario,"_targets",target_group[i],"_",season_order[i],"_",range[j],".png"), width=3000, height=3000, res=300)
     plot(crop(list_solutions[[i]],subset), col = c("grey90", "darkgreen"), main = paste("Scenario:",scenario,"\nSeason:",season_order[i],"| Targets:",target_group[i],"\nPenalty:", penalty), sub = paste("Problem number:",count+i),legend = FALSE)
     plot(crop(mpas,subset),add = TRUE)
     dev.off()
@@ -68,4 +73,3 @@ for(i in 1:length(list_ferrierscores)){
   plot(mpas,add = TRUE)
   dev.off()
 }
-

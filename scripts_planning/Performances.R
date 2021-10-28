@@ -8,8 +8,9 @@ for(i in 1:length(list_problems)){
   performances[i,1] = pus[1,2]
   performances$scenario = scenario
   performances$problem[i] = i}
+rm(pus)
 
-# calculate % of EEZ represented
+# calculate % of EEZ represented (there are 42053 cells in the EEZ)
 performances$prop_eez = (performances$cost/42053)*100
 
 # write csv to performance folder
