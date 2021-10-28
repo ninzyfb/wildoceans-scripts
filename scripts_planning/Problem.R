@@ -40,32 +40,26 @@ rm(check,i)
 
 # run each problems based on the three subscenarios (of increasing target %)
 # each season (aseasonal, summer, winter) is run three times (low, medium, high targets)
-p = 0 # problem number
-penalty = 0
-list_problems = list()
+
+penalty = 0 # set penalty for this sequence of problems
+list_problems = list() # empty list for holding the problems
+count = 1 # create a counter for list of problems
 
 for(i in 1:length(list_stacks)){
-  p = p+1
-list_problems[[p]] = problem(pu, list_stacks[[i]]) %>%
-  add_min_set_objective() %>%
-  add_relative_targets(list_targets[[i]]$targetsa) %>%
-  add_boundary_penalties(penalty = penalty) %>% # add penalty
-  add_binary_decisions() %>%
-  add_gurobi_solver(verbose = FALSE) # gap default value is 10% from optimality
-p = p+1
-list_problems[[p]] = problem(pu, list_stacks[[i]]) %>%
-  add_min_set_objective() %>%
-  add_relative_targets(list_targets[[i]]$targetsb) %>%
-  add_boundary_penalties(penalty = penalty) %>% # add penalty
-  add_binary_decisions() %>%
-  add_gurobi_solver(verbose = FALSE) # gap default value is 10% from optimality
-p = p+1
-list_problems[[p]] = problem(pu, list_stacks[[i]]) %>%
-  add_min_set_objective() %>%
-  add_relative_targets(list_targets[[i]]$targetsc) %>%
-  add_boundary_penalties(penalty = penalty) %>% # add penalty
-  add_binary_decisions() %>%
-  add_gurobi_solver(verbose = FALSE) # gap default value is 10% from optimality
+  temp_feature = list_stacks[[i]] # for every season type (aseasonal, summer, winter)
+  temp_target = list_targets[[i]] # get the appropriate targets for those layers
+  temp_target = temp_target[,c(5:7)] # isolate target columns
+  for(j in 1:3){ # run problem for that one stack once per target column (3 in our case)
+    list_problems[[count]] = problem(pu, temp_feature) %>%
+      add_min_set_objective() %>%
+      add_relative_targets(temp_target[,j]) %>%
+      add_boundary_penalties(penalty = penalty) %>% # add penalty
+      add_binary_decisions() %>%
+      add_gurobi_solver(verbose = FALSE) # gap default value is 10% from optimality
+    count = count +1
+  }
 }
 
-rm(i)
+rm(i,j,count,temp_feature,temp_target) # remove
+
+

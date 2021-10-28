@@ -10,7 +10,7 @@ targets = targets %>%
 colnames(targets) = toupper(colnames(targets))
 
 # add these targets to master sheet
-master_sheet = left_join(master_sheet,targets)
+#master_sheet = left_join(master_sheet,targets)
 
 # join these targets to featurenames dataframe
 colnames(featurenames) = toupper(colnames(featurenames))

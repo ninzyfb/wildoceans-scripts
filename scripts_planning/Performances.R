@@ -1,13 +1,13 @@
-
+ 
 # Evaluate solution performance
 performances = data.frame()
 
 #  number of planning units selected within a solution.
 for(i in 1:length(list_problems)){
-  pus = eval_n_summary(list_p[[i]], list_s[[i]])
+  pus = eval_n_summary(list_problems[[i]], list_solutions[[i]])
   performances[i,1] = pus[1,2]
   performances$scenario = scenario
-  performances$subscenario[i] = i}
+  performances$problem[i] = i}
 
 # calculate % of EEZ represented
 performances$prop_eez = (performances$cost/42053)*100

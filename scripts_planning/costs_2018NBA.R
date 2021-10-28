@@ -33,7 +33,8 @@ names = vector()
 for(i in 1:length(names(costs))){
   names[i] = str_split(names(costs),"_NBA5km")[[i]][1]}
 names(costs) = names
-rm(names)
+rm(names, i) # remove unnecessary variables
+
 
 # pivot threats 
 threats_v2 = threats %>%
@@ -41,30 +42,30 @@ threats_v2 = threats %>%
   filter(!is.na(affected))
 rm(threats)
 
-sppthreatsstack = stack()
-for(i in unique(threats_v2$species_scientific)){
+#sppthreatsstack = stack()
+#for(i in unique(threats_v2$species_scientific)){
 # start of loop
-temp = threats_v2 %>%
-  filter(species_scientific == i)
-spp_fisheries = unique(temp$fisheries)  
+#temp = threats_v2 %>%
+#  filter(species_scientific == i)
+#spp_fisheries = unique(temp$fisheries)  
 # layers to keep
-keep = names(costs) %in% spp_fisheries
+#keep = names(costs) %in% spp_fisheries
 # vector of layers to keep
-keep2 = which(keep == TRUE)
+#keep2 = which(keep == TRUE)
 # new stack of refined layers
-tempthreats = costs[[keep2]]
+#tempthreats = costs[[keep2]]
 # add all threats together
-tempthreatssum = calc(tempthreats,sum, na.rm = TRUE)
-sppthreatsstack = addLayer(sppthreatsstack,tempthreatssum)
-rm(keep,keep2,tempthreats,tempthreatssum)
-}
+#tempthreatssum = calc(tempthreats,sum, na.rm = TRUE)
+#sppthreatsstack = addLayer(sppthreatsstack,tempthreatssum)
+#rm(keep,keep2,tempthreats,tempthreatssum)
+#}
 
 # rescale all between 0 and 1
-sppthreatsstack_scaled = rescale(sppthreatsstack)
-plot(sppthreatsstack_scaled)
+#sppthreatsstack_scaled = rescale(sppthreatsstack)
+#plot(sppthreatsstack_scaled)
 
 # sum to one final cost layer
-finalthreatlayer = calc(sppthreatsstack_scaled,sum, na.rm = TRUE)
-plot(finalthreatlayer)
+#finalthreatlayer = calc(sppthreatsstack_scaled,sum, na.rm = TRUE)
+#plot(finalthreatlayer)
 
 

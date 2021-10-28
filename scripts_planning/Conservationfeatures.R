@@ -10,7 +10,7 @@ for(i in 1:length(files)){
   temp = projectRaster(temp,pu)
   feature_stack = addLayer(feature_stack,temp)
 }
-rm(files) # remove unnecessary variables
+rm(files,temp) # remove unnecessary variables
 # turn all NA values to 0
 values(feature_stack)[is.na(values(feature_stack))] = 0
 # mask with pu

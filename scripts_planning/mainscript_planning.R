@@ -33,7 +33,7 @@ library(sdmvspecies)
 
 # all the subscripts are in the scripts folder
 # all the data is in the planning folder
-# make sure you set the directory to the overall WILDOCEANS folder so you can find both
+# make sure you choose the coorect patg and set the directory to the overall WILDOCEANS folder so you can find both
 path = "/home/nina/Documents/" # linux path
 path = "/Users/nfb/" # mac path
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
@@ -45,14 +45,14 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 # ---------------------------------
 
 # load scenario sheet
-scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
+#scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # load data summary sheet
-master_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/data_summary_master.xlsx"),sheet = 1)
+#master_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/data_summary_master.xlsx"),sheet = 1)
 
 # filter to only keep modeled species
-master_sheet = master_sheet %>%
-  filter(Round3_static == "yes")
+#master_sheet = master_sheet %>%
+#  filter(Round3_static == "yes")
 
 # ---------------------------------
 # 2 - PLANNING UNITS
@@ -76,7 +76,7 @@ source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
 # 5 - LOCKED IN AREAS
 # output: 
 # ---------------------------------
-source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+#source(list.files(pattern = "Lockedin.R", recursive = TRUE))
 
 # ---------------------------------
 # 6 - CONSERVATION TARGETS
