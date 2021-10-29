@@ -55,10 +55,12 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 #  filter(Round3_static == "yes")
 
 # ---------------------------------
-# 2 - PLANNING UNITS
-# output: planning unit grid (eez with no values)
+# 2 - PLANNING UNIT (pu)
+# output: planning unit grid (EEZ with uniform value of 1)
 # ---------------------------------
-source(list.files(pattern = "Planningunit.R", recursive = TRUE, full.names = TRUE)) 
+# grid cell value = cost of grid cell
+# this is the basic planning unit, every 5km2 grid cell has a value of 1
+pu = raster(list.files(pattern = "template.tif",full.names = TRUE,recursive = TRUE))
 
 # ---------------------------------
 # 3 - CONSERVATION FEATURES

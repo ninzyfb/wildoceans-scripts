@@ -1,71 +1,72 @@
+# ---------------------------------------------------------------------------------
+######### Shark and ray species conservation planning using prioritizr - rasterizing mpas script
+#AUTHOR: Nina Faure Beaulieu (2021)
+#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# ---------------------------------------------------------------------------------
+
+####
+#THIS SCRIPT: This script prepares the mpas to be used as "locked in" areas in some planning scenarios
+####
+
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
 library(sf)
 library(fasterize)
 library(dplyr)
 
-# data
-mpa = st_read(list.files(pattern = "SAMPAZ_OR_2020_Q3.shp", recursive = TRUE))
+# ---------------------------------
+# DATA
+# ---------------------------------
+# mpa shapefile
+mpas = shapefile(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+# planning units raster
+pu = raster(list.files(pattern = "template.tif",full.names = TRUE,recursive = TRUE))
 
-# crop mpas to planning units (this excludes prince edward islands)
-mpa = st_crop(mpa,extent(pu))
+# ---------------------------------
+# FORMATTING
+# ---------------------------------
+# crop mpas to planning units (this will exclude the prince edward islands)
+mpas = crop(mpas,extent(pu))
+# turn to sf object
+mpas = st_as_sf(mpas)
 
-# convert to polygon
-mpa = st_sf(mpa)
-mpa_combined = st_combine(mpa)
-
-mpa_r = as(mpa,"SpatialPolygons")
-mpa_r$CUR_ZON_TY = as.factor(mpa_r$CUR_ZON_TY)
-unique(mpa_r$CUR_ZON_TY)
-
-raster:rasterize(mpa,pu,field = "GIS_AREA",fun="first")
-
-# assign different zone categories to one of protected or semi-protected
-mpa = mpa %>%
+# classify mpas as either protected or semi-protected
+# only fully no take zones will be considered as protected in the conservation plan
+# information on this comes from: http://mpaforum.org.za/marine-protected-areas/
+# additional information comes from: https://en.wikipedia.org/wiki/Marine_protected_areas_of_South_Africa#Legislation
+mpas = mpas %>%
+  # sanctuary means no activities whatsoever
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Sanctuary","Protected",CUR_ZON_TY))%>%
+  # wilderness means no activities but eco-tourism is possible
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Wilderness","Protected",CUR_ZON_TY))%>%
+  # restricted is a no-take zone
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Restricted","Protected",CUR_ZON_TY))%>%
+  # activities such as fishing permitted on permit basis
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Controlled Large Pelagic","semi-protected",CUR_ZON_TY))%>%
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Controlled","semi-protected",CUR_ZON_TY))%>%
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Controlled Catch and Release","semi-protected",CUR_ZON_TY))%>%
   mutate(CUR_ZON_TY  = ifelse(CUR_ZON_TY == "Controlled-Pelagic Linefish with list","semi-protected",CUR_ZON_TY))
+
 # check that it has been done properly
-unique(mpa$CUR_ZON_TY)
-# only plot prtected mpas
-plot(mpa$geometry[mpa$CUR_ZON_TY=="Protected"])
+unique(mpas$CUR_ZON_TY)
+# only keep protected areas
+mpas_keep = mpas[mpas$CUR_ZON_TY=="Protected",]
+# turn to spatial object
+mpas_keep = as(mpas_keep,"Spatial")
+# simplify
+mpas_keep = gSimplify(mpas_keep,tol = 0.01)
+plot(mpas_keep)
+# rasterize
+mpas_keep_r = rasterize(mpas_keep,pu)
+plot(mpas_keep_r)
+# turn all values to 1
+values(mpas_keep_r)[!is.na(values(mpas_keep_r))] = 1
+plot(mpas_keep_r)
 
-# only keep full protected mpas (sanctuary wilderness and restricted)
-mpa_keep = mpa[mpa$CUR_ZON_TY=="Protected",]
+# ---------------------------------
+# WRITING
+# ---------------------------------
+# save raster as locked in
+writeRaster(mpas_keep_r,"mpa_lockedin.tif")
 
-test = as(mpa_keep,Class = "Spatial")
-plot(mpa_keep)
-
-test2 = rasterize(mpa, pu, field = "CUR_ZON_TY", fun = "mean", 
-          update = TRUE, updateValue = "NA")
-plot(test2)
-
-# convert to raster
-asterize(test,pu,field = "CUR_ZON_TY")
-
-# turn to raster using fasterize
-# protected areas will be 1 and semi-protected areas will be 2
-mpa_keep$CUR_ZON_TY = as.factor(mpa_keep$CUR_ZON_TY)
-rasterize(mpa_keep,pu)
-mpa_keep_raster = rasterize(st_collection_extract(mpa_keep,"POLYGON"),pu, field = "CUR_ZON_TY")
-plot(mpa_raster)
-unique(values(mpa_raster))
-
-# turn semi-protected to 3 and protected to 2
-mpa_raster[values(mpa_raster)==2] = 3
-mpa_raster[values(mpa_raster)==1] = 2
-
-# add eez behind mpas
-mpa_raster_clean = cover(mpa_raster,eez)
-plot(mpa_raster_clean)
-
-# write this layer as mpalayer_1
-writeRaster(mpa_raster_clean,"mpalayer_1.tif", overwrite=TRUE)
-
-# now only keep protected regions
-mpa_raster_clean[values(mpa_raster_clean)!=2] = 1
-
-# write this layer as mpalayer_2
-writeRaster(mpa_raster_clean,"mpalayer_2.tif", overwrite=TRUE)
