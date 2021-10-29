@@ -55,11 +55,11 @@ for(i in 1:length(list_stacks)){
       add_relative_targets(temp_target[,j]) %>%
       add_boundary_penalties(penalty = penalty) %>% # add penalty
       add_binary_decisions() %>%
+      add_locked_in_constraints(lockedin) %>%
       add_gurobi_solver(verbose = FALSE) # gap default value is 10% from optimality
     count = count +1
   }
 }
-
 rm(i,j,count,temp_feature,temp_target) # remove
 
 

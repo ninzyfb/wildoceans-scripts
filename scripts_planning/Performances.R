@@ -1,4 +1,6 @@
- 
+count = 9 # count for solution number (problem number)
+scenario = 2 # scenario
+
 # Evaluate solution performance
 performances = data.frame()
 
@@ -7,14 +9,14 @@ for(i in 1:length(list_problems)){
   pus = eval_n_summary(list_problems[[i]], list_solutions[[i]])
   performances[i,1] = pus[1,2]
   performances$scenario = scenario
-  performances$problem[i] = i}
+  performances$problem[i] = i+count}
 rm(pus)
 
 # calculate % of EEZ represented (there are 42053 cells in the EEZ)
 performances$prop_eez = (performances$cost/42053)*100
 
 # write csv to performance folder
-write.csv(performances,paste0("Outputs/performances/scenario",scenario,"_eez_proportion.csv"))
+write.csv(performances,paste0(path,"Dropbox/6-WILDOCEANS/Planning/Outputs/performances/scenario",scenario,"_eez_proportion.csv"))
 
 # how well features are represented by a solution and if targets are met
 a = eval_target_coverage_summary(list_p[[1]], list_s[[1]])

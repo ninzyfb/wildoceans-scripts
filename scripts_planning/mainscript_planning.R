@@ -78,7 +78,7 @@ source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
 # 5 - LOCKED IN AREAS
 # output: 
 # ---------------------------------
-#source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
 
 # ---------------------------------
 # 6 - CONSERVATION TARGETS
@@ -98,16 +98,16 @@ source(list.files(pattern = "Problem.R", recursive = TRUE))
 # ---------------------------------
 
 # ---------------------------------
-# 8 - SOLUTION
-# output: prioritizr solution object
-# ---------------------------------
-source(list.files(pattern = "Solution", recursive = TRUE)) 
-
-# ---------------------------------
 # 9 - PERFORMANCE
 # output: 
 # ---------------------------------
 source(list.files(pattern = "Performances", recursive = TRUE)) 
+
+# ---------------------------------
+# 8 - SOLUTION
+# output: prioritizr solution object
+# ---------------------------------
+source(list.files(pattern = "Solution", recursive = TRUE)) 
 
 
 
