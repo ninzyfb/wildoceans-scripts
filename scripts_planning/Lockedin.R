@@ -15,10 +15,10 @@
 # ---------------------------------
 
 # estuaries
-estuaries = st_read(list.files(pattern = "estuaries.shp",recursive=TRUE,full.names = TRUE))
+#estuaries = st_read(list.files(pattern = "estuaries.shp",recursive=TRUE,full.names = TRUE))
 
 # aggregation spots
-aggregations = st_read(list.files(pattern = "aggregationspots_final.shp",recursive=TRUE,full.names = TRUE))
+#aggregations = st_read(list.files(pattern = "aggregationspots_final.shp",recursive=TRUE,full.names = TRUE))
 
 # mpas
 mpas = raster(list.files(pattern = "mpalayer_2.tif",recursive=TRUE,full.names = TRUE))
@@ -28,18 +28,20 @@ mpas = raster(list.files(pattern = "mpalayer_2.tif",recursive=TRUE,full.names = 
 # ---------------------------------
 
 # rasterize
-estuaries_raster = rasterize(estuaries,pu)
-estuaries_raster = rasterize(st_collection_extract(estuaries,"POLYGON"),pu, field = "Ecoregion")
+#estuaries_raster = rasterize(estuaries,pu)
+#estuaries_raster = rasterize(st_collection_extract(estuaries,"POLYGON"),pu, field = "Ecoregion")
 plot(estuaries_raster)
 
-aggregations_raster = rasterize(aggregations,pu)
+#aggregations_raster = rasterize(aggregations,pu)
 
 # standardize crs
-estuaries_raster = projectRaster(estuaries_raster,pu)
-aggregations_raster = projectRaster(aggregations_raster,pu)
+#estuaries_raster = projectRaster(estuaries_raster,pu)
+#aggregations_raster = projectRaster(aggregations_raster,pu)
 mpas = projectRaster(mpas,pu)
 
 # stack
-lockedin = stack(estuaries_raster,aggregations_raster,mpas)
+#lockedin = stack(estuaries_raster,aggregations_raster,mpas)
+lockedin = mpas
+rm(mpas)
 plot(lockedin)
 
