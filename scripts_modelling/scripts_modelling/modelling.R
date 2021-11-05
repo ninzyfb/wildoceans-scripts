@@ -89,9 +89,9 @@ plot = levelplot(temp,
           par.settings = rasterTheme(viridis_pal(option="D")(10)),
           at = intervals,
           margin = FALSE)+
-  layer(sp.polygons(eez,col = "black",lwd = 1))+
-  layer(sp.polygons(contours, col = "black", lwd = 1))+
-  layer(sp.polygons(sa_coast,col = "black",lwd= 1))
+  latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+  latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
+  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1))
 
 # this saves the plot to a folder
 png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_","continuous_ensemble.png"), width=3000, height=3000, res=300)

@@ -13,8 +13,6 @@ for(i in 1:length(files)){
 rm(files,temp) # remove unnecessary variables
 # turn all NA values to 0
 values(feature_stack)[is.na(values(feature_stack))] = 0
-# mask with pu
-feature_stack = mask(feature_stack,pu)
 
 # ---------------------------------
 # FORMATTING
@@ -44,13 +42,13 @@ for(i in 1:nlayers(feature_stack)){
   values(feature_stack[[i]]) = values(feature_stack[[i]])/1000
 }
 
-# turn any negative values to NA
+# turn any negative values to 0
 for(i in 1:nlayers(feature_stack)){ 
   feature_stack[[i]][values(feature_stack[[i]])<0] = 0
 }
 
 # clamp values to turn extremely small values to 0
-feature_stack = raster::clamp(feature_stack, lower = 1e-6, useValues = TRUE)
+#feature_stack = raster::clamp(feature_stack, lower = 1e-6, useValues = TRUE)
 feature_stack = stack(feature_stack)
 
 rm(i) # remove unnecessary variables

@@ -1,4 +1,3 @@
-
 # filter to only keep models of choice and associated targets for each species
 aseasonal_features = featurenames %>%
     filter(MODELTYPE == "Aseasonal")
