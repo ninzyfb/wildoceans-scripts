@@ -194,6 +194,10 @@ if(exists("species_keep")){master_keep = master %>% filter(SPECIES_SCIENTIFIC %i
 
 rm(master,species_keep)
 
+# TEMPORARY
+temp_sheet = master_keep %>%
+  filter(Restricted_range == "yes")
+
 # ---------------------------------
 #  - PLOTTING LAYERS
 # output: plotting layers for model projections (EEZ, coastal provinces, bathymetric contours)
@@ -208,19 +212,19 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 
 
 # loop goes through each species to run and project the models
-for(i in 1:nrow(master_keep)){
+for(i in 2:nrow(temp_sheet)){
   
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
   # ---------------------------------
-  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
+  target = temp_sheet$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = master_keep$Substrate[i] # include substrate layer?
+  substrate = temp_sheet$Substrate[i] # include substrate layer?
   seasonal = "no"
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
-  fisheries = master_keep$Fisheries[i] # incorporate fisheries data?
-  restrictedrange = master_keep$Restricted_range[i] # is the range restricted?
+  fisheries = "no" # incorporate fisheries data?
+  restrictedrange = "no" # is the range restricted?
   if(restrictedrange == "yes"){ # specify range if applicable
     range = toupper(master_keep$areas[i]) # extract areas
     range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them

@@ -21,7 +21,7 @@
 #aggregations = st_read(list.files(pattern = "aggregationspots_final.shp",recursive=TRUE,full.names = TRUE))
 
 # mpas
-mpas = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names = TRUE))
+mpa_layer = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names = TRUE))
 
 # ---------------------------------
 # FORMATTING
@@ -41,7 +41,5 @@ mpas = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names 
 
 # stack
 #lockedin = stack(estuaries_raster,aggregations_raster,mpas)
-lockedin = mpas
-rm(mpas)
-plot(lockedin)
+
 

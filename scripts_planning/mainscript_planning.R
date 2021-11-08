@@ -78,11 +78,14 @@ source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
 # 5 - LOCKED IN AREAS
 # output: 
 # ---------------------------------
-source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+
+# at the moment i am only locking in mpas (no take ones)
+mpa_layer = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names = TRUE))
+#source(list.files(pattern = "Lockedin.R", recursive = TRUE))
 
 # ---------------------------------
 # 6 - CONSERVATION TARGETS
-# output: 
+# output: this adds targets to featurenames dataframe
 # ---------------------------------
 source(list.files(pattern = "Speciestargets.R", recursive = TRUE)) 
 
@@ -111,65 +114,141 @@ range = c("WEST","SOUTH","EAST")
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 2)
 
 # decide on your parameters
+options(scipen = 100) # turns of scientific numbering
+
+# adjusted coordinates for plotting
+adjustedcoords = coordinates(places)[c(10,14),]
+adjustedcoords[,2] = adjustedcoords[,2]+0.2
+
 # first decide on which scenario you are runnin (row number of spreadsheet)
-n = 1
-scenario = scenario_sheet$scenario[n]
-features = scenario_sheet$features[n]
-format = scenario_sheet$format[n]
-target = scenario_sheet$targets[n]
-locked_in = scenario_sheet$lockedin[n]
-costs = scenario_sheet$costs[n]
-penalty = scenario_sheet$penalty[n]
-
-# tailor parameters to input into problem
-if(features == "aseasonal"){f = feature_stack_aseasonal}else{f = feature_stack_aseasonal}
-if(format == "continuous"){f = feature_stack_aseasonal}else{f = feature_stack_binary_aseasonal}
-if(target == "tailored"){t = featurenames$targetsa }else{t = as.numeric(target)}
-if(costs == "none"){c = pu}else{c = fishingpressure}
-
-# run conservation problem with or without locked in constraints
-if(locked_in == "none"){ 
-  problem_single = problem(c,f) %>% # costs and features
-    add_min_set_objective() %>%
-    add_relative_targets(t) %>%
-    add_boundary_penalties(penalty) %>% # add penalty
-    add_binary_decisions() %>%
-    add_gurobi_solver(verbose = FALSE)}else{problem_single = problem(c,f) %>%
+for(i in 1:12){
+  n = i # problem number
+  scenario = scenario_sheet$scenario[n] # scenario name
+  season = scenario_sheet$season[n] # season
+  features = scenario_sheet$features[n] # features to use
+  format = scenario_sheet$format[n] # format of features i.e. continuous or seasonal
+  locked_in = scenario_sheet$lockedin[n] # sets areas to be locked-in
+  costs = scenario_sheet$costs[n] # sets costs
+  target = scenario_sheet$targets[n] # sets targets i.e. uniform or tailored
+  penalty = scenario_sheet$penalty[n] # sets boundary penalties
+  
+  # retrieve correct objects based on problem number
+  f = get(features)
+  c = get(costs)
+  if(target == "tailored"){
+    t = featurenames # dataframe with tailored targets
+    # further refine by season
+    if(season == "aseasonal"){t = t %>% filter(MODELTYPE == "Aseasonal") %>% dplyr::select(targetsa)
+    t = t$targetsa}
+    if(season == "summer"){t = t %>% filter(MODELTYPE == "summer")%>% dplyr::select(targetsa)
+    t = t$targetsa}
+    if(season == "winter"){t = t %>% filter(MODELTYPE == "winter")%>% dplyr::select(targetsa)
+    t = t$targetsa}
+    # if target is numeric just take that value
+  }else{t = as.numeric(target)}
+  
+  # run conservation problem with or without locked in constraints
+  if(locked_in == "none"){ 
+    problem_single = problem(c,f) %>% # costs and features
       add_min_set_objective() %>%
       add_relative_targets(t) %>%
       add_boundary_penalties(penalty) %>% # add penalty
       add_binary_decisions() %>%
-      add_locked_in_constraints(lockedin) %>%
-      add_gurobi_solver(verbose = FALSE)}
-
-# solve single solution
-#source(list.files(pattern = "Solution", recursive = TRUE)) 
-solution_single = solve(problem_single)
-
-# ---------------------------------
-# 9 - PERFORMANCE
-# output: 
-# ---------------------------------
-#source(list.files(pattern = "Performances", recursive = TRUE)) 
-
-# evaluate performance
-performances = data.frame()
-# number of planning units selected within a solution.
-pus = eval_n_summary(problem_single, solution_single)
-performances[1,1] = pus[1,2]
-# calculate % of EEZ represented (there are 42053 cells in the EEZ)
-performances$prop_eez = (performances$cost/42053)*100
+      add_gurobi_solver(verbose = FALSE)}else{
+        problem_single = problem(c,f) %>%
+          add_min_set_objective() %>%
+          add_relative_targets(t) %>%
+          add_boundary_penalties(penalty) %>% # add penalty
+          add_binary_decisions() %>%
+          add_locked_in_constraints(mpa_layer) %>%
+          add_gurobi_solver(verbose = FALSE)}
+  
+  # solve single solution
+  #source(list.files(pattern = "Solution", recursive = TRUE)) 
+  solution_single = solve(problem_single)
+  
+  #source(list.files(pattern = "Performances", recursive = TRUE)) 
+  # evaluate performance
+  performances = data.frame()
+  # number of planning units selected within a solution.
+  pus = eval_n_summary(problem_single, solution_single)
+  performances[1,1] = pus[1,2]
+  # calculate % of EEZ represented (there are 42053 cells in the EEZ)
+  performances$prop_eez = (performances$cost/42053)*100
+  
+  # save as raw raster file
+  writeRaster(solution_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",n,"_",scenario,"scenario.tiff"))
+  
+  # plot single solution
+  png(file=paste0("Planning/Outputs/solutions/national/","p",n,"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+  plot(solution_single, col = c("grey90", "darkgreen"),
+      # main title
+       main = paste(scenario,"scenario","\nTargets:",target,"Penalty:",penalty),
+       # sub title
+       sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
+       legend = FALSE)
+  plot(mpas,add = TRUE)
+  plot(eez, add = TRUE)
+  plot(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch=20,cex=0.6, add = TRUE)
+  text(coordinates(places)[c(1:3,5,6),], places$Location[c(1:3,5,6)], col = "black", pos=4, cex = 0.5)
+  text(coordinates(places)[c(18,20,21,22),], places$Location[c(18,20,21,22)], col = "black", pos=2, cex = 0.5)
+  text(adjustedcoords, places$Location[c(10,14)], col = "black", adj=0.5, pos=2, cex = 0.5)
+  dev.off()
+  
+  # plot single solution per ebert range
+  for(j in 1:length(range)){
+    # subset range
+    subset = regions[regions$Region%in%range[j],]
+    png(file=paste0("Planning/Outputs/solutions/regional/","p",n,"_",range[j],"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+    plot(crop(solution_single,subset), col = c("grey90", "darkgreen"),
+         # main title
+         main = paste(scenario,"scenario","\nTargets:",target,"Penalty:",penalty),
+         # sub-title
+         sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
+         legend = FALSE)
+    plot(crop(mpas,subset),add = TRUE)
+    plot(eez, add = TRUE)
+    plot(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch=20,cex=0.6, add = TRUE)
+    text(coordinates(places)[c(1:3,5,6),], places$Location[c(1:3,5,6)], col = "black", pos=4, cex = 0.5)
+    text(coordinates(places)[c(18,20,21,22),], places$Location[c(18,20,21,22)], col = "black", pos=2, cex = 0.5)
+    text(adjustedcoords, places$Location[c(10,14)], col = "black", adj=0.5, pos=2, cex = 0.5)
+    dev.off()
+  }
+  
+  # ferrier score for single problem
+  ferrierscore_single = eval_ferrier_importance(problem_single, solution_single)[["total"]]
+  
+  # save as raw raster file
+  writeRaster(ferrierscore_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",n,"_",scenario,"scenario_FS.tiff"))
+  
+  # plot ferrier score plot
+  png(file=paste0("Planning/Outputs/solutions/ferrierscores/","p",n,"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
+  plot(ferrierscore_single,
+       # main title
+       main = paste("Ferrier score",scenario,"scenario","\nTargets:",target,"Penalty:",penalty),
+       # sub title
+       sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"))
+  plot(mpas,add = TRUE)
+  plot(eez, add = TRUE)
+  plot(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch=20,cex=0.6, add = TRUE)
+  text(coordinates(places)[c(1:3,5,6),], places$Location[c(1:3,5,6)], col = "black", pos=4, cex = 0.5)
+  text(coordinates(places)[c(18,20,21,22),], places$Location[c(18,20,21,22)], col = "black", pos=2, cex = 0.5)
+  text(adjustedcoords, places$Location[c(10,14)], col = "black", adj=0.5, pos=2, cex = 0.5)
+  
+  dev.off()
+  rm(f,c,t,penalty,season,scenario,target,locked_in,costs,features,format,solution_single,problem_single,performances,pus)
+}
 
 # ---------------------------------
 # 10 - PLOTTING
 # ---------------------------------
 # plot single solution
-png(file=paste0("Planning/Outputs/solutions/national/",scenario,"_",features,format,"_constraints-",locked_in,"_costs-",costs,"_targets-",target,"_penalty-",penalty,".png"),width=3000, height=2000, res=300)
+png(file=paste0("Planning/Outputs/solutions/national/","p",n,"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
 plot(solution_single, col = c("grey90", "darkgreen"),
      # add scenario parameters as title
-     main = paste(scenario,"scenario","\nTargets:",target),
+     main = paste(scenario,"scenario","\nTargets:",target,"Penalty:",penalty),
      # add problem number and % of EEZ taken to subtitle
-     sub = paste("Percentage of EEZ = ",round(performances$prop_eez,0),"%"),
+     sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
      legend = FALSE)
 plot(mpas,add = TRUE)
 dev.off()
@@ -178,7 +257,7 @@ dev.off()
 for(j in 1:length(range)){
   # subset range
   subset = regions[regions$Region%in%range[j],]
-  png(file=paste0("Planning/Outputs/solutions/regional/",scenario,"_",features,format,"_constraints-",locked_in,"_costs-",costs,"_targets-",target,"_penalty-",penalty,"_",range[j],".png"),width=3000, height=2000, res=300)
+  png(file=paste0("Planning/Outputs/solutions/regional/","p",n,"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
   plot(crop(solution_single,subset), col = c("grey90", "darkgreen"), main = paste(scenario,"scenario","\nTargets:",target),legend = FALSE)
   plot(crop(mpas,subset),add = TRUE)
   dev.off()
@@ -189,7 +268,7 @@ ferrierscore_single = eval_ferrier_importance(problem_single, solution_single)[[
 
 # plot solutions
 # plotted with the mpas
-png(file=paste0("Planning/Outputs/solutions/ferrierscores/",scenario,"_",features,format,"_constraints-",locked_in,"_costs-",costs,"_targets-",target,"_penalty-",penalty,"_FS.png"),width=3000, height=2000, res=300)
+png(file=paste0("Planning/Outputs/solutions/ferrierscores/","p",n,"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
 plot(ferrierscore_single, main = paste("Ferrier score",scenario,"scenario","\nTargets:",target))
 plot(mpas,add = TRUE)
 dev.off()

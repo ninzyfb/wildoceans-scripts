@@ -96,8 +96,8 @@ for(i in 1:nlayers(feature_stack_binary)){
   }
 
 # filter feature stacks by modeltype
-# filter featurestack as well
-# this creates a seperate rasterstack for each problem run
+# filter feature stack as well
+# this creates a separate raster stack for each problem run
 keep = str_detect(names(feature_stack),"Aseasonal")  # identify Aseasonal layers in stack
 idx = which(keep == FALSE) # find out layer number with feature to omit
 feature_stack_aseasonal = dropLayer(feature_stack,idx)
@@ -117,3 +117,5 @@ keep = str_detect(names(feature_stack),c("winter"))
 idx = which(keep == FALSE) # find out layer number with feature to omit
 feature_stack_winter = dropLayer(feature_stack,idx)
 rm(idx,keep) # remove
+
+rm(temp,i,files) # remove
