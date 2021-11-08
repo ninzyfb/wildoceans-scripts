@@ -1,3 +1,13 @@
+
+# to run a single problem:
+problem_single = problem(cost_layer, features) %>%
+  add_min_set_objective() %>%
+  add_relative_targets(targets) %>%
+  add_boundary_penalties(penalty) %>% # add penalty
+  add_binary_decisions() %>%
+  #add_locked_in_constraints(lockedin) %>%
+  add_gurobi_solver(verbose = FALSE)
+
 # filter to only keep models of choice and associated targets for each species
 aseasonal_features = featurenames %>%
     filter(MODELTYPE == "Aseasonal")
@@ -10,26 +20,6 @@ winter_features = featurenames %>%
 list_targets = list(aseasonal_features,summer_features,winter_features)
 rm(aseasonal_features,summer_features,winter_features) # remove individual dfs
 
-# filter featurestack as well
-# this creates a seperate rasterstack for each problem run
-keep = str_detect(names(feature_stack),"Aseasonal")  # identify Aseasonal layers in stack
-idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_aseasonal = dropLayer(feature_stack,idx)
-rm(idx,keep) # remove
-
-keep = str_detect(names(feature_stack),c("summer")) 
-idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_summer = dropLayer(feature_stack,idx)
-rm(idx,keep) # remove
-
-keep = str_detect(names(feature_stack),c("winter")) 
-idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_winter = dropLayer(feature_stack,idx)
-rm(idx,keep) # remove
-
-# combine each stack in a list
-list_stacks = list(feature_stack_aseasonal,feature_stack_summer,feature_stack_winter)
-rm(feature_stack_aseasonal,feature_stack_summer,feature_stack_winter)
 
 # check that species targets and names in stack are in the same order
 for(i in 1:length(list_stacks)){

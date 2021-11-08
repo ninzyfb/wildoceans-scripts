@@ -20,6 +20,9 @@ contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, f
 # provinces
 sa  <- getData("GADM",country="South Africa",level=1)
 
+# city names
+places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE)) 
+
 # ---------------------------------
 # FORMATTING
 # ---------------------------------

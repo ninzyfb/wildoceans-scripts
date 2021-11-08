@@ -1,3 +1,36 @@
+
+# plot single solution
+png(file=paste0("Planning/Outputs/solutions/national/",scenario,"_",type,"_","targets",targettype,"_penaltytype",penalty,"_lockedin",locked_in,".png"),width=3000, height=3000, res=300)
+plot(solution_single, col = c("grey90", "darkgreen"),
+     # add scenario parameters as title
+     main = paste(scenario,"scenario","\nTargets:",targettype),
+     # add problem number and % of EEZ taken to subtitle
+     sub = paste("Percentage of EEZ = ",round(performances$prop_eez,0),"%"),
+     legend = FALSE)
+plot(mpas,add = TRUE)
+dev.off()
+
+# plot single solution per ebert range
+for(j in 1:length(range)){
+  # subset range
+  subset = regions[regions$Region%in%range[j],]
+  png(file=paste0("Planning/Outputs/solutions/regional/",scenario,"_",type,"_","targets",targettype,"_penaltytype",penalty,"_lockedin",locked_in,"_",range[j],".png"), width=3000, height=3000, res=300)
+  plot(crop(solution_single,subset), col = c("grey90", "darkgreen"), main = paste(scenario,"scenario","\nTargets:",targettype),legend = FALSE)
+  plot(crop(mpas,subset),add = TRUE)
+  dev.off()
+}
+
+# ferrier score for single problem
+ferrierscore_single = eval_ferrier_importance(problem_single, solution_single)[["total"]]
+
+# plot solutions
+  # plotted with the mpas
+png(file=paste0("Planning/Outputs/solutions/ferrierscores/",scenario,"_",type,"_","targets",targettype,"_penaltytype",penalty,"_lockedin",locked_in,"_FS.png"), width=3000, height=3000, res=300)
+plot(ferrierscore_single, main = paste("Ferrier score",scenario,"scenario","\nTargets:",targettype))
+plot(mpas,add = TRUE)
+dev.off()
+
+
 # solve each problem in the list
 list_solutions = list()
 for(i in 1:length(list_problems)){
@@ -5,15 +38,6 @@ for(i in 1:length(list_problems)){
 }
 rm(i)
 
-# load mpas for solution plotting
-mpas = shapefile(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
-mpas = gSimplify(mpas,tol = 0.01)
-# three marine regions as defined by Ebert et al.
-regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,full.names = TRUE))
-# turn region names to upper case
-regions$Region = toupper(regions$Region)
-# subset by east south and west
-range = c("WEST","SOUTH","EAST")
 
 
 # target group order

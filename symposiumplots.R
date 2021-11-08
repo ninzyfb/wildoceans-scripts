@@ -11,9 +11,9 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 pu = raster(list.files(pattern = "template.tif",full.names = TRUE,recursive = TRUE))
 
 # species distribution file names
-files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "Aseasonalensemblemean.tif", recursive = TRUE,full.names = TRUE)
+files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
 feature_stack = stack()
-for(i in 1:20){
+for(i in 1:length(files)){
   temp = raster(files[i])
   temp = projectRaster(temp,pu)
   feature_stack = addLayer(feature_stack,temp)
