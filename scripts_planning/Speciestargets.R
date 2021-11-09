@@ -19,10 +19,10 @@ rm(targets) # remove
 
 # add number targets
 featurenames = featurenames %>%
-  mutate(targetsa = ifelse(TARGET == "low",0.2,
+  mutate(low = ifelse(TARGET == "low",0.2,
                            ifelse(TARGET == "medium",0.3,
                                   ifelse(TARGET == "high",0.4,NA))))
 
-featurenames$targetsb = featurenames$targetsa + 0.1
-featurenames$targetsc = featurenames$targetsb + 0.1
+featurenames$medium = featurenames$low + 0.1
+featurenames$high = featurenames$medium + 0.1
 

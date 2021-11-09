@@ -101,6 +101,10 @@ regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,f
 regions$Region = toupper(regions$Region)
 # subset by east south and west
 range = c("WEST","SOUTH","EAST")
+# place names
+places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE)) 
+# eez
+eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE, full.names = TRUE)) # load eez
 
 # ---------------------------------
 # 8 - CONSERVATION PROBLEM & SOLVING
@@ -120,8 +124,8 @@ options(scipen = 100) # turns of scientific numbering
 adjustedcoords = coordinates(places)[c(10,14),]
 adjustedcoords[,2] = adjustedcoords[,2]+0.2
 
-# first decide on which scenario you are runnin (row number of spreadsheet)
-for(i in 1:12){
+# first decide on which scenario you are running (row number of spreadsheet)
+for(i in c(9,23,24)){
   n = i # problem number
   scenario = scenario_sheet$scenario[n] # scenario name
   season = scenario_sheet$season[n] # season
@@ -130,6 +134,7 @@ for(i in 1:12){
   locked_in = scenario_sheet$lockedin[n] # sets areas to be locked-in
   costs = scenario_sheet$costs[n] # sets costs
   target = scenario_sheet$targets[n] # sets targets i.e. uniform or tailored
+  tailoredtargets = scenario_sheet$tailored_targets[n] # set level of tailored targets
   penalty = scenario_sheet$penalty[n] # sets boundary penalties
   
   # retrieve correct objects based on problem number
@@ -138,8 +143,11 @@ for(i in 1:12){
   if(target == "tailored"){
     t = featurenames # dataframe with tailored targets
     # further refine by season
-    if(season == "aseasonal"){t = t %>% filter(MODELTYPE == "Aseasonal") %>% dplyr::select(targetsa)
-    t = t$targetsa}
+    if(season == "aseasonal"){t = t %>%filter(MODELTYPE == "Aseasonal")
+      # specifies which targets to pick
+      if(tailoredtargets == "low"){t = t$low}
+    if(tailoredtargets == "medium"){t = t$medium}
+      if(tailoredtargets == "high"){t = t$high}}
     if(season == "summer"){t = t %>% filter(MODELTYPE == "summer")%>% dplyr::select(targetsa)
     t = t$targetsa}
     if(season == "winter"){t = t %>% filter(MODELTYPE == "winter")%>% dplyr::select(targetsa)
@@ -177,16 +185,17 @@ for(i in 1:12){
   performances$prop_eez = (performances$cost/42053)*100
   
   # save as raw raster file
-  writeRaster(solution_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",n,"_",scenario,"scenario.tiff"))
+  writeRaster(solution_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",n,"_",scenario,"scenario.tiff"),overwrite = TRUE)
   
   # plot single solution
   png(file=paste0("Planning/Outputs/solutions/national/","p",n,"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
   plot(solution_single, col = c("grey90", "darkgreen"),
       # main title
-       main = paste(scenario,"scenario","\nTargets:",target,"Penalty:",penalty),
+       main = paste(scenario,"scenario","\nTargets:",target,"Penalty:",penalty,"\nTarget category:",tailoredtargets),
        # sub title
        sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
        legend = FALSE)
+  plot(mpa_layer, add = TRUE) # ADDED THIS FOR NOW SO THAT MPAS CAN BE SEEN SEPERATE TO SOLUTION
   plot(mpas,add = TRUE)
   plot(eez, add = TRUE)
   plot(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch=20,cex=0.6, add = TRUE)
@@ -206,6 +215,7 @@ for(i in 1:12){
          # sub-title
          sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
          legend = FALSE)
+    plot(crop(mpa_layer,subset), add = TRUE) # ADDED THIS FOR NOW SO THAT MPAS CAN BE SEEN SEPERATE TO SOLUTION
     plot(crop(mpas,subset),add = TRUE)
     plot(eez, add = TRUE)
     plot(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch=20,cex=0.6, add = TRUE)
@@ -219,7 +229,7 @@ for(i in 1:12){
   ferrierscore_single = eval_ferrier_importance(problem_single, solution_single)[["total"]]
   
   # save as raw raster file
-  writeRaster(ferrierscore_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",n,"_",scenario,"scenario_FS.tiff"))
+  writeRaster(ferrierscore_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",n,"_",scenario,"scenario_FS.tiff"), overwrite = TRUE)
   
   # plot ferrier score plot
   png(file=paste0("Planning/Outputs/solutions/ferrierscores/","p",n,"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
@@ -238,39 +248,4 @@ for(i in 1:12){
   dev.off()
   rm(f,c,t,penalty,season,scenario,target,locked_in,costs,features,format,solution_single,problem_single,performances,pus)
 }
-
-# ---------------------------------
-# 10 - PLOTTING
-# ---------------------------------
-# plot single solution
-png(file=paste0("Planning/Outputs/solutions/national/","p",n,"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
-plot(solution_single, col = c("grey90", "darkgreen"),
-     # add scenario parameters as title
-     main = paste(scenario,"scenario","\nTargets:",target,"Penalty:",penalty),
-     # add problem number and % of EEZ taken to subtitle
-     sub = paste("Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
-     legend = FALSE)
-plot(mpas,add = TRUE)
-dev.off()
-
-# plot single solution per ebert range
-for(j in 1:length(range)){
-  # subset range
-  subset = regions[regions$Region%in%range[j],]
-  png(file=paste0("Planning/Outputs/solutions/regional/","p",n,"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
-  plot(crop(solution_single,subset), col = c("grey90", "darkgreen"), main = paste(scenario,"scenario","\nTargets:",target),legend = FALSE)
-  plot(crop(mpas,subset),add = TRUE)
-  dev.off()
-}
-
-# ferrier score for single problem
-ferrierscore_single = eval_ferrier_importance(problem_single, solution_single)[["total"]]
-
-# plot solutions
-# plotted with the mpas
-png(file=paste0("Planning/Outputs/solutions/ferrierscores/","p",n,"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
-plot(ferrierscore_single, main = paste("Ferrier score",scenario,"scenario","\nTargets:",target))
-plot(mpas,add = TRUE)
-dev.off()
-
 
