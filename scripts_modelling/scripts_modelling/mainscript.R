@@ -38,7 +38,8 @@ library(readxl)
 
 # define your path
 # for me it changes based on if I am working on pc or mac
-# path for pc =  "C:/Users/Administrator/"
+#path for linux
+path = "/home/nina/Documents/"
 path =  "/Users/nfb/"
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
