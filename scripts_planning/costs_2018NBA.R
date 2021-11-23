@@ -2,12 +2,10 @@
 ######### Shark and ray species conservation planning using prioritizr - costs_2018NBA script
 #AUTHOR: Nina Faure Beaulieu (2021)
 #PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
-#!Run each script one at a time as running the whole at once seems to cause some bugs
-#the output line describes what each script produces
 # ---------------------------------------------------------------------------------
 
 ####
-#THIS SCRIPT: loads the fishing pressure layers and assigne the correct coast to each species
+#THIS SCRIPT: loads the fishing pressure layers and assigns the correct cost to each species
 ####
 
 # ---------------------------------
@@ -20,6 +18,11 @@ costs = stack(nbafiles)
 # project to planning unit
 costs = projectRaster(costs,pu)
 rm(nbafiles)
+
+# raw file
+#temp = raster(list.files(pattern = "Pole Tuna Intensity.tif",recursive = TRUE,full.names = TRUE)[1])
+#pu_projected = projectRaster(pu,temp)
+#temp2 = mask(temp,pu)
 
 # fishing threats
 #threats = read_xlsx(list.files(pattern = "fisheries-risk.xlsx", recursive = TRUE,full.names = TRUE),skip=1)
@@ -46,7 +49,13 @@ costs_all = mask(costs_all,pu)
 # you need to add pu other other cells will have cost of 0
 costs_all = costs_all+pu
 
-
+# pretty plot of fishing pressur
+#png(file=paste0("Planning/Outputs/fishingpressure_all.png"),width=3000, height=2000, res=300)
+#plot(costs_all)
+#plot(mpa_layer, add = TRUE, alpha = 0.5,legend = FALSE) # allows notake mpas to be seen as well
+#plot(mpas,add = TRUE,legend = FALSE)
+#plot(eez, add = TRUE,legend = FALSE)
+#dev.off()
 
 # pivot threats 
 #threats_v2 = threats %>%

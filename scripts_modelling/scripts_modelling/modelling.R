@@ -89,9 +89,19 @@ plot = levelplot(temp,
           par.settings = rasterTheme(viridis_pal(option="D")(10)),
           at = intervals,
           margin = FALSE)+
+  # eez
   latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+  # 250m isobath
   latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
-  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1))
+  # sa coast
+  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1))+
+  # points for main cities
+  latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+  # coordinates and city names
+  # done in three lines as a "pretty" position varies based on their place on the map
+  latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+  latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+  latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
 
 # this saves the plot to a folder
 png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_","continuous_ensemble.png"), width=3000, height=3000, res=300)

@@ -38,9 +38,8 @@ library(readxl)
 
 # define your path
 # for me it changes based on if I am working on pc or mac
-#path for linux
-path = "/home/nina/Documents/"
-path =  "/Users/nfb/"
+path = "/home/nina/Documents/" #path for linux
+path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
 # ---------------------------------
@@ -191,13 +190,9 @@ species_keep = read.csv(list.files(pattern ="species_tokeep.csv" ,full.names=TRU
 # if prevalence loop was run then filter master file to only keep relevant species
 if(exists("species_keep")){master_keep = master %>% filter(SPECIES_SCIENTIFIC %in% species_keep$species)}else{
   # if wanting to model a specific species enter species name
-  master_keep = master %>% filter(SPECIES_SCIENTIFIC == "SPECIES NAME HERE")}
+  master_keep = master %>% filter(SPECIES_SCIENTIFIC == "CARCHARHINUS BRACHYURUS")}
 
 rm(master,species_keep)
-
-# TEMPORARY
-temp_sheet = master_keep %>%
-  filter(Restricted_range == "yes")
 
 # ---------------------------------
 #  - PLOTTING LAYERS
@@ -213,15 +208,15 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 
 
 # loop goes through each species to run and project the models
-for(i in 2:nrow(temp_sheet)){
+for(i in 1:nrow(master_keep)){
   
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
   # ---------------------------------
-  target = temp_sheet$SPECIES_SCIENTIFIC[i] # species name
+  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = temp_sheet$Substrate[i] # include substrate layer?
+  substrate = master_keep$Substrate[i] # include substrate layer?
   seasonal = "no"
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
   fisheries = "no" # incorporate fisheries data?
