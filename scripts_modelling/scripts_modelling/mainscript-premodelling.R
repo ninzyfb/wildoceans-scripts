@@ -19,7 +19,6 @@ library(raster)
 library(stringr)
 library(lubridate)
 library(ggplot2)
-#library(sf)
 library(rgeos)
 library(rgdal)
 library(dismo)
@@ -154,7 +153,7 @@ for(i in 1:nrow(master)){
 # ---------------------------------
 
 # remove
-rm(allcells,count,restrictedrange,substrate,target,i,files,table,obs.data)
+rm(allcells,allcells_10,count,restrictedrange,substrate,target,i,files,table,obs.data,obscells_10,perc_10)
 
 # format number of occurrence points, cells with data and prevalence scores to a data frame
 abundance = as.data.frame(unlist(list_abundance))
@@ -200,3 +199,13 @@ write.xlsx(as.data.frame(master),"data_summary_master.xlsx",row.names = FALSE)
 # ---------------------------------
 source(list.files(pattern = "rawplots.R", recursive = TRUE))
 
+iucn = as.data.frame(toupper(strsplit(iucn,".gpkg")))
+colnames(iucn) = "SPECIES_SCIENTIFIC"
+iucn$file = "yes"
+master = left_join(master,iucn)
+temp = master %>%
+  filter(is.na(file))%>%
+  filter(rounded_10>0)
+  
+  
+  

@@ -61,6 +61,7 @@ dups = duplicated(obs.data[c("LATITUDE","LONGITUDE", "DATE2")])
 print(table(dups)) # print number of duplicate records, TRUE are number of duplicates
 obs.data = obs.data[!dups,] # remove duplicates from data
 rm(dups) # remove variable from environment
+abundance = nrow(obs.data)
+
 }
 
-abundance = nrow(obs.data)
