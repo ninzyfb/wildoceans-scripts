@@ -64,4 +64,3 @@ rm(dups) # remove variable from environment
 }
 
 abundance = nrow(obs.data)
-rm(files,table)
