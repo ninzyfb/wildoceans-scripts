@@ -40,36 +40,12 @@ path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory
 
 # ---------------------------------
-# - SPECIES LIST
+#  - SPECIES SPECIFIC MODEL PARAMETERS 
+# output: data frame with species names and modelling parameters (master)
 # ---------------------------------
-# list of species generated during pre-modelling stage
-# only species with prevalence >1 are in this list
-species_keep = read.csv(list.files(pattern ="species_tokeep.csv" ,full.names=TRUE,recursive = TRUE))
-
-# ---------------------------------
-#  - ENVIRONMENTAL VARIABLES
-# output: raster stack of predictor variables (stack)
-# ---------------------------------
-source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE))
-
-# ---------------------------------
-#  - MARINE REGIONS
-# output: three marine regions within the EEZ (regions) defined by Ebert et al.
-# ---------------------------------
-# used to refine the range of range restricted species
-regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,full.names = TRUE))
-# format region names to upper case
-regions$Region = toupper(regions$Region)
-
-# ---------------------------------
-# - MODELLING WORKFLOW
-# ---------------------------------
-# if prevalence loop was run then filter master file to only keep relevant species
-if(exists("species_keep")){master_keep = master %>% filter(SPECIES_SCIENTIFIC %in% species_keep$species)}else{
-  # if wanting to model a specific species enter species name
-  master_keep = master %>% filter(SPECIES_SCIENTIFIC == "CARCHARHINUS BRACHYURUS")}
-
-rm(master,species_keep)
+# read master file with species-specific modelling parameters
+# i.e. restrict range modelled?, seasonal model?, include substrate? etc...
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
 
 # ---------------------------------
 #  - PLOTTING LAYERS
@@ -83,6 +59,12 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # ---------------------------------
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 
+# ---------------------------------
+#  - GRID
+# output: template grid (5 and 10km resolution)
+# ---------------------------------
+template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
+template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
 
 # loop goes through each species to run and project the models
 for(i in 1:nrow(master_keep)){
@@ -91,15 +73,15 @@ for(i in 1:nrow(master_keep)){
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
   # ---------------------------------
-  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
+  target = master$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = master_keep$Substrate[i] # include substrate layer?
+  substrate = master$Substrate[i] # include substrate layer?
   seasonal = "no"
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
   fisheries = "no" # incorporate fisheries data?
   restrictedrange = "no" # is the range restricted?
   if(restrictedrange == "yes"){ # specify range if applicable
-    range = toupper(master_keep$areas[i]) # extract areas
+    range = toupper(master$areas[i]) # extract areas
     range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them
   }
   

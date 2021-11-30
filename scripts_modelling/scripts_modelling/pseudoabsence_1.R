@@ -10,12 +10,15 @@
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-# presences should be 1/10 number of pseudo-absences (Barbet-Messin et al., 2012)
-# for high specificity pseudo-absences should be randomly selected (Barbet-Messin et al., 2012)
+# pseudo-absences chosen following: Barbet-Messin et al., 2012
 
 # create background points (static points)
-# random background cells at 10 times the number of presence cells
-absences = SpatialPoints(randomPoints(template, 10*length(pts_sub)))
+# create 10000 background points
+# from these 8500 will be chosen as pseudo-absences 
+# 8500 represents 20% of EEZ cells
+# but this will be done later when formatting the data for modeling
+# previous way i calculated background cells: 10*length(pts_sub)
+absences = SpatialPoints(randomPoints(template, 10000))
 
 # extract environmental variables (static points)
 pa = rbind(pts_sub,absences) # combine presences and absences
@@ -30,13 +33,13 @@ pts_env = cbind(pa,coords,vars) # combine all three created dataframes into 1
 rm(pts_sub,vars,pa, absences,coords) # remove unnecessary variables
 
 # create background points (seasonal points)
-# random background cells at 10 times the number of presence cells
+# random background cells
 if(seasonal == 'yes'){
 absences = list()
 for(i in 1:length(pts_sub_seasons)){
   cells = cellFromXY(template, pts_sub_seasons[[i]]) #  cells in template which overlap with an occurrence point
   values(template)[cells] = NA # turn presence cells to NA. This prevents presence cells being selected as background cells
-  absences[[i]] = SpatialPoints(randomPoints(template, 10*length(pts_sub_seasons[[i]]))) # select random background cells (the same number as presence cells)
+  absences[[i]] = SpatialPoints(randomPoints(template, 10000)) # select random background cells (the same number as presence cells)
   rm(cells)} # remove unnecessary variables
 rm(i) # remove unnecessary variables
 

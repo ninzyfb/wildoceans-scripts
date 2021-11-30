@@ -15,7 +15,7 @@
 eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE, full.names = TRUE)) # load eez
 
 # 250m isobath
-#contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, full.names=TRUE)) 
+contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, full.names=TRUE)) 
 
 # provinces
 sa  <- getData("GADM",country="South Africa",level=1)
@@ -41,21 +41,13 @@ range = c("WEST","SOUTH","EAST")
 # set intervals for contours
 intervals = seq(0,1000,200)
 
-# convert contours to sf object
-#contours = st_as_sf(contours)
-# group by depth and only keep depth of 250
-#contours = contours %>%
-#  group_by(DEPTH) %>%
-#  summarise() %>%
-#  filter(DEPTH == "-250")
-# convert back to sp object
-#contours = as(contours, Class = "Spatial")
+# extract 250m isobath
+contours = contours[which(contours$DEPTH=="-250"),]
 
 # simplify provinces to reduce the weight of the file
 sa <- gSimplify(sa, tol=0.01, topologyPreserve=TRUE)
-sa = st_as_sf(sa) # convert to sf object
-sa_coast = sa$geometry[c(1,4,8,9)] # only keep coastal provinces
-sa_coast = as(sa_coast, Class = "Spatial") # convert to sp object
+# only keep coastal provinces
+sa_coast=sa[c(1,4,8,9),]
 
 # adjust coordinates for some places
 adjustedcoords = coordinates(places)[c(10,14),]
