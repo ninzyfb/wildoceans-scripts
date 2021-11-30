@@ -213,15 +213,15 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 
 
 # loop goes through each species to run and project the models
-for(i in 2:nrow(temp_sheet)){
+for(i in 1:nrow(master_keep)){
   
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
   # ---------------------------------
-  target = temp_sheet$SPECIES_SCIENTIFIC[i] # species name
+  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = temp_sheet$Substrate[i] # include substrate layer?
+  substrate = master_keep$Substrate[i] # include substrate layer?
   seasonal = "no"
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
   fisheries = "no" # incorporate fisheries data?
