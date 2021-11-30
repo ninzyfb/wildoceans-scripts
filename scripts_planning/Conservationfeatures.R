@@ -88,12 +88,11 @@ colnames(thresholds_df) = toupper(colnames(thresholds_df))
 featurenames = left_join(featurenames,thresholds_df)
 rm(thresholds_df)
 
-feature_stack_binary = feature_stack
-for(i in 1:nlayers(feature_stack_binary)){
-  feature_stack_binary[[i]][values(feature_stack_binary[[i]])<featurenames$THRESH[i]] = 0
-  feature_stack_binary[[i]][values(feature_stack_binary[[i]])>featurenames$THRESH[i]] = 1
-  
-  }
+#feature_stack_binary = feature_stack
+#for(i in 1:nlayers(feature_stack_binary)){
+#  feature_stack_binary[[i]][values(feature_stack_binary[[i]])<featurenames$THRESH[i]] = 0
+#  feature_stack_binary[[i]][values(feature_stack_binary[[i]])>featurenames$THRESH[i]] = 1
+#  }
 
 # filter feature stacks by modeltype
 # filter feature stack as well
@@ -103,10 +102,10 @@ idx = which(keep == FALSE) # find out layer number with feature to omit
 feature_stack_aseasonal = dropLayer(feature_stack,idx)
 rm(idx,keep) # remove
 
-keep = str_detect(names(feature_stack_binary),"Aseasonal")  # identify Aseasonal layers in stack
-idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_binary_aseasonal = dropLayer(feature_stack_binary,idx)
-rm(idx,keep) # remove
+#keep = str_detect(names(feature_stack_binary),"Aseasonal")  # identify Aseasonal layers in stack
+#idx = which(keep == FALSE) # find out layer number with feature to omit
+#feature_stack_binary_aseasonal = dropLayer(feature_stack_binary,idx)
+#rm(idx,keep) # remove
 
 keep = str_detect(names(feature_stack),c("summer")) 
 idx = which(keep == FALSE) # find out layer number with feature to omit

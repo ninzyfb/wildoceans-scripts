@@ -25,15 +25,24 @@ mxtPh = BIOMOD_ModelingOptions(MAXENT = list(path_to_maxent.jar = paste0(path,"D
                                GLM = list(type = 'polynomial'))
 
 # Formatting the data as a BIOMOD object (static)
+# TEST WITH PSEUDOABSENCE SELECTION USING BIOMOD
+pts_env = na.omit(pts_env) # remove all NAs
+pts_env = pts_env %>% # convert 0 to NAs (allows them to be seen as backgorund and not true absence)
+  mutate(pa = ifelse(pa==0,NA,pa))
 pa = pts_env$pa # presence absence column
 pa_xy = pts_env[,c(2,3)] # presence absence coordinates
 exp =  pts_env[,-c(1:3)] # environmental variables
+
 biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/absence data
                                                 expl.var = exp, # environmental variables
                                                 resp.xy = pa_xy,
                                                 resp.name = target, # species name
-                                                na.rm = TRUE) 
-rm(pa_xy,exp,pa) # remove unnecessary variables
+                                   # random background cells at 20% area of EEZ (5km2 res): 8500
+                                   PA.nb.absences = 8500,
+                                   PA.nb.rep = 1,
+                                   # for high specificity pseudo-absences should be randomly selected 
+                                   # OR they can also be chosen at a minimal and maximum distance from presence points
+                                   PA.strategy = 'random') 
 
 # Formatting the data as a BIOMOD object (seasonal)
 if(seasonal == 'yes'){
@@ -47,9 +56,11 @@ for(i in 1:length(pts_env_seasons)){
                                          expl.var = exp, # environmental variables
                                          resp.xy = pa_xy,
                                          resp.name = target, # species name
-                                         na.rm = TRUE) 
-  }
-
-rm(i,pa_xy,exp,pa,temp) # remove unnecessary variables
-rm(pts_env,pts_env_seasons)} # remove unnecessary variables
+                                         # random background cells at 20% area of EEZ (5km2 res): 8500
+                                         PA.nb.absences = 8500,
+                                         PA.nb.rep = 1,
+                                         # for high specificity pseudo-absences should be randomly selected 
+                                         # OR they can also be chosen at a minimal and maximum distance from presence points
+                                         PA.strategy = 'random') 
+  }} 
 

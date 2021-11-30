@@ -15,7 +15,7 @@
 # Build individual models
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GLM', 'MAXENT.Phillips'), # 2 chosen models to run
+  models = c('GLM', 'MAXENT.Phillips'), # 3 chosen models to run
   models.options = mxtPh, # add modified model parameters, if not remove this command
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # % of data used for calibration,rest for testing
@@ -23,6 +23,10 @@ static_models <- BIOMOD_Modeling(
   SaveObj = TRUE, # keep all results on hard drive 
   rescal.all.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
   modeling.id = target)
+models_scores_graph(static_models, by = "models",
+                    metrics = c("TSS"), xlim = c(0.5,1), ylim = c(0.5,1))
+
+rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons) # remove unnecessary variables
 
 # Build ensemble model
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
@@ -60,11 +64,12 @@ write.csv(ensemble_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/eva
 
 # Threshold calculation
 # this function calculates the threshold at which a probability can be considered a presence
-response = get_formal_data(static_models,"resp.var") # response variable 
 predictions = get_predictions(static_ensemblemodel)[,1] # predicted variables
+response = get_formal_data(static_models,"resp.var") # response variable 
+response[which(is.na(response))] = 0 # change NA to 0
 thresh = Find.Optim.Stat(Stat='TSS',
-                         predictions,
-                         response,
+                         Fit = predictions,
+                         Obs = response,
                          Nb.thresh.test = 100,
                          Fixed.thresh = NULL)[2]
 thresh = as.data.frame(thresh) # save the output as a dataframe
@@ -89,9 +94,19 @@ plot = levelplot(temp,
           par.settings = rasterTheme(viridis_pal(option="D")(10)),
           at = intervals,
           margin = FALSE)+
+  # eez
   latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+  # 250m isobath
   latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
-  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1))
+  # sa coast
+  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1))+
+  # points for main cities
+  latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+  # coordinates and city names
+  # done in three lines as a "pretty" position varies based on their place on the map
+  latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+  latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+  latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
 
 # this saves the plot to a folder
 png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_","continuous_ensemble.png"), width=3000, height=3000, res=300)

@@ -29,7 +29,6 @@ obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
 coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
 
 # set CRS of observations
-template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
 crs(obs.data) = crs(template)
 
 # ---------------------------------
@@ -58,12 +57,3 @@ if(length(table)>0){
      main = paste("Seasonal observations of",target))
   dev.off()
 }
-
-
-# look at distribution per season
-# there is likely to also be bias in sampling effort and location per season
-# this is dealt with accordingly in the subsampling and pseudo-absence scripts
-ggplot(data = st_as_sf(obs.data)) +
-  geom_sf(aes(col=SEASON),size = 1)+
-  theme_bw()
-
