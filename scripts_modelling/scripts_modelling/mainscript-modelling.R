@@ -19,7 +19,7 @@ library(raster)
 library(stringr)
 library(lubridate)
 library(ggplot2)
-#library(sf)
+library(sf)
 library(rgeos)
 library(rgdal)
 library(dismo)
@@ -35,7 +35,7 @@ library(readxl)
 # ---------------------------------
 # set directory to same parent folder where sub-scripts are found
 # the subs-scripts can however be in folder within parent folder
-path = "/home/nina/Documents/" #path for linux
+path = "/home/nina/" #path for linux
 path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory
 
