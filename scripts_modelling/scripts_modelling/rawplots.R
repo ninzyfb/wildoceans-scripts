@@ -20,13 +20,14 @@ library(sf)
 library(raster)
 library(stringr)
 library(dplyr)
+library(readxl)
 
 # ---------------------------------
 # DIRECTORY
 # ---------------------------------
 #path =  "C:/Users/Administrator/"
 path =  "/Users/nfb/"
-setwd(paste0(path,"Dropbox/6-WILDOCEANS/Modelling"))
+setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
 # ---------------------------------
 # DATA
@@ -54,11 +55,12 @@ rm(points)
 # FORMATTING
 # ---------------------------------
 
-for(i in master$SPECIES_SCIENTIFIC[24:135]){
+for(i in master$SPECIES_SCIENTIFIC[21:135]){
   # species data
   target = i # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   source(list.files(pattern = "species_data.R", recursive = TRUE)) # finds script in directory
+  source(list.files(pattern = "fisheries data.R", recursive = TRUE)) # list.files() allows you to search for that script anywhere in the parent folder
   rm(folder) # no longer needed
   
   if(exists("obs.data")){

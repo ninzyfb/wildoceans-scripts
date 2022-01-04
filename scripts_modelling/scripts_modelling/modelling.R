@@ -23,8 +23,6 @@ static_models <- BIOMOD_Modeling(
   SaveObj = TRUE, # keep all results on hard drive 
   rescal.all.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
   modeling.id = target)
-models_scores_graph(static_models, by = "models",
-                    metrics = c("TSS"), xlim = c(0.5,1), ylim = c(0.5,1))
 
 rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons) # remove unnecessary variables
 

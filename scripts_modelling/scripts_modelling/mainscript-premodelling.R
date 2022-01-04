@@ -80,13 +80,12 @@ for(i in 1:nrow(master)){
   target = master$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master$Substrate[i] # inclusion of substrate layer?
-  fisheries = master$Fisheries[i] # inclusion of fisheries data?
-  restrictedrange = "no" # for now i am not restricted the range of species 
+  restrictedrange = "no" # for now I am not restricted the range of species 
   #restrictedrange = master$Restricted_range[i] # range restriction?
-  if(restrictedrange == "yes"){ # specify which areas to clip range to
-    range = toupper(master$areas[i]) # name chosen areas
-    range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them into a vector
-    }
+  #if(restrictedrange == "yes"){ # specify which areas to clip range to
+  #  range = toupper(master$areas[i]) # name chosen areas
+  #  range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them into a vector
+  #  }
   
   # ---------------------------------
   #  - SPECIES DATA
@@ -101,11 +100,8 @@ for(i in 1:nrow(master)){
   #  - FISHERIES DATA
   # outputs: if applicable adds fishing data to obs.data
   # ---------------------------------
-  if(fisheries == "yes"){
-    source(list.files(pattern = "fisheries data.R", recursive = TRUE)) # list.files() allows you to search for that script anywhere in the parent folder
-  }
-  rm(fisheries) # no longer needed
-  
+  source(list.files(pattern = "fisheries data.R", recursive = TRUE)) # list.files() allows you to search for that script anywhere in the parent folder
+
   # ---------------------------------
   #  - SEASONALITY 
   # output: occurrence points are grouped by austral summer and winter
@@ -116,8 +112,8 @@ for(i in 1:nrow(master)){
   #  - CROP MODEL EXTENT
   # output: if applicable refines range to be modelled
   # ---------------------------------
-  if(restrictedrange == "yes"){
-    source(list.files(pattern = "modelextent.R", recursive = TRUE,full.names = TRUE))}
+  #if(restrictedrange == "yes"){
+  #  source(list.files(pattern = "modelextent.R", recursive = TRUE,full.names = TRUE))}
 
   # ---------------------------------
   #  - PREVALENCE
@@ -188,6 +184,13 @@ prevalence$rounded = round(prevalence$prevalence, digits = 0)
 prevalence$rounded_10 = round(prevalence$prevalence_10, digits = 0)
 
 # add prevalence and abundance data to master sheet
+master$cells = NULL
+master$cells_10= NULL
+master$rounded= NULL
+master$rounded_10= NULL
+master$prevalence = NULL
+master$prevalence_10 = NULL
+master$abundance = NULL
 master = left_join(master,prevalence)
 
 # re-write master sheet
@@ -198,14 +201,3 @@ write.xlsx(as.data.frame(master),"data_summary_master.xlsx",row.names = FALSE)
 # output: plots for kept species with raw data and when available IUCN range + expert range
 # ---------------------------------
 source(list.files(pattern = "rawplots.R", recursive = TRUE))
-
-iucn = as.data.frame(toupper(strsplit(iucn,".gpkg")))
-colnames(iucn) = "SPECIES_SCIENTIFIC"
-iucn$file = "yes"
-master = left_join(master,iucn)
-temp = master %>%
-  filter(is.na(file))%>%
-  filter(rounded_10>0)
-  
-  
-  

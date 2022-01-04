@@ -49,6 +49,9 @@ if(seasonal == 'yes'){
 biomod_obj_seasons = list()
 for(i in 1:length(pts_env_seasons)){
   temp = pts_env_seasons[[i]]
+  temp = na.omit(temp) # remove all NAs
+  temp = temp %>% # convert 0 to NAs (allows them to be seen as backgorund and not true absence)
+    mutate(pa = ifelse(pa==0,NA,pa))
   pa = temp$pa # presence absence column
   pa_xy = temp[,c(2,3)] # presence absence coordinates
   exp =  temp[,-c(1:3)] # environmental variables

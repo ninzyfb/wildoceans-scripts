@@ -67,7 +67,7 @@ template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.na
 template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
 
 # loop goes through each species to run and project the models
-for(i in 1:nrow(master_keep)){
+for(i in 1:nrow(master)){
   
   # ---------------------------------
   # - MODEL PARAMATERS
@@ -76,14 +76,7 @@ for(i in 1:nrow(master_keep)){
   target = master$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master$Substrate[i] # include substrate layer?
-  seasonal = "no"
-  #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
-  fisheries = "no" # incorporate fisheries data?
-  restrictedrange = "no" # is the range restricted?
-  if(restrictedrange == "yes"){ # specify range if applicable
-    range = toupper(master$areas[i]) # extract areas
-    range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them
-  }
+  seasonal = master$Seasonality[i] # run seasonal (summer & winter) model?
   
   # ---------------------------------
   #  - LOAD SPECIES DATA
@@ -93,27 +86,11 @@ for(i in 1:nrow(master_keep)){
   rm(folder) # no longer needed
   
   # ---------------------------------
-  #  - ADD FISHERIES DATA
-  # outputs: adds fishing data to obs.data if applicable
-  # ---------------------------------
-  if(fisheries == "yes"){
-    source(list.files(pattern = "fisheries data.R", recursive = TRUE, full.names = TRUE)) # list.files() allows you to search for that script anywhere in the parent folder
-  }
-  rm(fisheries) # no longer needed
-  
-  # ---------------------------------
   #  - SEASONALITY 
   # output: if applicable occurrence points are grouped by austral summer and winter
   # this script also formats aseasonal data
   # ---------------------------------
   source(list.files(pattern = "seasonality.R", recursive = TRUE, full.names = TRUE))
-  
-  # ---------------------------------
-  #  - CROP MODEL EXTENT
-  # output: refines the range that will be modelled if required for the target species
-  # ---------------------------------
-  if(restrictedrange == "yes"){
-    source(list.files(pattern = "modelextent.R", recursive = TRUE, full.names = TRUE))}
   
   # ---------------------------------
   # - REDUCING SAMPLING BIAS
