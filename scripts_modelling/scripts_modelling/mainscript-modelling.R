@@ -106,7 +106,7 @@ for(i in 1:nrow(master)){
   
   # ---------------------------------
   # 9 - COLLINEARITY CHECK
-  # output: refines variables to remove collinear ones (variables)
+  # output: refines variables to remove co-linear ones (variables)
   # ---------------------------------
   source(list.files(pattern = "variableselection.R", recursive = TRUE, full.names = TRUE))
   
@@ -122,20 +122,20 @@ for(i in 1:nrow(master)){
   
   model_type = "Aseasonal" # specify model_type
   data = biomod_obj # specify which biomod_obj
-  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
   #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
   
   if(seasonal == "yes"){
     model_type = "summer" # specify model_type
     season = 1
     data = biomod_obj_seasons[[season]] # specify which biomod_obj
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
     #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
     
     model_type = "winter" # specify model_type
     season = 2
     data = biomod_obj_seasons[[season]] # specify which biomod_obj
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
     #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
   }
   rm(stack_subset,stack_new)
