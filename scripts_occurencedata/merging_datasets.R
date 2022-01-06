@@ -1,28 +1,53 @@
-# set working directory
-setwd("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/Point_data")
-getwd()
+# ---------------------------------------------------------------------------------
+######### Shark and ray species data merging
+#AUTHOR: Nina Faure Beaulieu (2021)
+#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# ---------------------------------------------------------------------------------
 
-# load packages
+####
+#THIS SCRIPT: this script merges all data sources into one file per species
+# specifically this script only deals with point data (not polygon or raster data, it also doesn't include fisheries data)
+####
+
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
 library(dplyr)
 library(lubridate)
 library(stringr)
 library(plyr)
 library(sf)
+library(ggplot2)
 
-# Load data
-# list all csv files in cleaned folder (current directory)
-temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/Point_data",pattern="*.csv", recursive = TRUE)
+# ---------------------------------
+# DIRECTORY
+# ---------------------------------
+# define your path
+# for me it changes based on if I am working on pc or mac
+path = "/home/nina/Documents/" # path for linux
+path =  "/Users/nfb/" # path for mac
+setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
-# read them into a list
+# ---------------------------------
+# DATA
+# ---------------------------------
+# list all csv files in cleaned folder
+# each csv file is a different cleaned dataset
+temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/Point_data",pattern="*.csv", recursive = TRUE, full.names = TRUE)
+
+# ---------------------------------
+# FORMATTING
+# ---------------------------------
+# read all files into a list
 myfiles = lapply(temp, read.csv, header = TRUE)
 
 # turn all headers to capital
-
 for(i in 1:length(myfiles)){
   colnames(myfiles[[i]]) = toupper(colnames(myfiles[[i]]))
 }
 
 # combine all files in one dataset
+library(plyr)
 summary = do.call(rbind.fill,myfiles)
 detach("package:plyr")
 
@@ -30,9 +55,9 @@ detach("package:plyr")
 rm(myfiles, temp,i)
 
 # keep headers of interest only
-headers = toupper(c("Species_scientific","Longitude","Latitude","Date","Dataset","Season","LIFESTAGE","Abundance","Method"))
+headers = toupper(c("Species_scientific","Longitude","Latitude","Date","Dataset","Season"))
 summary2 = summary[,colnames(summary)[colnames(summary) %in% headers]]
-rm(headers)
+rm(headers,summary)
 
 # trim white space after scientific names
 summary2$SPECIES_SCIENTIFIC = trimws(summary2$SPECIES_SCIENTIFIC, which = "both")
@@ -53,13 +78,18 @@ summary2 = summary2 %>%
 
 # format all dates and specify different formats
 summary2$DATE2 = parse_date_time(summary2$DATE,
-                                orders = c("%d/%m/%y","%d/%m/%Y","%Y","%Y-%m-%d"))
+                                orders = c("%d/%m/%y","%d/%m/%Y","%Y","%Y-%m-%d","%d.%m.%Y","%m/%d/%Y"))
 
 unformated = summary2[is.na(summary2$DATE2),] # check which observations don't have a formatted date
 rm(unformated)# remove unnecessary variable
 
-summary2 = summary2 %>% # remove always same 3 empty rows, not sure why
+# remove
+summary2 = summary2 %>% 
   filter(!is.na(DATE2))
+
+# check empty datasets
+missingdataset= summary2[is.na(summary2$DATASET),] # check which observations don't have a formatted date
+rm(missingdataset)
 
 # Add genus
 summary2$Genus = word(summary2$SPECIES_SCIENTIFIC, 1)
@@ -74,32 +104,40 @@ range(summary2$DATE2)
 
 # turn dataset to factor
 summary2$DATASET = as.factor(summary2$DATASET)
-plot(summary2$DATE2,summary2$DATASET)
 
 # add year to data
 summary2$year = year(summary2$DATE2)
 
-# check which datasets for each year
-table = table(summary2$year,summary2$DATASET)
-table = as.data.frame(table)
-library(tidyr)
-table = table %>%
-  pivot_wider(names_from = Var1, 
-            values_from = Freq)
+# plot of which years each dataset have
+png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=5, height=5, res=300)
+ggplot(summary2, aes(DATASET,year, colour = DATASET))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2,size = 5),
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())+
+  # line at 1950 which indicates the GBIF data you are removing
+  geom_hline(yintercept=1950,colour = "red")
+dev.off()
 
-write.csv(table,"table.csv")
+# second plot from 1950 onwards
+png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=5, height=5, res=300)
+ggplot(summary2, aes(DATASET,year, colour = DATASET))+
+  geom_point()+
+  # rotate x axis
+  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2, size = 5),
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())+
+  scale_y_continuous(breaks=seq(1950,2022,10), limits = c(1950,2022))
+ dev.off()
 
 
-# filter to only keep GBIF data after 1990 (last 30 years)
-gbif = summary2 %>%
-  filter(DATE2 >= as.Date("1990-01-01") & DATASET == "gbif_obis")
-
-# remove gbif dataset
+# filter to only keep data points after 1950
+# this only filters GBIF data in any case
 summary3 = summary2 %>%
-  filter(DATASET != "gbif_obis")
-
-# join back gbif dataset 
-summary3 = full_join(summary3,gbif)
+  filter(DATE2 >= as.Date("1950-01-01"))
+rm(summary2)
 
 # check date range again
 range(summary3$DATE2)
@@ -115,91 +153,19 @@ for(i in 1:nrow(summary3)){
 
 rm(i)
 
-##################### Change synonyms
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "EUGOMPHODUS TAURUS","CARCHARIAS TAURUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RHINOBATOS ANNULATUS","ACROTERIOBATUS ANNULATUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "AETOBATUS NARINARI","AETOBATUS OCELLATUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA WALLACEI","LEUCORAJA WALLACEI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "HIMANTURA GERRARDI","PATEOBATIS FAI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA ALBA","ROSTRORAJA ALBA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "TAENIURA MELANOSPILOS","TAENIUROPS MEYENI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "TAENIURA MEYENI","TAENIUROPS MEYENI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "CENTROSCYMNUS CREPIDATER","CENTROSELACHUS CREPIDATER",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "DASYATIS CHRYSONATA","DASYATIS CHRYSONOTA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "MOBULA BIRSOTRIS","MOBULA BIROSTRIS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "NOTORHYNCHUS CEPEDIANUS","NOTORYNCHUS CEPEDIANUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA STRAELINI","RAJA STRAELENI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA CLAVATA","RAJA STRAELENI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA SPINACIDERMIS","MALACORAJA SPINACIDERMIS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA DISSIMILIS","RAJELLA DISSIMILIS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA CONFUDENS","RAJELLA BARNARDI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA BARNARDI","RAJELLA BARNARDI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA CAUDASPINOSA","RAJELLA CAUDASPINOSA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA MIRALETUS","RAJA OCELLIFERA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA LEOPARDUS","RAJELLA LEOPARDUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "DASYATIS BREVICAUDATA","BATHYTOSHIA BREVICAUDATA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "DASYATIS MARMORATA","DASYATIS CHRYSONOTA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "DASYATIS PASTINACA","DASYATIS CHRYSONOTA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "DASYATIS VIOLACEA","PTEROPLATYTRYGON VIOLACEA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "ETMOPTERUS BAXTERI","ETMOPTERUS GRANULOSUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "ETMOPTERUS BRACHYURUS","ETMOPTERUS SCULTPUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "ETMOPTERUS GRACILISPINIS","ETMOPTERUS COMPAGNOI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "ETMOPTERUS LUCIFER","ETMOPTERUS SCULTPUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "ETMOPTERUS SPINAX","ETMOPTERUS COMPAGNOI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "HIMANTURA JENKINSII","PATEOBATIS JENKINSII",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "MOBULA EREGOODOOTENKEE","MOBULA EREGOODOO",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "MOBULA JAPANICA","MOBULA MOBULAR",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "MUSTELLUS MUSTELLUS","MUSTELUS MUSTELUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "MYLIOBATUS AQUILA","MYLIOBATIS AQUILA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "PRISTIS MICRODON","PRISTIS PRISTIS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "PTEROMYLAEUS BOVINUS","AETOMYLAEUS BOVINUS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJA SPRINGERI","DIPTURUS SPRINGERI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "RAJELLA LEOPARDUS","RAJELLA LEOPARDA",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "SQUALUS MARGARETSMITHAE","SQUALUS ACUTIPINNIS",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "TETRONARCE NOBILIANA","TETRONARCE COWLEYI",SPECIES_SCIENTIFIC))
-summary3 = summary3 %>%
-  mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == "TORPEDO NOBILIANA","TETRONARCE COWLEYI",SPECIES_SCIENTIFIC))
+# change synonyms
+# load data sheet with species names to change
+# this sheet contains any historical species names that need to be updated
+synonym_sheet = read_xlsx(list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/","synonymies.xlsx",recursive = TRUE,full.names = TRUE))
+# change names to upper case
+synonym_sheet$Incorrect_name =toupper(synonym_sheet$Incorrect_name)
+synonym_sheet$Correct_name =toupper(synonym_sheet$Correct_name)
+# change any synonyms
+for(i in 1:nrow(synonym_sheet)){
+  summary3 = summary3 %>%
+    mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == synonym_sheet$Incorrect_name[i],synonym_sheet$Correct_name[i],SPECIES_SCIENTIFIC))
+}
+rm(synonym_sheet,i)
 
 # number of species
 sort(unique(summary3$SPECIES_SCIENTIFIC))
@@ -213,8 +179,18 @@ observation_counts = summary3 %>%
 spp = str_detect(observation_counts$SPECIES_SCIENTIFIC,"SPP")
 groups = observation_counts[spp,]
 observation_counts = observation_counts[!spp,]
+# extract species that are lumped together in a group
+sp = str_detect(observation_counts$SPECIES_SCIENTIFIC,"SP\\.")
+groups2 = observation_counts[sp,]
+observation_counts = observation_counts[!sp,]
+# combine removed species
+groups = rbind(groups,groups2)
+rm(groups2)
+
+# remove observations of less than 5
 observation_counts = observation_counts %>%
-  filter(SPECIES_SCIENTIFIC != "0")
+  filter(SPECIES_SCIENTIFIC != "0") %>%
+  filter(SPECIES_SCIENTIFIC != "UNKNOWN")
 
 # load target species
 targets = readxl::read_xlsx("/Users/nfb/Dropbox/6-WILDOCEANS/wildoceans_specieslist.xlsx")
@@ -224,8 +200,8 @@ targets$SPECIES_SCIENTIFIC = toupper(targets$SPECIES_SCIENTIFIC )
 # join both datasets
 observation_counts = left_join(observation_counts,targets)
 
-# read sheet to use for keeping track of models done
-write.csv(observation_counts, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary.csv")
+# write sheet to use for keeping track of species groups not included
+write.csv(groups, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary_excludedspeciesgroups.csv",row.names = FALSE)
 
 ##################### extract data per target species 
 
@@ -239,8 +215,6 @@ for(i in sp){
     filter(!is.na(as.numeric(LONGITUDE))) %>%
     filter(!is.na(as.numeric(LATITUDE)))
   saveRDS(temp,file = paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i, ".rds", sep=""))
-  temp = st_as_sf(temp, coords = c("LONGITUDE","LATITUDE"))
-  st_write(temp,paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i, ".shp", sep=""), append = TRUE)
   }
 
 ##################### extract data per target GENUS 
@@ -259,5 +233,4 @@ for(i in gen){
 }
 
 
-list = list_layers()
 

@@ -34,7 +34,7 @@ library(RColorBrewer)
 
 # all the subscripts are in the scripts folder
 # all the data is in the planning folder
-# make sure you choose the coorect patg and set the directory to the overall WILDOCEANS folder so you can find both
+# make sure you choose the correct patg and set the directory to the overall WILDOCEANS folder so you can find both
 #path = "/home/nina/Documents/" # linux path
 path = "/Users/nfb/" # mac path
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
@@ -81,8 +81,7 @@ source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
 # ---------------------------------
 
 # at the moment i am only locking in mpas (no take ones)
-mpa_layer = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names = TRUE))
-#source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
 
 # ---------------------------------
 # 6 - CONSERVATION TARGETS
@@ -100,7 +99,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # output: prioritizr problem object
 # ---------------------------------
 # running from the mainscript for now 
-# seems more practical as i understand more about the package
+# seems more practical as I learn more about the package
 #source(list.files(pattern = "Problem.R", recursive = TRUE))
 options(scipen = 100) # turns of scientific numbering
 

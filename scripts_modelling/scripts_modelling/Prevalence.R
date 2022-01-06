@@ -14,12 +14,6 @@
 
 # set CRS of observations
 crs(obs.data) = crs(template)
-# crop template if region is cropped
-if(restrictedrange == "yes"){
-  template = crop(template,extent(subset))
-}
-
-rm(subset)
 
 # crop to template
 obs.data = crop(obs.data, template)

@@ -46,6 +46,19 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory
 # read master file with species-specific modelling parameters
 # i.e. restrict range modelled?, seasonal model?, include substrate? etc...
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
+alldata = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = ".rds",recursive = TRUE,full.names = TRUE, ignore.case = TRUE)
+alldata = str_split(alldata, "/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/", simplify = TRUE)[,2]
+alldata = str_split(alldata, ".rds", simplify = TRUE)[,1]
+# find species with data not in master sheet
+excl = which(alldata %in% master$SPECIES_SCIENTIFIC == FALSE)
+excl = as.data.frame(alldata[excl])
+rm(alldata)
+colnames(excl) = "SPECIES_SCIENTIFIC"
+# add these species to master sheet
+# this will also your raw maps to also include species you have data for
+# but that are not in the master sheet for some reason
+master = full_join(master,excl)
+rm(excl)
 
 # ---------------------------------
 #  - PRE-MODELING RUN
@@ -80,12 +93,6 @@ for(i in 1:nrow(master)){
   target = master$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master$Substrate[i] # inclusion of substrate layer?
-  restrictedrange = "no" # for now I am not restricted the range of species 
-  #restrictedrange = master$Restricted_range[i] # range restriction?
-  #if(restrictedrange == "yes"){ # specify which areas to clip range to
-  #  range = toupper(master$areas[i]) # name chosen areas
-  #  range = c(strsplit(range,",")[[1]][1],strsplit(range,",")[[1]][2]) # collate them into a vector
-  #  }
   
   # ---------------------------------
   #  - SPECIES DATA
@@ -97,24 +104,11 @@ for(i in 1:nrow(master)){
   if(length(files)>0){ # proceed only if data was available for that species
   
   # ---------------------------------
-  #  - FISHERIES DATA
-  # outputs: if applicable adds fishing data to obs.data
-  # ---------------------------------
-  source(list.files(pattern = "fisheries data.R", recursive = TRUE)) # list.files() allows you to search for that script anywhere in the parent folder
-
-  # ---------------------------------
   #  - SEASONALITY 
   # output: occurrence points are grouped by austral summer and winter
   # ---------------------------------
   source(list.files(pattern = "seasonality.R", recursive = TRUE, full.names = TRUE))
   
-  # ---------------------------------
-  #  - CROP MODEL EXTENT
-  # output: if applicable refines range to be modelled
-  # ---------------------------------
-  #if(restrictedrange == "yes"){
-  #  source(list.files(pattern = "modelextent.R", recursive = TRUE,full.names = TRUE))}
-
   # ---------------------------------
   #  - PREVALENCE
   # output: calculate prevalence score for species data
@@ -149,7 +143,7 @@ for(i in 1:nrow(master)){
 # ---------------------------------
 
 # remove
-rm(allcells,allcells_10,count,restrictedrange,substrate,target,i,files,table,obs.data,obscells_10,perc_10)
+rm(allcells,allcells_10,count,substrate,target,i,files,table,obs.data,obscells_10,perc_10)
 
 # format number of occurrence points, cells with data and prevalence scores to a data frame
 abundance = as.data.frame(unlist(list_abundance))

@@ -22,7 +22,7 @@ library(biomod2)
 
 # specify MAXENT path, and polynomial GLM
 mxtPh = BIOMOD_ModelingOptions(MAXENT = list(path_to_maxent.jar = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/maxent")),
-                               GLM = list(type = 'polynomial'))
+                               GLM = list(type = 'polynomial'),GAM = list(algo = "GAM_gam"))
 
 # Formatting the data as a BIOMOD object (static)
 # TEST WITH PSEUDOABSENCE SELECTION USING BIOMOD

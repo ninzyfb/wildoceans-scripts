@@ -44,6 +44,7 @@ obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
 obs.data = full_join(obs.data,obs.data_poly)
 rm(obs.data_poly) # remove polygon data
 
+if(nrow(obs.data)>0){
 # verify there are no NAs in latitude and longitude
 # if there are a warning message will appear
 if(unique(!is.na(obs.data$LATITUDE)) == FALSE){
@@ -63,5 +64,5 @@ obs.data = obs.data[!dups,] # remove duplicates from data
 rm(dups) # remove variable from environment
 abundance = nrow(obs.data)
 
-}
+}else{length(files) = 0}}
 
