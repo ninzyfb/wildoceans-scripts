@@ -15,7 +15,7 @@
 # Build individual models
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GLM', 'MAXENT.Phillips'), # 3 chosen models to run
+  models = c('GLM', 'MAXENT.Phillips','GAM'), # 3 chosen models to run
   models.options = mxtPh, # add modified model parameters, if not remove this command
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # % of data used for calibration,rest for testing
@@ -57,8 +57,8 @@ static_ensembleprojection = BIOMOD_EnsembleForecasting(
 # get all models evaluation scores
 all_evals = get_evaluations(static_models, as.data.frame = TRUE)
 ensemble_evals = get_evaluations(static_ensemblemodel, as.data.frame = TRUE)
-write.csv(all_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"allevals.csv"))
-write.csv(ensemble_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"ensembleevals.csv"))
+write.csv(all_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"_res",res,"_allevals.csv"))
+write.csv(ensemble_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"_res",res,"_ensembleevals.csv"))
 
 # Threshold calculation
 # this function calculates the threshold at which a probability can be considered a presence
@@ -71,7 +71,7 @@ thresh = Find.Optim.Stat(Stat='TSS',
                          Nb.thresh.test = 100,
                          Fixed.thresh = NULL)[2]
 thresh = as.data.frame(thresh) # save the output as a dataframe
-write.csv(thresh,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/thresholds/",model_type,target,"thresh.csv")) # save the dataframe
+write.csv(thresh,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/thresholds/",model_type,target,"_res",res,"_thresh.csv")) # save the dataframe
 rm(predictions,response) # remove unnecessary variables
 
 # ---------------------------------
@@ -107,7 +107,7 @@ plot = levelplot(temp,
   latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
 
 # this saves the plot to a folder
-png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_","continuous_ensemble.png"), width=3000, height=3000, res=300)
+png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
 rm(temp,plot) # remove unnecessary variables
@@ -124,7 +124,7 @@ plot = levelplot(temp,
   latticeExtra::layer(sp.polygons(eez,col = "black"))
 
 # this saves the plot to a folder
-png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_","binary_ensemble.png"), width=3000, height=3000, res=300)
+png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_res",res,"_binary_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
 rm(plot) # remove unnecessary variables
@@ -133,6 +133,6 @@ rm(plot) # remove unnecessary variables
 # these are the plots to use in the planning software
 # they are simple rasters with probability values from 0 to 1000
 # both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
-writeRaster(en_preds[[1]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblemean.tiff"), overwrite = TRUE)
+writeRaster(en_preds[[1]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
 #writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
-writeRaster(temp,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblemeanthreshold.tiff"),  overwrite = TRUE)
+writeRaster(temp,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)

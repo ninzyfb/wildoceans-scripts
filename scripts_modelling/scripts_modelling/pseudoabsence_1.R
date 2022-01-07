@@ -41,7 +41,7 @@ absences = list()
 for(i in 1:length(pts_sub_seasons)){
   cells = cellFromXY(template, pts_sub_seasons[[i]]) #  cells in template which overlap with an occurrence point
   values(template)[cells] = NA # turn presence cells to NA. This prevents presence cells being selected as background cells
-  absences[[i]] = SpatialPoints(randomPoints(template, 10000)) # select random background cells (the same number as presence cells)
+  absences[[i]] = SpatialPoints(randomPoints(template, n_bckg_pts)) # select random background cells (the same number as presence cells)
   rm(cells)} # remove unnecessary variables
 rm(i) # remove unnecessary variables
 

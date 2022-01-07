@@ -68,5 +68,6 @@ rm(substrate) # no longer needed
 # ---------------------------------
 
 # save chosen variables for species in question 
-write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_variables.csv"))
+# file name will specify which resolution
+write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_","res",res,"_variables.csv"))
 rm(variable_selection,stack_new) # remove unnecessary variables

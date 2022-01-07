@@ -97,7 +97,7 @@ for(i in 1:nrow(master_keep)){
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master_keep$Substrate[i] # include substrate layer?
   seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
-  
+
   # ---------------------------------
   #  - LOAD SPECIES DATA
   # outputs: occurrences (obs.data) and when applicable polygon occurrences (obs.data_poly)
