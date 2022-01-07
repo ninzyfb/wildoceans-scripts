@@ -78,7 +78,7 @@ if(res == 5){
 
 if(res == 10){
   # load appropriate template
-  template = raster(list.files(pattern = "template_10.tif", recursive = TRUE, full.names = TRUE))
+  template = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
 # species with prevalence >1
   master_keep = master %>%
     filter(rounded_10>=1)
