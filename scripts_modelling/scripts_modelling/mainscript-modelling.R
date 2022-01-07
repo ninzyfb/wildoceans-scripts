@@ -140,7 +140,7 @@ for(i in 1:nrow(master_keep)){
   # 12 - MODEL RUNS AND PROJECTIONS
   # ---------------------------------
   
-  model_type = "Aseasonal_nogam" # specify model_type
+  model_type = "Aseasonal" # specify model_type
   data = biomod_obj # specify which biomod_obj
   source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
   #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))

@@ -37,8 +37,8 @@ biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/absence data
                                                 expl.var = exp, # environmental variables
                                                 resp.xy = pa_xy,
                                                 resp.name = target, # species name
-                                   # random background cells at 20% area of EEZ (5km2 res): 8500
-                                   PA.nb.absences = 8500,
+                                   # this will pick the pseudo-absences from your NAs in pa
+                                   PA.nb.absences = n_bckg_pts,
                                    PA.nb.rep = 1,
                                    # for high specificity pseudo-absences should be randomly selected 
                                    # OR they can also be chosen at a minimal and maximum distance from presence points
@@ -60,7 +60,7 @@ for(i in 1:length(pts_env_seasons)){
                                          resp.xy = pa_xy,
                                          resp.name = target, # species name
                                          # random background cells at 20% area of EEZ (5km2 res): 8500
-                                         PA.nb.absences = 8500,
+                                         PA.nb.absences = n_bckg_pts,
                                          PA.nb.rep = 1,
                                          # for high specificity pseudo-absences should be randomly selected 
                                          # OR they can also be chosen at a minimal and maximum distance from presence points
