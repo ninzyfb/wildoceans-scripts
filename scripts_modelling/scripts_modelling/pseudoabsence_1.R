@@ -15,10 +15,12 @@
 # create background points (static points)
 # create 10000 background points
 # from these 8500 will be chosen as pseudo-absences 
-# 8500 represents 20% of EEZ cells
+# 8500 represents 20% of EEZ cells at 5km res
+# 2030 represents 20% of EEZ cells at 10km res
+# code: length(which(values(template)==1))
 # but this will be done later when formatting the data for modeling
 # previous way i calculated background cells: 10*length(pts_sub)
-absences = SpatialPoints(randomPoints(template, 10000))
+absences = SpatialPoints(randomPoints(template, n_bckg_pts))
 
 # extract environmental variables (static points)
 pa = rbind(pts_sub,absences) # combine presences and absences

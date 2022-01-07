@@ -63,10 +63,28 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 #  - GRID
 # output: template grid (5 and 10km resolution)
 # ---------------------------------
-template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
-template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
-master_keep = master %>%
-  filter(rounded>=1)
+
+# decide if you are running the 5km res or 10km res
+res = 10
+if(res == 5){
+  # load appropriate template
+  template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
+  # species with prevalence >1
+  master_keep = master %>%
+    filter(rounded >=1)
+  # number of background points (n_bckg_pts) to use
+  # code to figure out 20% of cells: 0.2*length(which(values(template)==1))
+  n_bckg_pts = 8410}
+
+if(res == 10){
+  # load appropriate template
+  template = raster(list.files(pattern = "template_10.tif", recursive = TRUE, full.names = TRUE))
+# species with prevalence >1
+  master_keep = master %>%
+    filter(rounded_10>=1)
+# number of background points (n_bckg_pts) to use
+# code to figure out 20% of cells: 0.2*length(which(values(template)==1))
+  n_bckg_pts = 2030}
 
 # loop goes through each species to run and project the models
 for(i in 1:nrow(master_keep)){

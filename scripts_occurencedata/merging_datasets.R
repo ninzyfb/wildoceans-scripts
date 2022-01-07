@@ -18,10 +18,6 @@ library(stringr)
 library(plyr)
 library(sf)
 library(ggplot2)
-<<<<<<< HEAD
-library(anytime)
-=======
->>>>>>> 2525bc69ddc67fd1b55f49e9c25d42162f4c66b3
 
 # ---------------------------------
 # DIRECTORY
@@ -81,12 +77,7 @@ summary2 = summary2 %>%
   filter(!is.na(DATE))
 
 # format all dates and specify different formats
-summary2$DATE2 = parse_date_time(summary2$DATE,
-<<<<<<< HEAD
-                                orders = c("dmy","dmY","Y","Ymd"))
-=======
-                                orders = c("%d/%m/%y","%d/%m/%Y","%Y","%Y-%m-%d","%d.%m.%Y","%m/%d/%Y"))
->>>>>>> 2525bc69ddc67fd1b55f49e9c25d42162f4c66b3
+summary2$DATE2 = parse_date_time(summary2$DATE,orders = c("dmy","dmY","Y"))
 
 unformated = summary2[is.na(summary2$DATE2),] # check which observations don't have a formatted date
 rm(unformated)# remove unnecessary variable
@@ -217,27 +208,21 @@ write.csv(groups, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary_excludedspeciesg
 sp = unique(observation_counts$SPECIES_SCIENTIFIC, ignore.case = TRUE)
 ls = list() # empty list
 for(i in sp){
-  # extrcat all data for one species
+  # extract all data for one species
   temp = summary3 %>%
     filter(SPECIES_SCIENTIFIC == i) %>% 
     filter(!is.na(as.numeric(LONGITUDE))) %>%
     filter(!is.na(as.numeric(LATITUDE)))
   # save as R object to be used in modeling
   saveRDS(temp,file = paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i, ".rds", sep=""))
-<<<<<<< HEAD
   # also save important information on that species
   summary_temp = temp %>%
-    group_by(DATASET)%>%
+    group_by(DATASET) %>%
+    arrange(DATE2) %>%
     summarise(Start = as.Date(first(DATE2)), End = as.Date(last(DATE2)),datapoints = n())%>%
     arrange(desc(datapoints))
-  write.csv(summary_temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,".csv",sep=""))
+  write.csv(summary_temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,".csv",sep=""), row.names = FALSE)
 }
-
-look = temp %>%
-  filter(DATASET == "Dickens")
-=======
-  }
->>>>>>> 2525bc69ddc67fd1b55f49e9c25d42162f4c66b3
 
 ##################### extract data per target GENUS 
 
