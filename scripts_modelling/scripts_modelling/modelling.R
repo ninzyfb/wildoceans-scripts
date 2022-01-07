@@ -15,7 +15,7 @@
 # Build individual models
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GLM', 'MAXENT.Phillips','GAM'), # 3 chosen models to run
+  models = c('GLM', 'MAXENT.Phillips'), # 3 chosen models to run
   models.options = mxtPh, # add modified model parameters, if not remove this command
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # % of data used for calibration,rest for testing

@@ -65,18 +65,20 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 # ---------------------------------
 template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
 template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
+master_keep = master %>%
+  filter(rounded>=1)
 
 # loop goes through each species to run and project the models
-for(i in 1:nrow(master)){
+for(i in 1:nrow(master_keep)){
   
   # ---------------------------------
   # - MODEL PARAMATERS
   # outputs: all the model parameters that are important in the subscripts
   # ---------------------------------
-  target = master$SPECIES_SCIENTIFIC[i] # species name
+  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = master$Substrate[i] # include substrate layer?
-  seasonal = master$Seasonality[i] # run seasonal (summer & winter) model?
+  substrate = master_keep$Substrate[i] # include substrate layer?
+  seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
   
   # ---------------------------------
   #  - LOAD SPECIES DATA
@@ -120,7 +122,7 @@ for(i in 1:nrow(master)){
   # 12 - MODEL RUNS AND PROJECTIONS
   # ---------------------------------
   
-  model_type = "Aseasonal" # specify model_type
+  model_type = "Aseasonal_nogam" # specify model_type
   data = biomod_obj # specify which biomod_obj
   source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
   #source(list.files(pattern = "Evaluation.R", recursive = TRUE, full.names = TRUE))
