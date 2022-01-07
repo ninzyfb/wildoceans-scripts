@@ -10,17 +10,21 @@
 # ---------------------------------
 # DATA
 # ---------------------------------
+if(res == 5){
 # list files from 5km folder with final raster layers
 variable_names = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS_5km_resolution"),pattern = ".tif", recursive = TRUE, full.names = TRUE)
 stack = stack(variable_names) # stack all rasters 
 stack$substrate_simplified = as.factor(stack$substrate_simplified) # turn substrate to a factor
 rm(variable_names) # remove unnecessary variable
-
+}
+if(res ==10){
 # list files from 10km folder with final raster layers
 variable_names = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS_10km_resolution"),pattern = ".tif", recursive = TRUE, full.names = TRUE)
-stack_10 = stack(variable_names) # stack all rasters 
-stack_10$substrate_simplified = as.factor(stack_10$substrate_simplified) # turn substrate to a factor
+stack = stack(variable_names) # stack all rasters 
+stack$substrate_simplified = as.factor(stack$substrate_simplified) # turn substrate to a factor
 rm(variable_names) # remove unnecessary variable
+}
+
 # ---------------------------------
 # DEFINE WORKING DIRECTORY
 # ---------------------------------

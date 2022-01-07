@@ -54,12 +54,6 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
 
 # ---------------------------------
-#  - ENVIRONMENTAL VARIABLES 
-# output: a predictor variable stack (stack)
-# ---------------------------------
-source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
-
-# ---------------------------------
 #  - GRID
 # output: template grid (5 and 10km resolution)
 # ---------------------------------
@@ -86,6 +80,16 @@ if(res == 10){
 # code to figure out 20% of cells: 0.2*length(which(values(template)==1))
   n_bckg_pts = 2030}
 
+# ---------------------------------
+#  - ENVIRONMENTAL VARIABLES 
+# output: a predictor variable stack (stack)
+# ---------------------------------
+source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
+
+master_keep = master %>%
+  filter(rounded_10>=1)
+
+
 # loop goes through each species to run and project the models
 for(i in 1:nrow(master_keep)){
   
@@ -96,7 +100,8 @@ for(i in 1:nrow(master_keep)){
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master_keep$Substrate[i] # include substrate layer?
-  seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
+  seasonal = "no" # prioritizing aseasonal models for now
+  #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
 
   # ---------------------------------
   #  - LOAD SPECIES DATA
