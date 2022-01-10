@@ -57,10 +57,10 @@ rm(i)} # remove unnecessary variables
 # remove substrate layer if necessary
 if(substrate == "no"){
   pts_env$substrate_simplified = NULL
+  stack_subset = dropLayer(stack_subset,1)
   if(exists("pts_env_seasons")){
   pts_env_seasons[[1]]$substrate_simplified = NULL
-  pts_env_seasons[[2]]$substrate_simplified = NULL}
-  stack_subset = dropLayer(stack_subset,1)}
+  pts_env_seasons[[2]]$substrate_simplified = NULL}}
 rm(substrate) # no longer needed
 
 # ---------------------------------
