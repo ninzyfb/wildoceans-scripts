@@ -15,9 +15,9 @@
 # Build individual models
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GLM', 'MAXENT.Phillips','GAM'), # 3 chosen models to run
+  models = c('GLM', 'MAXENT.Phillips'), # 3 chosen models to run
   models.options = mxtPh, # add modified model parameters, if not remove this command
-  NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
+  NbRunEval = 1, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # % of data used for calibration,rest for testing
   models.eval.meth = c('TSS'), # evaluation method
   SaveObj = TRUE, # keep all results on hard drive 
@@ -45,9 +45,8 @@ static_modelprojections =
     new.env = stack_subset, # same environmental variables on which model will be projected
     selected.models = "all", # which models to project, in this case only the full ones
     binary.meth = 'TSS', # model evaluation method
-    compress = 'xz', # to do with how r stores the file
-    build.clamping.mask = FALSE,
-    silent=TRUE)
+    compress = 'xy', # to do with how r stores the file
+    build.clamping.mask = FALSE)
 
 # Ensemble model projection 
 static_ensembleprojection = BIOMOD_EnsembleForecasting(

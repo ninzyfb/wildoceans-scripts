@@ -62,7 +62,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 res = 10
 if(res == 5){
   # load appropriate template
-  template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
+  template = raster(list.files(pattern = "template_5km.tif", recursive = TRUE, full.names = TRUE))
   # species with prevalence >1
   master_keep = master %>%
     filter(rounded >=1)
@@ -100,7 +100,7 @@ for(i in 1:nrow(master_keep)){
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master_keep$Substrate[i] # include substrate layer?
-  seasonal = "no" # prioritizing aseasonal models for now
+  seasonal = "yes" # prioritizing aseasonal models for now
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
 
   # ---------------------------------

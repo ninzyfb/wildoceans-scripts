@@ -29,7 +29,7 @@ obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
 coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
 
 # set CRS of observations
-crs(obs.data) = crs(template)
+crs(obs.data) = crs(stack)
 
 # ---------------------------------
 # PLOTTING

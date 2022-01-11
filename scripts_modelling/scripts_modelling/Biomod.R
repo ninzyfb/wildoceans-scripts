@@ -11,6 +11,7 @@
 # PACKAGES
 # biomod2 is loaded in seperately as it intercats with functions from other packages
 # ---------------------------------
+detach(package:dismo,unload=TRUE)
 library(biomod2)
 
 # ---------------------------------

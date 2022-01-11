@@ -20,12 +20,16 @@
 # code: length(which(values(template)==1))
 # but this will be done later when formatting the data for modeling
 # previous way i calculated background cells: 10*length(pts_sub)
-absences = SpatialPoints(randomPoints(template, n_bckg_pts))
+cells = randomPoints(stack, n_bckg_pts,cellnumbers=TRUE, ext = extent(stack))
+absences = SpatialPoints(xyFromCell(stack[[1]],cells),bbox =  bbox(stack))
+crs(absences) = crs(pts_sub)
 
 # extract environmental variables (static points)
 pa = rbind(pts_sub,absences) # combine presences and absences
+
 # extract environmental values
 vars = as.data.frame(raster::extract(stack, pa))
+
 # create a data frame
 pa = as.data.frame(c(rep(1,length(pts_sub)),rep(0,length(absences)))) # add column of 1s and 0s for preseces and absences respectively
 colnames(pa) = "pa" # rename that column pa (for presence absence)
@@ -39,9 +43,9 @@ rm(pts_sub,vars,pa, absences,coords) # remove unnecessary variables
 if(seasonal == 'yes'){
 absences = list()
 for(i in 1:length(pts_sub_seasons)){
-  cells = cellFromXY(template, pts_sub_seasons[[i]]) #  cells in template which overlap with an occurrence point
-  values(template)[cells] = NA # turn presence cells to NA. This prevents presence cells being selected as background cells
-  absences[[i]] = SpatialPoints(randomPoints(template, n_bckg_pts)) # select random background cells (the same number as presence cells)
+  cells = randomPoints(stack, n_bckg_pts,cellnumbers=TRUE, ext = extent(stack))
+  absences[[i]] = SpatialPoints(xyFromCell(stack[[1]],cells),bbox =  bbox(stack))
+  crs(absences[[i]]) = crs(pts_sub)
   rm(cells)} # remove unnecessary variables
 rm(i) # remove unnecessary variables
 

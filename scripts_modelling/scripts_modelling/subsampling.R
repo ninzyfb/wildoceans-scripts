@@ -10,11 +10,10 @@
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-
+library(dismo)
 # Subsample one occurrence point per grid cell for static model
-pts = SpatialPoints(obs.data)
-pts_sub = SpatialPoints(gridSample(pts, template, n=1))
-rm(pts)
+pts_sub = SpatialPoints(gridSample(obs.data, stack, n=1),bbox =  bbox(stack))
+crs(pts_sub) = crs(stack)
 
 # Subsample one occurrence point per grid cell for seasonal models
 if(seasonal == 'yes'){
@@ -27,8 +26,10 @@ for(i in 1:length(seasons)){ # for each season
   temp = obs.data[!is.na(obs.data$SEASON),] # remove any NAs from season variable
   temp = temp[temp$SEASON == levels(temp$SEASON)[i],] # filter to keep one season
   if(nrow(temp@data)>1){ # if there is more than one data point
-  pts_sub_seasons[[i]] = SpatialPoints(gridSample(temp, template, n=1)) # sub-sample one data point per grid cell
-  names(pts_sub_seasons)[i] = levels(obs.data$SEASON)[i]} # name the list with the season
+  pts_sub_seasons[[i]] = SpatialPoints(gridSample(temp, stack, n=1),bbox = bbox(stack)) # sub-sample one data point per grid cell
+  names(pts_sub_seasons)[i] = levels(obs.data$SEASON)[i]
+  crs(pts_sub_seasons[[i]]) = crs(stack)
+  } # name the list with the season
 }
 rm(temp, seasons,i)} # remove unnecessary variables
 

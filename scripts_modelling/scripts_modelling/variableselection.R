@@ -17,7 +17,8 @@ pts_env_temporary = pts_env %>% # create temporary duplicate of presence absence
 # detach tidyr package 
 detach(package:tidyr,unload=TRUE)
 
-# remove substrate which is categorical variable and doesn't work with function
+# remove substrate which is categorical variable
+# doesn't work with function
 pts_env_temporary$substrate_simplified = NULL
 
 # run variable selection function
@@ -35,12 +36,9 @@ pts_env$substrate_simplified = as.factor(pts_env$substrate_simplified)
 rm(keep) # remove unnecessary variables
 
 # filter stack to only keep chosen variables
-if(exists("stack_new")){
-stack_subset = subset(stack_new,names(pts_env)[-c(1:3)])
-stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )}else{
-  stack_subset = subset(stack,names(pts_env)[-c(1:3)])
-  stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )
-}
+stack_subset = subset(stack,names(pts_env)[-c(1:3)])
+stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified )
+
 # run same code for seasonal data
 if(exists("pts_env_seasons")){
 # filter dfs to only keep chosen variables (seasonal)
@@ -70,4 +68,4 @@ rm(substrate) # no longer needed
 # save chosen variables for species in question 
 # file name will specify which resolution
 write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_","res",res,"_variables.csv"))
-rm(variable_selection,stack_new) # remove unnecessary variables
+rm(variable_selection) # remove unnecessary variables
