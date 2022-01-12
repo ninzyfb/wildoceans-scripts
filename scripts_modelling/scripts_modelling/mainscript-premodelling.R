@@ -83,7 +83,7 @@ list_cells_10 = list() # list of cells values 10km res
 for(i in 1:nrow(master)){
 
   # template grid (5 and 10km resolution)
-  template = raster(list.files(pattern = "template.tif", recursive = TRUE, full.names = TRUE))
+  template = raster(list.files(pattern = "template_5km.tif", recursive = TRUE, full.names = TRUE))
   template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
 
   # ---------------------------------

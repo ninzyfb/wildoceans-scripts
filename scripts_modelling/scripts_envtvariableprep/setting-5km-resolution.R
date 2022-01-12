@@ -41,6 +41,10 @@ res(r_10km)
 writeRaster(r_5km,"template_5km.tif",overwrite=TRUE)
 writeRaster(r_10km,"template_10km.tif",overwrite=TRUE)
 
+# read rasters
+r_5km = raster("template_5km.tif")
+r_10km = raster("template_10km.tif")
+
 # now we transform each variable to match the extent, resolution and crs of the template
 # this is important for modelling as all envt ratsters need to be the same
 # the technique is use is ngb which means nearest neighbour.
@@ -86,10 +90,9 @@ for(name in categorical){
   writeRaster(temp_modified,paste0("Modelling/ALLLAYERS10kmresolution",name), overwrite=TRUE) # write raster
 }
 
-# stack them
-setwd("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS_5km_resolution/")
-stack_5km = stack(list.files("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS_5km_resolution/", recursive = TRUE, full.names = TRUE))
-stack_10km = stack(list.files("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS_10km_resolution/", recursive = TRUE, full.names = TRUE))
+# stack
+stack_5km = stack(list.files("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALLLAYERS5kmresolution/", recursive = TRUE, full.names = TRUE))
+stack_10km = stack(list.files("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALLLAYERS10kmresolution/", recursive = TRUE, full.names = TRUE))
 
 # extend NA values with values from nearest neighbours
 list = list()
@@ -97,20 +100,23 @@ stack = stack()
 list2 = list()
 for(i in 1:nlayers(stack_5km)){
   temp = stack_5km[[i]] # isolate layer
-  diff  = mask(template,temp, inverse = TRUE) # identify cells with no value in raster
-  val = sum(values(diff), na.rm = TRUE) # if value is more than 0 then raster does not overlap perfectly with template
+  # mask the environmental layer with the template but using inverse = TRUE
+  # this means that cells remaining are cells from the template that are not in the environmental layer
+  # i.e. cells on the coastline with no data
+  diff  = mask(r_5km,temp, inverse = TRUE)
+  # number of cells with no data
+  # if value is more than 0 then raster does not overlap perfectly with template
+  val = sum(values(diff), na.rm = TRUE) 
   list[[i]] = val
   f <- focal(temp, w=matrix(1,nrow=3, ncol=3), fun=modal, NAonly=TRUE, na.rm=TRUE) # fill gaps using neighbouring cells
   stack = addLayer(stack,f)
-  diff  = mask(template,f, inverse = TRUE)
+  diff  = mask(r_5km,f, inverse = TRUE)
   val = sum(values(diff), na.rm = TRUE) # if value is more than 0 then raster does not overlap perfectly with template
   list2[[i]] = val # how many cells have NA value now
   name = names(stack_5km)[i]
-  f = mask(f,template) # crop to template now
+  f = mask(f,r_5km) # crop to template now
   writeRaster(f,paste(name,".tif",sep=""), overwrite=TRUE) # write raster
 } 
-
-setwd("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/ALL_LAYERS_10km_resolution/")
 
 #extend NA values with values from nearest neighbours
 list = list()
@@ -118,16 +124,16 @@ stack = stack()
 list2 = list()
 for(i in 1:nlayers(stack_10km)){
   temp = stack_10km[[i]] # isolate layer
-  diff  = mask(template_10,temp, inverse = TRUE) # identify cells with no value in raster
+  diff  = mask(r_10km,temp, inverse = TRUE) # identify cells with no value in raster
   val = sum(values(diff), na.rm = TRUE) # if value is more than 0 then raster does not overlap perfectly with template
   list[[i]] = val
   f <- focal(temp, w=matrix(1,nrow=3, ncol=3), fun=modal, NAonly=TRUE, na.rm=TRUE) # fill gaps using neighbouring cells
   stack = addLayer(stack,f)
-  diff  = mask(template_10,f, inverse = TRUE)
+  diff  = mask(r_10km,f, inverse = TRUE)
   val = sum(values(diff), na.rm = TRUE) # if value is more than 0 then raster does not overlap perfectly with template
   list2[[i]] = val # how many cells have NA value now
   name = names(stack_10km)[i]
-  f = mask(f,template_10) # crop to template now
+  f = mask(f,r_10km) # crop to template now
   writeRaster(f,paste(name,".tif",sep=""), overwrite=TRUE) # write raster
 } 
 
