@@ -100,7 +100,7 @@ for(i in 1:nrow(master_keep)){
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
   substrate = master_keep$Substrate[i] # include substrate layer?
-  seasonal = "yes" # prioritizing aseasonal models for now
+  seasonal = "no" # prioritizing aseasonal models for now
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
 
   # ---------------------------------
