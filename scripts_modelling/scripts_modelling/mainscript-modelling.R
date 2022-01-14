@@ -78,13 +78,16 @@ if(res == 10){
     filter(rounded_10>=1)
 # number of background points (n_bckg_pts) to use
 # code to figure out 20% of cells: 0.2*length(which(values(template)==1))
-  n_bckg_pts = 2162}
+  n_bckg_pts = 2030}
 
 # ---------------------------------
 #  - ENVIRONMENTAL VARIABLES 
 # output: a predictor variable stack (stack)
 # ---------------------------------
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
+
+master_keep = master %>%
+  filter(rounded_10>=1)
 
 
 # loop goes through each species to run and project the models
