@@ -52,13 +52,16 @@ alldata = str_split(alldata, ".rds", simplify = TRUE)[,1]
 # find species with data not in master sheet
 excl = which(alldata %in% master$SPECIES_SCIENTIFIC == FALSE)
 excl = as.data.frame(alldata[excl])
-rm(alldata)
 colnames(excl) = "SPECIES_SCIENTIFIC"
 # add these species to master sheet
 # this will also your raw maps to also include species you have data for
 # but that are not in the master sheet for some reason
 master = full_join(master,excl)
 rm(excl)
+
+# find species in master sheet but with no data
+master = master %>%
+  filter((SPECIES_SCIENTIFIC %in% alldata))
 
 # ---------------------------------
 #  - PRE-MODELING RUN

@@ -34,6 +34,7 @@ pts_env = pts_env[,names(pts_env) %in% variable_selection$pred_sel] # filter df 
 pts_env = cbind(keep,pts_env)
 pts_env$substrate_simplified = as.factor(pts_env$substrate_simplified)
 rm(keep) # remove unnecessary variables
+?select07
 
 # filter stack to only keep chosen variables
 stack_subset = subset(stack,names(pts_env)[-c(1:3)])

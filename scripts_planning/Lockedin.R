@@ -28,6 +28,8 @@ estuaries = rasterize(st_as_sf(estuaries$geometry),pu)
 values(estuaries)[which(values(estuaries)>0)] = 1
 # rename layer
 names(estuaries) = "estuaries"
+estuaries = projectRaster(estuaries,pu)
+
 
 # aggregation spots
 aggregations1 = st_read(list.files(pattern = "aggregationspots_murray.shp",recursive=TRUE,full.names = TRUE))
@@ -44,6 +46,7 @@ aggregations = rasterize(aggregations,pu)
 values(aggregations)[which(values(aggregations)>0)] = 1
 # rename layer
 names(aggregations) = "aggregations"
+aggregations = projectRaster(aggregations,pu)
 
 # mpas (all of them)
 mpa_layer_all = st_read(list.files(pattern = "SAMPAZ_OR_2020_Q3.shp",recursive=TRUE,full.names = TRUE))
@@ -55,12 +58,15 @@ mpa_layer_all = rasterize(mpa_layer_all,pu)
 values(mpa_layer_all)[which(values(mpa_layer_all)>0)] = 1
 # rename layer
 names(mpa_layer_all) = "mpa_layer_all"
+mpa_layer_all = projectRaster(mpa_layer_all,pu)
+
 
 # mpas (only fully protected ones)
 mpa_layer_fullyprotected = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names = TRUE))
 # rename layer
 names(mpa_layer_fullyprotected) = "mpa_layer_fullyprotected"
-
+mpa_layer_fullyprotected = projectRaster(mpa_layer_fullyprotected,pu)
+values(mpa_layer_fullyprotected)[which(values(mpa_layer_fullyprotected)!=0)]=1
 
 # ---------------------------------
 # FORMATTING

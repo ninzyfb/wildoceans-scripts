@@ -3,7 +3,7 @@
 # ---------------------------------
 
 # species distribution file names
-files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
+files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
 feature_stack = stack()
 for(i in 1:length(files)){
   temp = raster(files[i])
@@ -13,25 +13,25 @@ for(i in 1:length(files)){
 rm(i,files,temp) # remove unnecessary variables
 
 # species distribution threshold values
-thresholds = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs_Round3"),pattern = "thresh.csv", recursive = TRUE,full.names = TRUE)
-thresholds_df = data.frame()
-for(i in 1:length(thresholds)){
-  name = str_split(thresholds[i],"/")[[1]][9]
+#thresholds = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs"),pattern = "thresh.csv", recursive = TRUE,full.names = TRUE)
+#thresholds_df = data.frame()
+#for(i in 1:length(thresholds)){
+#  name = str_split(thresholds[i],"/")[[1]][9]
   # extract parameters from file name (very clunky for now)
-  model =  str_split(name," ")[[1]][2]
-  genus = str_split(name," ")[[1]][3]
-  species = str_split(name," ")[[1]][4]
+#  model =  str_split(name," ")[[1]][2]
+#  genus = str_split(name," ")[[1]][3]
+#  species = str_split(name," ")[[1]][4]
   # read csv
-  thresh = read.csv(thresholds[i])
-  thresh$X = NULL
+#  thresh = read.csv(thresholds[i])
+#  thresh$X = NULL
   # add parameters
-  thresh$modeltype = model
-  thresh$species_scientific = paste(genus, species)
+#  thresh$modeltype = model
+#  thresh$species_scientific = paste(genus, species)
   # divide value by 1000
-  thresh$thresh = thresh$thresh/1000
+#  thresh$thresh = thresh$thresh/1000
   # add to maindataframe
-  thresholds_df = rbind(thresholds_df,thresh)
-  }
+#  thresholds_df = rbind(thresholds_df,thresh)
+#  }
 rm(name,model,genus,species,thresh,thresholds)
 
 # ---------------------------------
@@ -84,9 +84,9 @@ feature_stack = stack(feature_stack)
 rm(i) # remove unnecessary variables
 
 # create raster stack using threshold values
-colnames(thresholds_df) = toupper(colnames(thresholds_df))
-featurenames = left_join(featurenames,thresholds_df)
-rm(thresholds_df)
+#colnames(thresholds_df) = toupper(colnames(thresholds_df))
+#featurenames = left_join(featurenames,thresholds_df)
+#rm(thresholds_df)
 
 #feature_stack_binary = feature_stack
 #for(i in 1:nlayers(feature_stack_binary)){

@@ -4,7 +4,7 @@ targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE
 
 # only keep species names and targets
 targets = targets %>%
-  dplyr::select(species_scientific,Target)
+  dplyr::select(SPECIES_SCIENTIFIC,Target)
 
 # turn colnames to upper case
 colnames(targets) = toupper(colnames(targets))

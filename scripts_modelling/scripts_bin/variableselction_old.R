@@ -1,6 +1,12 @@
 #### Packages
 library(fuzzySim) 
 library(dismo)
+library(caret)
+
+?findCorrelation
+all_noNAs = na.omit(all)
+remove = findCorrelation(cor(all_noNAs), cutoff = 0.7,names = TRUE)
+names(stack)[!(names(stack)%in%remove)]
 
 #### Variable selection function
 list_variables = list()
@@ -41,11 +47,13 @@ detach(package:dismo,unload=TRUE)
 # - correlations among variables (removing, from each pair of variables with an absolute correlation greater than 0.8, the one that is least informative regarding the species' occurrence)
 # - the false discovery rate (removing variables whose relationship with the species became nonsignificant after accounting for the number of variables in the dataset, hence reducing type I errors);
 # -  parsimony (performing a forward–backward stepwise selection of the remaining variables using AIC until no variable provides a relevant improvement to the model).
-#models_multGLM = multGLM(variables_all, # the dataset with extract values of environmental variables
-#                         sp.cols = 1 , # species column index number
-#                         var.cols = 2:17, # variable columns index numbers
-#                         FDR = TRUE, #  preliminary exclusion of variables based on the false discovery rate (type 1 error)
-#                         corSelect = TRUE, # preliminary exclusion of highly correlated variables
-#                         cor.thresh = 0.8, # correlation threshold of 0.8
-#                         step = FALSE, # perform a stepwise variable selection (based on AIC or BIC)
-#                         trim = FALSE) # whether to trim off non-significant variables from the models using modelTrim function
+all_noNAs = as.data.frame(all_noNAs)
+all_noNAs$p = 1
+models_multGLM = multGLM(all_noNAs, # the dataset with extract values of environmental variables
+                         sp.cols = 28 , # species column index number
+                         var.cols = 1:27, # variable columns index numbers
+                         FDR = TRUE, #  preliminary exclusion of variables based on the false discovery rate (type 1 error)
+                         corSelect = TRUE, # preliminary exclusion of highly correlated variables
+                         cor.thresh = 0.8, # correlation threshold of 0.8
+                         step = FALSE, # perform a stepwise variable selection (based on AIC or BIC)
+                         trim = FALSE) # whether to trim off non-significant variables from the models using modelTrim function

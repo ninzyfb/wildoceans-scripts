@@ -18,6 +18,7 @@ library(stringr)
 library(plyr)
 library(sf)
 library(ggplot2)
+library(readxl)
 
 # ---------------------------------
 # DIRECTORY

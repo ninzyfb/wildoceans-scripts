@@ -61,7 +61,7 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 # ---------------------------------
 # grid cell value = cost of grid cell
 # this is the basic planning unit, every 5km2 grid cell has a value of 1
-pu = raster(list.files(pattern = "template.tif",full.names = TRUE,recursive = TRUE))
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
 
 # ---------------------------------
 # 3 - CONSERVATION FEATURES
@@ -141,16 +141,16 @@ for(i in 1:nrow(scenario_sheet)){
   if(locked_in == "none"){ 
     problem_single = problem(c,f) %>% # costs and features
       #add_min_set_objective() %>%
-      add_min_largest_shortfall_objective(budget = 4205) %>%
+      add_min_largest_shortfall_objective(budget = 1080) %>%
       add_relative_targets(t) %>%
-      add_boundary_penalties(boundary_penalty) %>% # add penalty
+      add_boundary_penalties(0.00001) %>% # add penalty
       add_binary_decisions() %>%
       add_gurobi_solver(time_limit = 3600, gap = 0.2)}else{
         problem_single = problem(c,f) %>%
           #add_min_set_objective() %>%
-          add_min_largest_shortfall_objective(budget = 4205) %>% # budget representing 10% of planning units total
+          add_min_largest_shortfall_objective(budget = 1080) %>% # budget representing 10% of planning units total
           add_relative_targets(t) %>%
-          add_boundary_penalties(boundary_penalty) %>% # add penalty
+          add_boundary_penalties(0.00001) %>% # add penalty
           add_binary_decisions() %>%
           add_locked_in_constraints(mpa_layer) %>%
           add_gurobi_solver(time_limit = 3600, gap = 0.2)}

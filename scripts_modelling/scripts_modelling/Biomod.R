@@ -33,14 +33,16 @@ pts_env = pts_env %>% # convert 0 to NAs (allows them to be seen as backgorund a
 pa = pts_env$pa # presence absence column
 pa_xy = pts_env[,c(2,3)] # presence absence coordinates
 exp =  pts_env[,-c(1:3)] # environmental variables
-
+# from all your generated background points in pseudo-absence script pick the same number as number of presence points
+pseudoabsences = length(which(pa==1))
 biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/absence data
                                                 expl.var = exp, # environmental variables
                                                 resp.xy = pa_xy,
                                                 resp.name = target, # species name
                                    # this will pick the pseudo-absences from your NAs in pa
-                                   PA.nb.absences = n_bckg_pts,
-                                   PA.nb.rep = 1,
+                                   PA.nb.absences = pseudoabsences,
+                                   # two sets of pseudoabsences to be chosen
+                                   PA.nb.rep = 2,
                                    # for high specificity pseudo-absences should be randomly selected 
                                    # OR they can also be chosen at a minimal and maximum distance from presence points
                                    PA.strategy = 'random') 
@@ -61,8 +63,8 @@ for(i in 1:length(pts_env_seasons)){
                                          resp.xy = pa_xy,
                                          resp.name = target, # species name
                                          # random background cells at 20% area of EEZ (5km2 res): 8500
-                                         PA.nb.absences = n_bckg_pts,
-                                         PA.nb.rep = 1,
+                                         PA.nb.absences = pseudoabsences,
+                                         PA.nb.rep = 2,
                                          # for high specificity pseudo-absences should be randomly selected 
                                          # OR they can also be chosen at a minimal and maximum distance from presence points
                                          PA.strategy = 'random') 
