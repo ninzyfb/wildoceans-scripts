@@ -168,7 +168,7 @@ for(i in 1:nrow(synonym_sheet)){
 rm(synonym_sheet,i)
 
 # number of species
-sort(unique(summary3$SPECIES_SCIENTIFIC))
+look = data.frame(sort(unique(summary3$SPECIES_SCIENTIFIC)))
 
 # summarise number of counts by species name
 observation_counts = summary3 %>%
@@ -176,21 +176,30 @@ observation_counts = summary3 %>%
   summarise(count = n())
 
 # extract species that are lumped together in a group
-spp = str_detect(observation_counts$SPECIES_SCIENTIFIC,"SPP")
+spp = str_detect(observation_counts$SPECIES_SCIENTIFIC," SPP")
 groups = observation_counts[spp,]
 observation_counts = observation_counts[!spp,]
 # extract species that are lumped together in a group
-sp = str_detect(observation_counts$SPECIES_SCIENTIFIC,"SP\\.")
+sp = str_detect(observation_counts$SPECIES_SCIENTIFIC," SP\\.")
 groups2 = observation_counts[sp,]
 observation_counts = observation_counts[!sp,]
 # combine removed species
 groups = rbind(groups,groups2)
 rm(groups2)
 
+# isolate species that only have a genus
+observation_counts$total <- sapply(observation_counts$SPECIES_SCIENTIFIC, function(x) length(unlist(strsplit(as.character(x), "\\W+"))))
+sp = observation_counts %>%
+  filter(total<2) 
+sp$total = NULL
+groups = rbind(groups,sp)
+rm(sp)
+
 # remove observations of less than 5
 observation_counts = observation_counts %>%
   filter(SPECIES_SCIENTIFIC != "0") %>%
-  filter(SPECIES_SCIENTIFIC != "UNKNOWN")
+  filter(SPECIES_SCIENTIFIC != "UNKNOWN")%>%
+  filter(total>1)
 
 # load target species
 targets = readxl::read_xlsx("/Users/nfb/Dropbox/6-WILDOCEANS/wildoceans_specieslist.xlsx")
@@ -239,6 +248,3 @@ for(i in gen){
   temp = st_as_sf(temp, coords = c("LONGITUDE","LATITUDE"))
   st_write(temp,paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/generadata/",i, ".shp", sep=""), append = TRUE)
 }
-
-
-

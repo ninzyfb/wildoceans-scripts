@@ -50,7 +50,6 @@ expert_extent = as(expert_extent, Class = "Spatial")
 expert_extent$Scientific_name = tolower(expert_extent$Scientific_name)
 rm(points)
 
-
 # ---------------------------------
 # FORMATTING
 # ---------------------------------

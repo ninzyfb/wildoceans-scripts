@@ -86,6 +86,11 @@ if(res == 10){
 # ---------------------------------
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 
+# check what species have updated data on
+updated_data = read.csv(list.files(pattern = "updatedspplist", recursive = TRUE, full.names = TRUE))
+updated_data$Species_scientific = toupper(updated_data$Species_scientific)
+
+master_keep = master_keep[master_keep$SPECIES_SCIENTIFIC %in% updated_data$Species_scientific,]
 
 # loop goes through each species to run and project the models
 for(i in 1:nrow(master_keep)){
@@ -96,8 +101,7 @@ for(i in 1:nrow(master_keep)){
   # ---------------------------------
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = "yes"
-  #substrate = master_keep$Substrate[i] # include substrate layer?
+  substrate = master_keep$Substrate[i] # include substrate layer?
   seasonal = "no" # prioritizing aseasonal models for now
   #seasonal = master_keep$Seasonality[i] # run seasonal (summer & winter) model?
 
