@@ -107,14 +107,14 @@ rm(idx,keep) # remove
 #feature_stack_binary_aseasonal = dropLayer(feature_stack_binary,idx)
 #rm(idx,keep) # remove
 
-keep = str_detect(names(feature_stack),c("summer")) 
-idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_summer = dropLayer(feature_stack,idx)
-rm(idx,keep) # remove
+#keep = str_detect(names(feature_stack),c("summer")) 
+#idx = which(keep == FALSE) # find out layer number with feature to omit
+#feature_stack_summer = dropLayer(feature_stack,idx)
+#rm(idx,keep) # remove
 
-keep = str_detect(names(feature_stack),c("winter")) 
-idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_winter = dropLayer(feature_stack,idx)
-rm(idx,keep) # remove
+#keep = str_detect(names(feature_stack),c("winter")) 
+#idx = which(keep == FALSE) # find out layer number with feature to omit
+#feature_stack_winter = dropLayer(feature_stack,idx)
+#rm(idx,keep) # remove
 
 rm(temp,i,files) # remove

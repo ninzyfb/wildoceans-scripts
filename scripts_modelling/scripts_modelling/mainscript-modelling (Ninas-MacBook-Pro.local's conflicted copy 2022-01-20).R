@@ -93,7 +93,7 @@ updated_data$Species_scientific = toupper(updated_data$Species_scientific)
 master_keep = master_keep[master_keep$SPECIES_SCIENTIFIC %in% updated_data$Species_scientific,]
 
 # loop goes through each species to run and project the models
-for(i in 1:nrow(master_keep)){
+for(i in 26:nrow(master_keep)){
   
   # ---------------------------------
   # - MODEL PARAMATERS

@@ -1,13 +1,13 @@
 # ---------------------------------------------------------------------------------
 #AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+#PROJECT:  Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
 ####
-#THIS SCRIPT: This is the parent modelling script
+# THIS SCRIPT: This is the parent modelling script
 # it calls all sub-scripts
-# the aim is to calculate prevalence values for each species and produce some basic plots
-# !! Run each subscript one at a time. Running the whole parent script at once seems to cause some issues
+# !! Run each subscript one at a time.
+# Running the whole parent script at once seems to cause some issues
 ####
 
 # ---------------------------------
@@ -34,7 +34,7 @@ library(readxl)
 # DEFINE WORKING DIRECTORY
 # ---------------------------------
 # set directory to same parent folder where sub-scripts are found
-# the subs-scripts can however be in folder within parent folder
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
 path = "/home/nina/" #path for linux
 path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory

@@ -72,8 +72,10 @@ summary2 = summary2 %>%
 # Format dates
 # check how many sightings do not have a date
 nodate = summary2[is.na(summary2$DATE),]
+# only ATAP and ORI data with no date should be kept so check
+unique(nodate$DATASET)
 rm(nodate)# remove unnecessary variable
-# remove them
+# remove them ONLY if applicable
 summary2 = summary2 %>%
   filter(!is.na(DATE))
 
@@ -84,6 +86,7 @@ unformated = summary2[is.na(summary2$DATE2),] # check which observations don't h
 rm(unformated)# remove unnecessary variable
 
 # remove
+# again ONLY if applicable
 summary2 = summary2 %>% 
   filter(!is.na(DATE2))
 
@@ -92,7 +95,7 @@ missingdataset= summary2[is.na(summary2$DATASET),] # check which observations do
 rm(missingdataset)
 
 # Add genus
-summary2$Genus = word(summary2$SPECIES_SCIENTIFIC, 1)
+#summary2$Genus = word(summary2$SPECIES_SCIENTIFIC, 1)
 
 # capitalise species names
 summary2$SPECIES_SCIENTIFIC = toupper(summary2$SPECIES_SCIENTIFIC)
@@ -100,7 +103,7 @@ summary2$SPECIES_SCIENTIFIC = toupper(summary2$SPECIES_SCIENTIFIC)
 # Data exploration 
 
 # look at range of dates
-range(summary2$DATE2)
+range(summary2$DATE2, na.rm = TRUE)
 
 # turn dataset to factor
 summary2$DATASET = as.factor(summary2$DATASET)
@@ -135,12 +138,19 @@ ggplot(summary2, aes(DATASET,year, colour = DATASET))+
 
 # filter to only keep data points after 1950
 # this only filters GBIF data in any case
-summary3 = summary2 %>%
+gbif_obis = summary2 %>%
+  filter(DATASET == "gbif_obis")%>%
   filter(DATE2 >= as.Date("1950-01-01"))
-rm(summary2)
+
+summary3 = summary2 %>%
+  filter(DATASET != "gbif_obis")
+
+summary3 = rbind(summary3, gbif_obis)
+  
+rm(gbif_obis,summary2)
 
 # check date range again
-range(summary3$DATE2)
+range(summary3$DATE2, na.rm = TRUE)
 
 # trim white space
 summary3$SPECIES_SCIENTIFIC = trimws(summary3$SPECIES_SCIENTIFIC, which = "both")
@@ -169,6 +179,9 @@ rm(synonym_sheet,i)
 
 # number of species
 look = data.frame(sort(unique(summary3$SPECIES_SCIENTIFIC)))
+
+# remove duplicate data points
+summary3 = unique(summary3)
 
 # summarise number of counts by species name
 observation_counts = summary3 %>%
@@ -233,7 +246,6 @@ for(i in sp){
     arrange(desc(datapoints))
   write.csv(summary_temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,".csv",sep=""), row.names = FALSE)
 }
-
 ##################### extract data per target GENUS 
 
 # extract species names

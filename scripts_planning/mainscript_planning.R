@@ -111,8 +111,8 @@ cols <- colorRampPalette(c("white","darkgreen"))
 cols2 <- colorRampPalette(c("yellow"))
 
 # first decide on which scenario you are running (row number of spreadsheet)
-for(i in 1:nrow(scenario_sheet)){
-  n = i # problem number
+for(i in 1:3){
+  n = 2 # problem number
   scenario = scenario_sheet$scenario[n] # scenario name
   season = scenario_sheet$season[n] # season
   features = scenario_sheet$features[n] # features to use
@@ -131,24 +131,27 @@ for(i in 1:nrow(scenario_sheet)){
     # further refine by season
     if(season == "aseasonal"){t = t %>%filter(MODELTYPE == "Aseasonal")
       # specifies which targets to pick
-      if(tailoredtargets == "low"){t = t$low}
+    if(tailoredtargets == "low"){t = t$low}
     if(tailoredtargets == "medium"){t = t$medium}
-      if(tailoredtargets == "high"){t = t$high}}
+    if(tailoredtargets == "high"){t = t$high}}
     # if target is numeric just take that value
   }else{t = as.numeric(target)}
   
   # run conservation problem with or without locked in constraints
   if(locked_in == "none"){ 
     problem_single = problem(c,f) %>% # costs and features
-      #add_min_set_objective() %>%
-      add_min_largest_shortfall_objective(budget = 1080) %>%
+      add_min_set_objective() %>%
+      add_linear_constraints(threshold = 1080,sense = "<=",data = pu)%>%
+      #add_absolute_targets(0.2) %>%
       add_relative_targets(t) %>%
-      add_boundary_penalties(0.00001) %>% # add penalty
+      add_boundary_penalties(boundary_penalty) %>% # add penalty
       add_binary_decisions() %>%
-      add_gurobi_solver(time_limit = 3600, gap = 0.2)}else{
+      #add_neighbor_constraints(k=2) %>%
+      add_gurobi_solver()}else{
+    
         problem_single = problem(c,f) %>%
           #add_min_set_objective() %>%
-          add_min_largest_shortfall_objective(budget = 1080) %>% # budget representing 10% of planning units total
+          add_min__shortfall_objective(budget = 1080) %>% # budget representing 10% of planning units total
           add_relative_targets(t) %>%
           add_boundary_penalties(0.00001) %>% # add penalty
           add_binary_decisions() %>%
@@ -158,7 +161,7 @@ for(i in 1:nrow(scenario_sheet)){
   # solve single solution
   #source(list.files(pattern = "Solution", recursive = TRUE)) 
   solution_single = solve(problem_single)
-  
+
   #source(list.files(pattern = "Performances", recursive = TRUE)) 
   # evaluate performance
   performances = data.frame()
@@ -166,7 +169,11 @@ for(i in 1:nrow(scenario_sheet)){
   pus = eval_n_summary(problem_single, solution_single)
   performances[1,1] = pus[1,2]
   # calculate % of EEZ represented (there are 42053 cells in the EEZ)
-  performances$prop_eez = (performances$cost/42053)*100
+  performances$prop_eez = (performances$cost/10809)*100
+  
+  # also save dataframe evaluating if targets are met
+  coverage_summary = eval_target_coverage_summary(problem_single,solution_single)
+  write.csv(coverage_summary,paste0(path,"Dropbox/6-WILDOCEANS/Planning/Outputs/performances/","p",str_pad(n,3,pad = "0"),"_performance.csv"), row.names = FALSE)
   
   # save as raw raster file
   writeRaster(solution_single,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",str_pad(n,3,pad = "0"),"_",scenario,"scenario.tiff"),overwrite = TRUE)
@@ -178,7 +185,7 @@ for(i in 1:nrow(scenario_sheet)){
             margin = FALSE,
             colorkey=FALSE)+
     # mpa filled no take only
-    levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
+    #levelplot(mpas,col.regions = cols2, alpha.regions=0.6)+
     # mpa outline
     latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
     # eez
@@ -208,7 +215,7 @@ for(i in 1:nrow(scenario_sheet)){
               colorkey=FALSE,
               col.regions = cols)+
       # mpa filled no take only
-      levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
+      #levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
       # mpa outline
       latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
       # eez
