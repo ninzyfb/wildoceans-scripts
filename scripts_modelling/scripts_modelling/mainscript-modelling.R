@@ -88,7 +88,7 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 
 
 # loop goes through each species to run and project the models
-for(i in 1:nrow(master_keep)){
+for(i in 25:nrow(master_keep)){
   
   # ---------------------------------
   # - MODEL PARAMATERS
