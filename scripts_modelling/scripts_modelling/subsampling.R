@@ -1,36 +1,63 @@
 # ---------------------------------------------------------------------------------
-######### Shark and ray species distribution models (SDMs) - sub-sampling script
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: extracts a sub-sample of data points to only keep one occurrence point per grid cell
+
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script extracts a sub-sample of data points (data thinning)
+# The thinning results in only retaining one occurrence point per grid cell
+# This is to correct for data bias (i.e. variance in effort across datasets)
+# ---------------------------------
+
+
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+library(dismo)
+# ---------------------------------
+
 
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-library(dismo)
-# Subsample one occurrence point per grid cell for static model
+# Subsample one occurrence point per grid cell across entire dataset
 pts_sub = SpatialPoints(gridSample(obs.data, stack, n=1),bbox =  bbox(stack))
+# set crs to match that of environmental variables
 crs(pts_sub) = crs(stack)
 
-# Subsample one occurrence point per grid cell for seasonal models
+# Subsample one occurrence point per grid cell across summer and winter datasets separately
+# this only runs if you have specified in the parent script that you are running seasonal models
 if(seasonal == 'yes'){
-pts_sub_seasons = list()
+
 # turn season to factor
-obs.data$SEASON = as.factor(obs.data$SEASON) # turn season to factor
-seasons = unique(obs.data$SEASON) # vector of seasons
-seasons = seasons[!is.na(seasons)] # remove any NAs
-for(i in 1:length(seasons)){ # for each season
-  temp = obs.data[!is.na(obs.data$SEASON),] # remove any NAs from season variable
-  temp = temp[temp$SEASON == levels(temp$SEASON)[i],] # filter to keep one season
-  if(nrow(temp@data)>1){ # if there is more than one data point
-  pts_sub_seasons[[i]] = SpatialPoints(gridSample(temp, stack, n=1),bbox = bbox(stack)) # sub-sample one data point per grid cell
+obs.data$SEASON = as.factor(obs.data$SEASON)
+# create a vector with season names
+seasons = unique(obs.data$SEASON) 
+# remove any NAs from the vector (these come from datapoints with no associated season)
+seasons = seasons[!is.na(seasons)] 
+# ensure only data with associated season are kept
+obs.data = obs.data[!is.na(obs.data$SEASON),] 
+# empty list to store summer and winter thinned dataset
+pts_sub_seasons = list()
+
+# the following loop will run for each season
+  for(i in 1:length(seasons)){ 
+  # create temporary dataframe with all data from one season
+  temp = obs.data[obs.data$SEASON == levels(obs.data$SEASON)[i],] 
+  
+  # continue with loop only if there is more than one data point in the seasonal dataset
+  if(nrow(temp@data)>1){ 
+  # sub-sample one occurrence point per grid cell and add this data set to the list
+  pts_sub_seasons[[i]] = SpatialPoints(gridSample(temp, stack, n=1),bbox = bbox(stack))
+  # name the dataset with the correct season
   names(pts_sub_seasons)[i] = levels(obs.data$SEASON)[i]
-  crs(pts_sub_seasons[[i]]) = crs(stack)
-  } # name the list with the season
+  # set the crs to match that of environmental variables
+  crs(pts_sub_seasons[[i]]) = crs(stack)}
+  }
+rm(temp, seasons,i)
 }
-rm(temp, seasons,i)} # remove unnecessary variables
 
 rm(obs.data) # remove unnecessary variables

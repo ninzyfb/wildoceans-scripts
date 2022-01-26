@@ -1,33 +1,38 @@
 # ---------------------------------------------------------------------------------
-######### Shark and ray species distribution models (SDMs) - plotting parameters script
 #AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+#PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: loads any data required for plotting and sets the plotting parameters so that it is uniform across all plots
 
 # ---------------------------------
-# DATA
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script loads any features required for plotting
+# This script also sets some plotting parameters to ensure uniform plots
 # ---------------------------------
 
-# eez
+
+# ---------------------------------
+# PLOTTING FEATURES
+# ---------------------------------
+# South African EEZ
 eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE, full.names = TRUE)) # load eez
 
-# 250m isobath
+# isobaths
 contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, full.names=TRUE)) 
 
-# provinces
+# South African province outline
 sa  <- getData("GADM",country="South Africa",level=1)
 
-# city names
+# Names of coastal cities
 places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE)) 
 
-# three marine regions as defined by Ebert et al.
+# West, South and East marine regions as defined by Ebert et al.
 regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,full.names = TRUE))
 
-# load mpas for solution plotting
+# South African continetnal marine protected areas
 mpas = shapefile(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+# ---------------------------------
 
 # ---------------------------------
 # FORMATTING
@@ -35,11 +40,10 @@ mpas = shapefile(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, 
 
 # turn region names to upper case
 regions$Region = toupper(regions$Region)
-# subset by east south and west
-range = c("WEST","SOUTH","EAST")
 
-# set intervals for contours
-intervals = seq(0,1000,200)
+# create west south and east vector
+# this will come into handdy during plotting
+range = c("WEST","SOUTH","EAST")
 
 # extract 250m isobath
 contours = contours[which(contours$DEPTH=="-250"),]
@@ -49,10 +53,13 @@ sa <- gSimplify(sa, tol=0.01, topologyPreserve=TRUE)
 # only keep coastal provinces
 sa_coast=sa[c(1,4,8,9),]
 
-# adjust coordinates for some places
+# adjust coordinates for some cities 
+# this is to ensure the name is displayed in a "pretty" way on the map
 adjustedcoords = coordinates(places)[c(10,14),]
 adjustedcoords[,2] = adjustedcoords[,2]+0.2
 
-# simplify mpas
+# simplify MPA shapefile
 mpas = gSimplify(mpas,tol = 0.01)
 
+# set intervals for modelling
+intervals = seq(0,1000,200)

@@ -4,7 +4,7 @@ targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE
 
 # only keep species names and targets
 targets = targets %>%
-  dplyr::select(SPECIES_SCIENTIFIC,Target)
+  dplyr::select(SPECIES_SCIENTIFIC,Score)
 
 # turn colnames to upper case
 colnames(targets) = toupper(colnames(targets))
@@ -21,7 +21,7 @@ rm(targets) # remove
 featurenames = featurenames %>%
   mutate(low = ifelse(TARGET == "low",0.2,
                            ifelse(TARGET == "medium",0.3,
-                                  ifelse(TARGET == "high",0.4,NA))))
+                                  ifelse(TARGET == "high",0.4,NA)))) 
 
 featurenames$medium = featurenames$low + 0.1
 featurenames$high = featurenames$medium + 0.1

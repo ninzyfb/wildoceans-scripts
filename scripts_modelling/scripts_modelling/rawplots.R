@@ -75,6 +75,11 @@ for(i in master$SPECIES_SCIENTIFIC){
   if(nrow(exists3 !=0)){iucn_extent = st_read(list.files(pattern = paste(target,".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE))}
   rm(exists3)
   
+  # my binary data
+  exists4 = file.info(list.files(path ="Modelling/Outputs/sdms/",pattern = paste(target,"_Aseasonal_res10_ensemblemeanthreshold",sep=""), recursive = TRUE, ignore.case = TRUE,full.names = TRUE))
+  if(nrow(exists4 !=0)){binarymap = raster(list.files(path ="Modelling/Outputs/sdms/",pattern = paste(target,"_Aseasonal_res10_ensemblemeanthreshold",sep=""), recursive = TRUE, ignore.case = TRUE,full.names = TRUE))}
+  rm(exists4)
+  
   # extract data stats for that species
   temp = master %>%
     filter(SPECIES_SCIENTIFIC == i)
@@ -86,13 +91,14 @@ for(i in master$SPECIES_SCIENTIFIC){
   mtext(paste0("Data points = ",temp$abundance), adj = 0.8, padj = 40)
   mtext(paste0("Cells with presence at 5km resolution = ",temp$cells," (",temp$rounded,"%)"), adj = 0.8, padj = 42)
   mtext(paste0("Cells with presence at 10km resolution = ",temp$cells_10," (",temp$rounded_10,"%)"), adj = 0.8, padj = 44)
-  if(exists("iucn_extent")){plot(iucn_extent, add = TRUE, col = "blue")}
+  if(exists("binarymap")){plot(binarymap, legend = FALSE)}
+  if(exists("iucn_extent")){plot(iucn_extent, add = TRUE, col = "transparent", border= "blue")}
   expert = expert_extent[expert_extent$Scientific_name == tolower(target),]
   if(exists("pts")){points(pts, cex = 0.5, pch = 16, col = "red")}
   if(exists("expert")){plot(expert, add = TRUE, col = "green", pch = 16)}
   legend("topleft", legend=c("Data","IUCN range","Expert range"),
          cex=1, fill = c("red", "blue",'green'))
   dev.off()
-  rm(species,obs.data,expert,iucn_extent,pts)
+  rm(species,obs.data,expert,iucn_extent,pts,binarymap)
   }
 

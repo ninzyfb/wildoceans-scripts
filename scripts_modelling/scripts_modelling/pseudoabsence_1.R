@@ -1,42 +1,54 @@
 # ---------------------------------------------------------------------------------
-######### Shark and ray species distribution models (SDMs) - pseudo-absence selection script
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: creates pseudo-absences for the modelling stage
+
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script creates pseudo-absences for the modelling stage
+# ---------------------------------
+
 
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-# pseudo-absences chosen following: Barbet-Messin et al., 2012
-
-# create background points (static points)
-# create 10000 background points
-# from these 8500 will be chosen as pseudo-absences 
-# 8500 represents 20% of EEZ cells at 5km res
-# 2030 represents 20% of EEZ cells at 10km res
-# code: length(which(values(template)==1))
-# but this will be done later when formatting the data for modeling
-# previous way i calculated background cells: 10*length(pts_sub)
+# number of background points chosen represents 20% of cells in the EEZ
+# pseudo-absences choice procedure: Barbet-Messin et al., 2012
+# choose random cells across the EEZ using randomPoints()
 cells = randomPoints(stack, n_bckg_pts,cellnumbers=TRUE, ext = extent(stack))
+
+# get xy coordinates from these cells
 absences = SpatialPoints(xyFromCell(stack[[1]],cells),bbox =  bbox(stack))
+
+# set crs to match occurrence points
 crs(absences) = crs(pts_sub)
 
-# extract environmental variables (static points)
-pa = rbind(pts_sub,absences) # combine presences and absences
+# combine presences and background points in single object
+# object names pa from presenceabsence even though they are not true absences
+pa = rbind(pts_sub,absences) 
 
-# extract environmental values
+# create a data frame 
+# add column of 1s and 0s for presences and background points respectively
+pa = as.data.frame(c(rep(1,length(pts_sub)),rep(0,length(absences)))) 
+
+# rename that column pa (for presence absence)
+colnames(pa) = "pa" 
+
+# add coordinates to data frame
+pa = cbind(pa,rbind(coordinates(pts_sub),coordinates(absences)))
+
+# rename columns
+colnames(pa)[c(2,3)] = c("LONGITUDE","LATITUDE") 
+
+# extract environmental values from raster stack at presence and background points
 vars = as.data.frame(raster::extract(stack, pa))
 
-# create a data frame
-pa = as.data.frame(c(rep(1,length(pts_sub)),rep(0,length(absences)))) # add column of 1s and 0s for preseces and absences respectively
-colnames(pa) = "pa" # rename that column pa (for presence absence)
-coords = as.data.frame(rbind(coordinates(pts_sub),coordinates(absences))) # add coordinates to data frame
-colnames(coords) = c("LONGITUDE","LATITUDE") # rename columns
-pts_env = cbind(pa,coords,vars) # combine all three created dataframes into 1
-rm(pts_sub,vars,pa, absences,coords) # remove unnecessary variables
+# add to dataframe
+pts_env = cbind(pa,vars) 
+
+rm(pts_sub,vars,pa, absences,coords)
 
 # create background points (seasonal points)
 # random background cells
