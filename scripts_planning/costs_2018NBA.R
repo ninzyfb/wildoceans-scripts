@@ -49,44 +49,20 @@ costs_all = mask(costs_all,pu)
 # you need to add pu other other cells will have cost of 0
 costs_all = costs_all+pu
 
-# pretty plot of fishing pressur
-#png(file=paste0("Planning/Outputs/fishingpressure_all.png"),width=3000, height=2000, res=300)
-#plot(costs_all)
-#plot(mpa_layer, add = TRUE, alpha = 0.5,legend = FALSE) # allows notake mpas to be seen as well
-#plot(mpas,add = TRUE,legend = FALSE)
-#plot(eez, add = TRUE,legend = FALSE)
-#dev.off()
+# ---------------------------------
+# FISHING PRESSURE
+# ---------------------------------
+# Option 1
+# create a binary layer based on the fishing pressure scores
+# this is based on a quantile threshold
+# used to lock out planning units with high fishing pressure
+# binary layer based on the top 5th percentile of pressure scores
+fp_threshold = raster::quantile(costs_all, probs = (1 - 0.05), na.rm = TRUE, names = FALSE)
+fp_binary = round(costs_all >= fp_threshold)
 
-# pivot threats 
-#threats_v2 = threats %>%
-#  pivot_longer(!species_scientific,names_to = "fisheries",values_to = "affected" ) %>%
-#  filter(!is.na(affected))
-#rm(threats)
-
-#sppthreatsstack = stack()
-#for(i in unique(threats_v2$species_scientific)){
-# start of loop
-#temp = threats_v2 %>%
-#  filter(species_scientific == i)
-#spp_fisheries = unique(temp$fisheries)  
-# layers to keep
-#keep = names(costs) %in% spp_fisheries
-# vector of layers to keep
-#keep2 = which(keep == TRUE)
-# new stack of refined layers
-#tempthreats = costs[[keep2]]
-# add all threats together
-#tempthreatssum = calc(tempthreats,sum, na.rm = TRUE)
-#sppthreatsstack = addLayer(sppthreatsstack,tempthreatssum)
-#rm(keep,keep2,tempthreats,tempthreatssum)
-#}
-
-# rescale all between 0 and 1
-#sppthreatsstack_scaled = rescale(sppthreatsstack)
-#plot(sppthreatsstack_scaled)
-
-# sum to one final cost layer
-#finalthreatlayer = calc(sppthreatsstack_scaled,sum, na.rm = TRUE)
-#plot(finalthreatlayer)
-
-
+# Option 2
+# prevent total amount of fishing pressure scores from exceeding a certain threshold
+# add a constraint to only select pus with fishing pressure scores
+# that sum to a total of less than 20% of the total fishing pressure scores
+fp_threshold = raster::cellStats(costs_all, "sum") * 0.2
+# ---------------------------------

@@ -1,40 +1,53 @@
 # ---------------------------------------------------------------------------------
-######### Shark and ray species distribution models (SDMs) - variable selection script
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: identifies collinearity between predictor variables and only keeps a subset
+
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script identifies collinearity between predictor variables and only keeps a subset
+# ---------------------------------
+
 
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-# Run select07() function
-library(tidyr) # this package seems to mess with other packages so best to only load when needed
-pts_env_temporary = pts_env %>% # create temporary duplicate of presence absence data without NAs
+# tidyr package seems to mess with other packages so best to only load when needed
+library(tidyr) 
+# create temporary duplicate of presence absence data without NAs
+pts_env_temporary = pts_env %>% 
   drop_na()
 # detach tidyr package 
 detach(package:tidyr,unload=TRUE)
 
-# remove substrate which is categorical variable
-# doesn't work with function
+# remove substrate which is categorical variable 
+# categorical variables cannot be measured against continuous variables for colinearity
 pts_env_temporary$substrate_simplified = NULL
 
-# run variable selection function
-variable_selection = select07(X=pts_env_temporary[,-c(1:3)], 
-                   y=pts_env_temporary$pa, 
-                   threshold=0.7)
-rm(pts_env_temporary) # remove unnecessary variable
+# Variable selection function from mecofun package
+# function selects weakly correlated variables based on univariate importance
+# univariate variable importance is based on AIC
+# based on (Dormann et al. 2013)
+# see ?select07() for further descriptions of how it works
+variable_selection = select07(
+  # predictor variables (environmental variables)
+  x = pts_env_temporary[,-c(1:3)], 
+  # response variable (1 for presence, 0 for background)
+  y = pts_env_temporary$pa,
+  # any correlations above this threshold are judged problematic
+  threshold=0.7)
 
-# filter df to only keep chosen variables (static)
+rm(pts_env_temporary) 
+
+# filter presence/backgrounds points to only keep chosen variables
 # keep is the pa,lat,long and substrate variable
 keep = pts_env[,c(1:3,length(pts_env))] # substrate simplified is always the last variable due to alphabetical sorting
 pts_env = pts_env[,names(pts_env) %in% variable_selection$pred_sel] # filter df to only keep chosen variables
 pts_env = cbind(keep,pts_env)
 pts_env$substrate_simplified = as.factor(pts_env$substrate_simplified)
-rm(keep) # remove unnecessary variables
-?select07
+rm(keep)
 
 # filter stack to only keep chosen variables
 stack_subset = subset(stack,names(pts_env)[-c(1:3)])
@@ -60,13 +73,16 @@ if(substrate == "no"){
   if(exists("pts_env_seasons")){
   pts_env_seasons[[1]]$substrate_simplified = NULL
   pts_env_seasons[[2]]$substrate_simplified = NULL}}
-rm(substrate) # no longer needed
-
-# ---------------------------------
-# WRITING DATA
+rm(substrate) 
 # ---------------------------------
 
-# save chosen variables for species in question 
-# file name will specify which resolution
+
+# ---------------------------------
+# SAVING RESULTS
+# ---------------------------------
+# save chosen variables to a folder 
+# file name will specify resolution and species name
 write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_","res",res,"_variables.csv"))
-rm(variable_selection) # remove unnecessary variables
+rm(variable_selection)
+# ---------------------------------
+

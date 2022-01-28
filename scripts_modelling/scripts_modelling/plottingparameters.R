@@ -63,3 +63,7 @@ mpas = gSimplify(mpas,tol = 0.01)
 
 # set intervals for modelling
 intervals = seq(0,1000,200)
+
+# colours for plots
+cols <- colorRampPalette(c("white","darkgreen"))
+cols2 <- colorRampPalette(c("yellow"))

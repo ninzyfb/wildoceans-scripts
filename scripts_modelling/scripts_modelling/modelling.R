@@ -1,34 +1,42 @@
 # ---------------------------------------------------------------------------------
-######### Shark and ray species distribution models (SDMs) - modelling script
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: this script runs and then projects the models
-####
 
 # ---------------------------------
-# MODELING
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script runs and projects the models
 # ---------------------------------
 
-# Build individual models
+
+# ---------------------------------
+# MODELLING
+# ---------------------------------
+
+# Build individual aseaonsal models
+# this static models object will contain 60 model projections
+# this is because we are running 3 model algorithms (GLM, MAXENT, GAM)
+# each model algorithm is being run 10 times as a cross-validation approach
+# and these 10 runs are being run on two different set sof backgorund points
+# 3 * 10 * 2 = 60
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GLM', 'MAXENT.Phillips','GAM'), # 3 chosen models to run
-  models.options = mxtPh, # add modified model parameters, if not remove this command
+  models = c('GLM', 'MAXENT.Phillips','GAM'), # 3 modelling algorithms
+  models.options = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
-  DataSplit = 75, # % of data used for calibration,rest for testing
-  models.eval.meth = c('TSS'), # evaluation method
+  DataSplit = 75, # 75% of data used for calibration, 25% for testing
+  models.eval.meth = c('TSS'), # evaluation method, TSS is True Statistics Skill
   SaveObj = TRUE, # keep all results on hard drive 
   rescal.all.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
-  modeling.id = target)
+  modeling.id = target) # name of model = species name (target)
 
-rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons) # remove unnecessary variables
+rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
 
 # Build ensemble model
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
-  modeling.output = static_models, # your models object
+  modeling.output = static_models, # all model projections
   chosen.models = 'all', # use all your models
   em.by='PA_dataset+repet', # the way the models will be combined to build the ensemble models.
   eval.metric = 'TSS', # which metric to use to keep models for the ensemble (requires the threshold below)
@@ -72,6 +80,8 @@ thresh = Find.Optim.Stat(Stat='TSS',
 thresh = as.data.frame(thresh) # save the output as a dataframe
 write.csv(thresh,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/thresholds/",model_type,target,"_res",res,"_thresh.csv")) # save the dataframe
 rm(predictions,response) # remove unnecessary variables
+# ---------------------------------
+
 
 # ---------------------------------
 # PLOTTING
@@ -135,3 +145,4 @@ rm(plot) # remove unnecessary variables
 writeRaster(en_preds[[1]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
 #writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
 writeRaster(temp,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
+# ---------------------------------
