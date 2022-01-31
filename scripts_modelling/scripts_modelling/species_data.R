@@ -61,7 +61,7 @@ obs.data = obs.data %>%
   filter(LATITUDE != 0)
 
 # verify duplicates (for latitude, longitude, and date)
-dups = duplicated(obs.data[c("LATITUDE","LONGITUDE", "DATE2")])
+dups = duplicated(obs.data[c("LATITUDE","LONGITUDE", "DATE")])
 # print number of duplicate records, TRUE are number of duplicates
 print(table(dups))
 # remove duplicates from data
@@ -72,7 +72,7 @@ abundance = nrow(obs.data)}else{length(files) = 0}}
 
 # add month variable from Date
 obs.data = obs.data %>%
-  mutate(Month = month(obs.data$DATE2))
+  mutate(Month = month(obs.data$DATE))
 
 # group observations by season
 # important: some datasets came with season already specified
@@ -92,5 +92,5 @@ obs.data = obs.data %>%
 coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
 
 # set CRS of observations
-crs(obs.data) = crs(stack)
+crs(obs.data) = crs(stack_subset)
 # ---------------------------------

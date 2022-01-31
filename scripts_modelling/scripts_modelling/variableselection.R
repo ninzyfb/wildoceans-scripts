@@ -31,13 +31,7 @@ pts_env_temporary$substrate_simplified = NULL
 # univariate variable importance is based on AIC
 # based on (Dormann et al. 2013)
 # see ?select07() for further descriptions of how it works
-variable_selection = select07(
-  # predictor variables (environmental variables)
-  x = pts_env_temporary[,-c(1:3)], 
-  # response variable (1 for presence, 0 for background)
-  y = pts_env_temporary$pa,
-  # any correlations above this threshold are judged problematic
-  threshold=0.7)
+variable_selection = select07(pts_env_temporary[,-c(1:3)],pts_env_temporary$pa,threshold=0.7)
 
 rm(pts_env_temporary) 
 
@@ -85,4 +79,3 @@ rm(substrate)
 write.csv(variable_selection$pred_sel,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/selectedvariables/",target,"_","res",res,"_variables.csv"))
 rm(variable_selection)
 # ---------------------------------
-

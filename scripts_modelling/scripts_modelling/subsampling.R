@@ -24,13 +24,13 @@ library(dismo)
 # FORMATTING
 # ---------------------------------
 # Subsample one occurrence point per grid cell across entire dataset
-pts_sub = SpatialPoints(gridSample(obs.data, stack, n=1),bbox =  bbox(stack))
+pts_sub = SpatialPoints(gridSample(obs.data, stack_subset, n=1),bbox =  bbox(stack_subset))
 # set crs to match that of environmental variables
-crs(pts_sub) = crs(stack)
+crs(pts_sub) = crs(stack_subset)
 
 # Subsample one occurrence point per grid cell across summer and winter datasets separately
 # this only runs if you have specified in the parent script that you are running seasonal models
-if(seasonal == 'yes'){
+if(seasonal == 'yes' & !is.na(seasonal)){
 
 # turn season to factor
 obs.data$SEASON = as.factor(obs.data$SEASON)
@@ -51,13 +51,11 @@ pts_sub_seasons = list()
   # continue with loop only if there is more than one data point in the seasonal dataset
   if(nrow(temp@data)>1){ 
   # sub-sample one occurrence point per grid cell and add this data set to the list
-  pts_sub_seasons[[i]] = SpatialPoints(gridSample(temp, stack, n=1),bbox = bbox(stack))
+  pts_sub_seasons[[i]] = SpatialPoints(gridSample(temp, stack_subset, n=1),bbox = bbox(stack_subset))
   # name the dataset with the correct season
   names(pts_sub_seasons)[i] = levels(obs.data$SEASON)[i]
   # set the crs to match that of environmental variables
-  crs(pts_sub_seasons[[i]]) = crs(stack)}
+  crs(pts_sub_seasons[[i]]) = crs(stack_subset)}
   }
-rm(temp, seasons,i)
-}
-
-rm(obs.data) # remove unnecessary variables
+rm(temp, seasons,i,obs.data)
+}else{rm(obs.data)}

@@ -35,3 +35,17 @@ stack = stack(variable_names)
 stack$substrate_simplified = as.factor(stack$substrate_simplified)
 rm(variable_names)}
 # ---------------------------------
+
+# ---------------------------------
+# SUBSET ENVIRONMENTAL VARIABLES
+# ---------------------------------
+# read in selected group of variables
+# these were subset by looking at pearson correlation coefficients
+# only variables with a correlation coefficient <0.7 were retained
+varselect = read.csv(list.files(pattern = "selectedvariables_all.csv", recursive = TRUE, full.names = TRUE))
+
+# filter stack to only keep chosen variables
+stack_subset = subset(stack,varselect$Variables)
+stack_subset$substrate_simplified = as.factor(stack_subset$substrate_simplified)
+rm(varselect,stack)
+# ---------------------------------

@@ -66,3 +66,5 @@ fp_binary = round(costs_all >= fp_threshold)
 # that sum to a total of less than 20% of the total fishing pressure scores
 fp_threshold = raster::cellStats(costs_all, "sum") * 0.2
 # ---------------------------------
+
+rm(costs_all,costs_scaled,costs)

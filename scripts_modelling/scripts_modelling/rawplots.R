@@ -25,7 +25,6 @@ library(readxl)
 # ---------------------------------
 # DIRECTORY
 # ---------------------------------
-#path =  "C:/Users/Administrator/"
 path =  "/Users/nfb/"
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 
@@ -54,6 +53,7 @@ rm(points)
 # FORMATTING
 # ---------------------------------
 
+# this loops plots a raw map for each species with data
 for(i in master$SPECIES_SCIENTIFIC){
   # species data
   target = i # species name
@@ -61,15 +61,7 @@ for(i in master$SPECIES_SCIENTIFIC){
   source(list.files(pattern = "species_data.R", recursive = TRUE)) # finds script in directory
   rm(folder) # no longer needed
   
-  if(exists("obs.data")){
-  # remove duplicates
-  dups = duplicated(obs.data[c("LATITUDE","LONGITUDE", "DATE2")]) # verify duplicates (for latitude, longitude, and date)
-  obs.data = obs.data[!dups,] # remove duplicates from data
-  
-  # geo-reference occurrences
   if(nrow(obs.data)>0){
-  pts = SpatialPoints(obs.data[,c("LONGITUDE","LATITUDE")])}
-  }
   # IUCN data
   exists3 = file.info(list.files(pattern = paste(target,".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE))
   if(nrow(exists3 !=0)){iucn_extent = st_read(list.files(pattern = paste(target,".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE))}
@@ -85,20 +77,22 @@ for(i in master$SPECIES_SCIENTIFIC){
     filter(SPECIES_SCIENTIFIC == i)
   
   # plot and save each species as basic map
-  png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw/",target,".png",sep=""),width=3000, height=2000, res=300)
+  # save the map in different folder depending on if this species will be modeled or not
+  # that means based on its 10km resolution prevalence score which needs to be >1
+  if(temp$rounded_10>0){png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw/",target,".png",sep=""),width=3000, height=2000, res=300)}else{png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw_unmodelled/",target,".png",sep=""),width=3000, height=2000, res=300)}
   plot.new() 
-  plot(eez, main = paste(target,"\n ",temp$`Common name`))
+  plot(eez, main = paste(target,"\n ",temp$Species_common))
   mtext(paste0("Data points = ",temp$abundance), adj = 0.8, padj = 40)
   mtext(paste0("Cells with presence at 5km resolution = ",temp$cells," (",temp$rounded,"%)"), adj = 0.8, padj = 42)
   mtext(paste0("Cells with presence at 10km resolution = ",temp$cells_10," (",temp$rounded_10,"%)"), adj = 0.8, padj = 44)
   if(exists("binarymap")){plot(binarymap, legend = FALSE)}
   if(exists("iucn_extent")){plot(iucn_extent, add = TRUE, col = "transparent", border= "blue")}
   expert = expert_extent[expert_extent$Scientific_name == tolower(target),]
-  if(exists("pts")){points(pts, cex = 0.5, pch = 16, col = "red")}
+  if(exists("obs.data")){points(obs.data, cex = 0.5, pch = 16, col = "red")}
   if(exists("expert")){plot(expert, add = TRUE, col = "green", pch = 16)}
   legend("topleft", legend=c("Data","IUCN range","Expert range"),
          cex=1, fill = c("red", "blue",'green'))
   dev.off()
   rm(species,obs.data,expert,iucn_extent,pts,binarymap)
-  }
+  }}
 

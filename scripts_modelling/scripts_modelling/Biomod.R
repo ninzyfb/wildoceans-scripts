@@ -39,8 +39,7 @@ pts_env = na.omit(pts_env)
 
 # convert 0 to NAs
 # this is important as it means they ar eseen as background points and not true absences
-pts_env = pts_env %>% 
-  mutate(pa = ifelse(pa==0,NA,pa))
+pts_env = pts_env %>% mutate(pa=ifelse(pa==0,NA,pa))
 
 # isolate presence/background points column of 1s and NAs
 pa = pts_env$pa 
@@ -57,6 +56,9 @@ exp =  pts_env[,-c(1:3)]
 # and we run each model with 2 sets of background points (specified by PA.nb.rep = 2)
 pseudoabsences = length(which(pa==1))
 
+# make sure substrate is a factor
+exp$substrate_simplified = as.factor(exp$substrate_simplified)
+
 # biomod object
 biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
                                                 expl.var = exp, # environmental variables
@@ -72,7 +74,7 @@ biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
 # Formatting the seasonal data as a BIOMOD object
 # the following code follows the exact same procedure as above
 # it simply does it for summer and winter points seperately
-if(seasonal == 'yes'){
+if(seasonal == 'yes' & !is.na(seasonal)){
 biomod_obj_seasons = list()
 for(i in 1:length(pts_env_seasons)){
   temp = pts_env_seasons[[i]]

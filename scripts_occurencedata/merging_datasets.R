@@ -1,13 +1,14 @@
 # ---------------------------------------------------------------------------------
-######### Shark and ray species data merging
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: this script merges all data sources into one file per species
-# specifically this script only deals with point data (not polygon or raster data, it also doesn't include fisheries data)
-####
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script merges all data sources and produces one file per species
+# ---------------------------------
+
 
 # ---------------------------------
 # PACKAGES
@@ -20,22 +21,26 @@ library(sf)
 library(ggplot2)
 library(anytime)
 library(readxl)
+# ---------------------------------
+
 
 # ---------------------------------
 # DIRECTORY
 # ---------------------------------
 # define your path
-# for me it changes based on if I am working on pc or mac
 path = "/home/nina/Documents/" # path for linux
 path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
+# ---------------------------------
+
 
 # ---------------------------------
 # DATA
 # ---------------------------------
-# list all csv files in cleaned folder
-# each csv file is a different cleaned dataset
+# list all csv files, each csv file is a different cleaned dataset
 temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/Point_data",pattern="*.csv", recursive = TRUE, full.names = TRUE)
+# ---------------------------------
+
 
 # ---------------------------------
 # FORMATTING
@@ -44,16 +49,13 @@ temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleane
 myfiles = lapply(temp, read.csv, header = TRUE)
 
 # turn all headers to capital
-for(i in 1:length(myfiles)){
-  colnames(myfiles[[i]]) = toupper(colnames(myfiles[[i]]))
-}
+for(i in 1:length(myfiles)){colnames(myfiles[[i]]) = toupper(colnames(myfiles[[i]]))}
 
 # combine all files in one dataset
 library(plyr)
 summary = do.call(rbind.fill,myfiles)
 detach("package:plyr")
 
-# remove unnecessary variables
 rm(myfiles, temp,i)
 
 # keep headers of interest only
@@ -64,45 +66,44 @@ rm(headers,summary)
 # trim white space after scientific names
 summary2$SPECIES_SCIENTIFIC = trimws(summary2$SPECIES_SCIENTIFIC, which = "both")
 
-# Remove any observations are lacking a species name
+# Remove any observations lacking a species name
 absentspp = summary2[is.na(summary2$SPECIES_SCIENTIFIC),]
-rm(absentspp) # remove unnecessary variable
+rm(absentspp)
 summary2 = summary2 %>%
   filter(!is.na(SPECIES_SCIENTIFIC))
 
-# Format dates
 # check how many sightings do not have a date
+# for some datasets this is normal i.e. ATAP/ORI
 nodate = summary2[is.na(summary2$DATE),]
 rm(nodate)# remove unnecessary variable
 
 # format all dates and specify different formats
+# a warning message will appear if some dates fail to parse
+# this may be beacuse all the formats have not been specified
 summary2$DATE2 = parse_date_time(summary2$DATE,
-                                orders = c("dmy","dmY","Y"))
+                                orders = c("dmy","dmY","Ymd","Y"))
+# if no dates failed to parse inly keep one date column
+summary2$DATE = NULL
+colnames(summary2)[6] = "DATE"
 
-unformated = summary2[is.na(summary2$DATE2),] # check which observations don't have a formatted date
+unformated = summary2[is.na(summary2$DATE),] # check which observations don't have a formatted date
 rm(unformated)# remove unnecessary variable
 
 # check empty datasets
 missingdataset= summary2[is.na(summary2$DATASET),] # check which observations don't have a formatted date
 rm(missingdataset)
 
-# Add genus
-#summary2$Genus = word(summary2$SPECIES_SCIENTIFIC, 1)
-
 # capitalise species names
 summary2$SPECIES_SCIENTIFIC = toupper(summary2$SPECIES_SCIENTIFIC)
 
-# Data exploration 
-
 # look at range of dates
-range(summary2$DATE2, na.rm = TRUE)
-
+range(summary2$DATE, na.rm = TRUE)
 
 # turn dataset to factor
 summary2$DATASET = as.factor(summary2$DATASET)
 
 # add year to data
-summary2$year = year(summary2$DATE2)
+summary2$year = year(summary2$DATE)
 
 # plot of which years each dataset have
 png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=5, height=5, res=300)
@@ -126,24 +127,26 @@ ggplot(summary2, aes(DATASET,year, colour = DATASET))+
         axis.title.x = element_blank(),
         axis.title.y = element_blank())+
   scale_y_continuous(breaks=seq(1950,2022,10), limits = c(1950,2022))
- dev.off()
+dev.off()
 
 
 # filter to only keep data points after 1950
 # this only filters GBIF data in any case
 gbif_obis = summary2 %>%
   filter(DATASET == "gbif_obis") %>%
-  filter(DATE2 >= as.Date("1950-01-01"))
-  
+  filter(DATE >= as.Date("1950-01-01"))
+
+# remove gbif dataset from main dataset
 summary3 = summary2 %>%
   filter(DATASET != "gbif_obis")
 
+# add filtered gbif dataset back into main dataset
 summary3 = full_join(summary3,gbif_obis)
 
 rm(summary2)
 
 # check date range again
-range(summary3$DATE2, na.rm = TRUE)
+range(summary3$DATE, na.rm = TRUE)
 
 # trim white space
 summary3$SPECIES_SCIENTIFIC = trimws(summary3$SPECIES_SCIENTIFIC, which = "both")
@@ -207,8 +210,12 @@ observation_counts = left_join(observation_counts,targets)
 
 # write sheet to use for keeping track of species groups not included
 write.csv(groups, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary_excludedspeciesgroups.csv",row.names = FALSE)
+# ---------------------------------
 
-##################### extract data per target species 
+
+# ---------------------------------
+# DATA EXTRACTION
+# ---------------------------------
 
 # only keep unique records
 summary3 = unique(summary3)
@@ -217,7 +224,7 @@ summary3 = unique(summary3)
 sp = unique(observation_counts$SPECIES_SCIENTIFIC, ignore.case = TRUE)
 ls = list() # empty list
 for(i in sp){
-  # extrcat all data for one species
+  # extract all data for one species
   temp = summary3 %>%
     filter(SPECIES_SCIENTIFIC == i) %>% 
     filter(!is.na(as.numeric(LONGITUDE))) %>%
@@ -227,26 +234,7 @@ for(i in sp){
   # also save important information on that species
   summary_temp = temp %>%
     group_by(DATASET)%>%
-    summarise(Start = as.Date(first(DATE2)), End = as.Date(last(DATE2)),datapoints = n())%>%
+    summarise(Start = as.Date(first(DATE)), End = as.Date(last(DATE)),datapoints = n())%>%
     arrange(desc(datapoints))
   write.csv(summary_temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,".csv",sep=""))
 }
-
-
-##################### extract data per target GENUS 
-
-# extract species names
-gen = unique(summary3$Genus, ignore.case = TRUE)
-ls = list() # empty list
-for(i in gen){
-  temp = summary3 %>%
-    filter(Genus == i) %>% # filter for species
-    filter(!is.na(as.numeric(LONGITUDE))) %>%
-    filter(!is.na(as.numeric(LATITUDE)))
-  saveRDS(temp,file = paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/generadata/",i, ".rds", sep=""))
-  temp = st_as_sf(temp, coords = c("LONGITUDE","LATITUDE"))
-  st_write(temp,paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/generadata/",i, ".shp", sep=""), append = TRUE)
-}
-
-
-

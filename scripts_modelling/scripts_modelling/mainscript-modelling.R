@@ -117,7 +117,7 @@ for(i in 1:nrow(master_keep)){
   source(list.files(pattern ="pseudoabsence_1.R", recursive = TRUE, full.names = TRUE))
   
   # COLLINEARITY
-  source(list.files(pattern = "variableselection.R", recursive = TRUE, full.names = TRUE))
+  #source(list.files(pattern = "variableselection.R", recursive = TRUE, full.names = TRUE))
   
   # BIOMOD OBJECT CREATION
   source(list.files(pattern = "Biomod.R", recursive = TRUE, full.names = TRUE))

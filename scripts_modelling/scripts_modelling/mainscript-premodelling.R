@@ -1,34 +1,28 @@
 # ---------------------------------------------------------------------------------
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: the shark and ray conservation plan developed under the WILDOCEANS 3-year shark and ray project in South Africa  
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
 # ---------------------------------------------------------------------------------
 
-####
-#THIS SCRIPT: This is the parent pre-modelling script
-# it calls all sub-scripts
-# the aim is to calculate prevalence values for each species and produce some basic plots
-# !! Run each subscript one at a time. Running the whole parent script at once seems to cause some issues
-####
+
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script aims to calculate prevalence values for each species
+# this will help in reducing the number of models to run
+# as a species requires a minimum amount of data for a model to run succesfully
+# ---------------------------------
+
 
 # ---------------------------------
 # PACKAGES
 # ---------------------------------
-library(sp)
-library(dplyr)
-library(raster)
-library(stringr)
-library(lubridate)
-library(ggplot2)
-library(rgeos)
-library(rgdal)
-library(dismo)
-library(fuzzySim) 
-library(devtools)
-library(mecofun)
-library(rasterVis)
-library(viridis)
-library(readxl)
-library(xlsx)
+# list of required packages
+requiredpackages = c("sp","dplyr","raster","stringr","lubridate","ggplot2","rgeos","rgdal","dismo","fuzzySim" ,"devtools","mecofun","rasterVis","viridis","readxl","xlsx")
+# load packages
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+
 
 # ---------------------------------
 # DEFINE WORKING DIRECTORY
@@ -38,35 +32,35 @@ library(xlsx)
 path = "/home/nina/Documents/" #path for linux
 path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory
+# ---------------------------------
+
 
 # ---------------------------------
 #  - SPECIES SPECIFIC MODEL PARAMETERS 
 # output: data frame with species names and modelling parameters (master)
 # ---------------------------------
 # read master file with species-specific modelling parameters
-# i.e. restrict range modelled?, seasonal model?, include substrate? etc...
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
-alldata = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = ".rds",recursive = TRUE,full.names = TRUE, ignore.case = TRUE)
+# read in file names for which there is actually data for
+alldata = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = ".csv",recursive = TRUE,full.names = TRUE, ignore.case = TRUE)
+# extract species name from file name
 alldata = str_split(alldata, "/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/", simplify = TRUE)[,2]
-alldata = str_split(alldata, ".rds", simplify = TRUE)[,1]
-# find species with data not in master sheet
+alldata = str_split(alldata, ".csv", simplify = TRUE)[,1]
+
+# find species with data but that are not in master sheet
 excl = which(alldata %in% master$SPECIES_SCIENTIFIC == FALSE)
 excl = as.data.frame(alldata[excl])
 colnames(excl) = "SPECIES_SCIENTIFIC"
 # add these species to master sheet
-# this will also your raw maps to also include species you have data for
-# but that are not in the master sheet for some reason
 master = full_join(master,excl)
 rm(excl)
 
-# find species in master sheet but with no data
-master = master %>%
+# find out which species are in master sheet but with no data
+master %>%
   filter((SPECIES_SCIENTIFIC %in% alldata))
 
 # ---------------------------------
-#  - PRE-MODELING RUN
-# to look at data prevalence per species
-# IMPORTANT: THIS STEP CAN BE SKIPPED, GO STRAIGHT TO MODELING WORKFLOW
+#  PRE-MODELING RUN: computes data prevalence per species at 5 and 10 km resolution
 # ---------------------------------
 
 # RATIONALE FOR A PRE-MODELING RUN
@@ -85,40 +79,23 @@ list_cells_10 = list() # list of cells values 10km res
 # each iteration looks at one species from the master sheet
 for(i in 1:nrow(master)){
 
-  # template grid (5 and 10km resolution)
+  # template grids (5 and 10km resolution)
   template = raster(list.files(pattern = "template_5km.tif", recursive = TRUE, full.names = TRUE))
   template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
+  # species name
+  target = master$SPECIES_SCIENTIFIC[i]
+  # folder with data
+  folder = "speciesdata/" 
 
-  # ---------------------------------
-  # - MODEL PARAMATERS
-  # output: species-specific model parameters
-  # ---------------------------------
-  target = master$SPECIES_SCIENTIFIC[i] # species name
-  folder = "speciesdata/" # for now all data is species only, the other folder if "generadata/"
-  substrate = master$Substrate[i] # inclusion of substrate layer?
-  
-  # ---------------------------------
-  #  - SPECIES DATA
-  # outputs: occurrences (obs.data)
-  # ---------------------------------
+  # SPECIES DATA: formats occurrence points
   source(list.files(pattern = "species_data.R", recursive = TRUE,full.names = TRUE)) # finds script in directory
-  rm(folder) # no longer needed
+  rm(folder)
   
-  if(length(files)>0){ # proceed only if data was available for that species
+  # proceed only if data was available for that species
+  if(length(files)>0){
+  # PREVALENCE: calculate prevalence score for species data
+  source(list.files(pattern = "Prevalence.R", recursive = TRUE,full.names = TRUE))}
   
-  # ---------------------------------
-  #  - SEASONALITY 
-  # output: occurrence points are grouped by austral summer and winter
-  # ---------------------------------
-  source(list.files(pattern = "seasonality.R", recursive = TRUE, full.names = TRUE))
-  
-  # ---------------------------------
-  #  - PREVALENCE
-  # output: calculate prevalence score for species data
-  # ---------------------------------
-  source(list.files(pattern = "Prevalence.R", recursive = TRUE,full.names = TRUE))
-  
-  }
   # fill empty lists with prevalence and abundance values
   # if absent i.e. no data for species, then fill with 0 (prevents mismatches later on)
   if(exists("perc")){  
@@ -146,7 +123,7 @@ for(i in 1:nrow(master)){
 # ---------------------------------
 
 # remove
-rm(allcells,allcells_10,count,substrate,target,i,files,table,obs.data,obscells_10,perc_10)
+rm(allcells,allcells_10,count,substrate,target,i,files,obs.data,obscells_10,perc_10)
 
 # format number of occurrence points, cells with data and prevalence scores to a data frame
 abundance = as.data.frame(unlist(list_abundance))
@@ -182,9 +159,9 @@ prevalence$rounded_10 = round(prevalence$prevalence_10, digits = 0)
 
 # add prevalence and abundance data to master sheet
 master$cells = NULL
-master$cells_10= NULL
-master$rounded= NULL
-master$rounded_10= NULL
+master$cells_10 = NULL
+master$rounded = NULL
+master$rounded_10 = NULL
 master$prevalence = NULL
 master$prevalence_10 = NULL
 master$abundance = NULL

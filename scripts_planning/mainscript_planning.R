@@ -28,7 +28,6 @@ rm(requiredpackages)
 # ---------------------------------
 # set directory to same parent folder where sub-scripts are found
 # the subs-scripts can be in folders within this directory as the code will look through all the folders
-path = "/home/nina/" # path for linux
 path =  "/Users/nfb/" # path for mac
 my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
 # set directory
@@ -49,11 +48,6 @@ pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive
 # CONSERVATION FEATURES
 # ---------------------------------
 source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE)) 
-writeRaster(feature_stack_aseasonal,"feature_stack_aseasonal.grd", format="raster")
-writeRaster(feature_stack_binary,"feature_stack_binary.grd", format="raster")
-rm(feature_stack,feature_stack_aseasonal,feature_stack_binary)
-feature_stack_aseasonal = stack(list.files(pattern = "feature_stack_aseasonal"))
-feature_stack_binary = stack(list.files(pattern = "feature_stack_binary"))
 # ---------------------------------
 
 
@@ -109,7 +103,7 @@ options(scipen = 100)
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 2)
 
 # first decide on which scenario you are running (row number of spreadsheet)
-for(i in 1:nrow(scenario_sheet)){
+for(i in 1:9){
   n = i # problem number
   scenario = scenario_sheet$scenario[n] # scenario name
   season = scenario_sheet$season[n] # season
@@ -219,15 +213,28 @@ for(i in 1:nrow(scenario_sheet)){
   temp$relative_held = round(temp$relative_held, 2)
   temp$relative_shortfall = round(temp$relative_shortfall, 2)
   temp$km_shortfall = temp$absolute_shortfall*10
-  temp$solution = i
-  temp$feature = NULL
-  temp$FEATURENAME_BINARY = NULL
-  temp$FEATURENAME = NULL
-  temp$numbershortfallspp = nrow(temp)
-  
+  if(nrow(temp)>0){
+    temp$solution = i
+    temp$feature = NULL
+    temp$FEATURENAME_BINARY = NULL
+    temp$FEATURENAME = NULL
+    temp$numbershortfallspp = nrow(temp)}
   # save coverage summary
   coverage_summary = rbind(coverage_summary,temp)}
-  write.csv(coverage_summary,paste0(path,"Dropbox/6-WILDOCEANS/Planning/Outputs/performances/","p",str_pad(n,3,pad = "0"),"_performance.csv"), row.names = FALSE)
+  
+  if(nrow(coverage_summary)>0){
+  # get some numbers that are easier to interpret
+  coverage_summary = coverage_summary %>%
+    group_by(SPECIES_SCIENTIFIC,target_species,SCORE) %>%
+    summarise(km_shortfall_avg = mean(km_shortfall),
+              km_shortfall_sd = sd(km_shortfall),
+              target = mean(relative_target),
+              target_achieved = mean(relative_held),
+              number_of_solutions = n_distinct(solution))
+  coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
+  coverage_summary = coverage_summary %>%
+    filter(target != target_achieved)
+  write.csv(coverage_summary,paste0(path,"Dropbox/6-WILDOCEANS/Planning/Outputs/performances/","p",str_pad(n,3,pad = "0"),"_performance.csv"), row.names = FALSE)}
   }
   
   # ferrier score for single problem
@@ -242,31 +249,6 @@ for(i in 1:nrow(scenario_sheet)){
   # save as raw raster file
   writeRaster(ferrierscore_sum,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",str_pad(n,3,pad = "0"),"_",scenario,"scenario_FS.tiff"), overwrite = TRUE)
   
-  # plot ferrier score plot
-  plot = levelplot(ferrierscore_sum, 
-                   main = paste(scenario,"scenario","\nTargets:",target,"| Target category:",tailoredtargets,"\nPenalty:",boundary_penalty),
-                   sub = paste("Objective",objective,"Features:",season,format,"\nPercentage of EEZ = ",round(performances$prop_eez,0),"%"),
-                   margin = FALSE,
-                   colorkey=FALSE,
-                   col.regions = cols)+
-    # mpa filled no take only
-    #levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
-    # mpa outline
-    latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
-    # eez
-    latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-    # sa coast
-    latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
-    # points for main cities
-    latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
-    # coordinates and city names
-    # done in three lines as a "pretty" position varies based on their place on the map
-    latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
-    latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-    latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
-  png(file=paste0("Planning/Outputs/solutions/ferrierscores/","p",str_pad(n,3,pad = "0"),"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
-  print(plot)
-  dev.off()
   # leave solution_single in environment to facilitate plotting tests
   rm(solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,f,c,t,boundary_penalty,season,scenario,target,locked_in,costs,features,format,problem_single,performances,pus,w,weights,tailoredweights,tailoredtargets,n,objective,temp,feat,cost)
 }
