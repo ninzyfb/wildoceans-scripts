@@ -68,7 +68,7 @@ print(table(dups))
 obs.data = obs.data[!dups,]
 rm(dups)
 # save number of occurrence points as variable
-abundance = nrow(obs.data)}else{length(files) = 0}}
+abundance = nrow(obs.data)
 
 # add month variable from Date
 obs.data = obs.data %>%
@@ -81,16 +81,18 @@ obs.data = obs.data %>%
   mutate(SEASON = ifelse(SEASON == "",NA,SEASON)) %>%
   # specify winter months
   mutate(SEASON = ifelse(is.na(SEASON) & Month %in% c(3,4,5,6,7,8),"Winter",
-                       # specify summer months
-                       ifelse(is.na(SEASON) & Month %in% c(9,10,11,12,1,2), "Summer",
-                              # if season was stated as autumn then turn to winter
-                              ifelse(SEASON == "Autumn","Winter",
-                                     # if season was stated as spring then turn to summer
-                                     ifelse(SEASON == "Spring","Summer",SEASON)))))
+                         # specify summer months
+                         ifelse(is.na(SEASON) & Month %in% c(9,10,11,12,1,2), "Summer",
+                                # if season was stated as autumn then turn to winter
+                                ifelse(SEASON == "Autumn","Winter",
+                                       # if season was stated as spring then turn to summer
+                                       ifelse(SEASON == "Spring","Summer",SEASON)))))
 
 # convert data to spatial points data frame
 coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
 
 # set CRS of observations
-crs(obs.data) = crs(stack_subset)
+if(exists("template")){crs(obs.data) = crs(template)}}else{length(files) = 0}}
+
+
 # ---------------------------------

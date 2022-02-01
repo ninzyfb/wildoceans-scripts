@@ -105,58 +105,12 @@ summary2$DATASET = as.factor(summary2$DATASET)
 # add year to data
 summary2$year = year(summary2$DATE)
 
-# plot of which years each dataset have
-png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=5, height=5, res=300)
-ggplot(summary2, aes(DATASET,year, colour = DATASET))+
-  geom_point()+
-  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2,size = 5),
-        legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())+
-  # line at 1950 which indicates the GBIF data you are removing
-  geom_hline(yintercept=1950,colour = "red")
-dev.off()
-
-# second plot from 1950 onwards
-png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=5, height=5, res=300)
-ggplot(summary2, aes(DATASET,year, colour = DATASET))+
-  geom_point()+
-  # rotate x axis
-  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2, size = 5),
-        legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())+
-  scale_y_continuous(breaks=seq(1950,2022,10), limits = c(1950,2022))
-dev.off()
-
-
-# filter to only keep data points after 1950
-# this only filters GBIF data in any case
-gbif_obis = summary2 %>%
-  filter(DATASET == "gbif_obis") %>%
-  filter(DATE >= as.Date("1950-01-01"))
-
-# remove gbif dataset from main dataset
-summary3 = summary2 %>%
-  filter(DATASET != "gbif_obis")
-
-# add filtered gbif dataset back into main dataset
-summary3 = full_join(summary3,gbif_obis)
-
-rm(summary2)
-
-# check date range again
-range(summary3$DATE, na.rm = TRUE)
-
 # trim white space
-summary3$SPECIES_SCIENTIFIC = trimws(summary3$SPECIES_SCIENTIFIC, which = "both")
+summary2$SPECIES_SCIENTIFIC = trimws(summary2$SPECIES_SCIENTIFIC, which = "both")
 
 # some species names contain hidden characters
 # this cleans all the hidden characters out
-for(i in 1:nrow(summary3)){
-  summary3[i,4] = str_replace_all(summary3[i,4], "\\s", " ")
-}
-
+for(i in 1:nrow(summary2)){summary2[i,3] = str_replace_all(summary2[i,3], "\\s", " ")}
 rm(i)
 
 # change synonyms
@@ -166,15 +120,18 @@ synonym_sheet = read_xlsx(list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/","
 # change names to upper case
 synonym_sheet$Incorrect_name =toupper(synonym_sheet$Incorrect_name)
 synonym_sheet$Correct_name =toupper(synonym_sheet$Correct_name)
+# remove special characters as well
+for(i in 1:nrow(synonym_sheet)){synonym_sheet[i,1] = str_replace_all(synonym_sheet[i,1], "\\s", " ")}
+for(i in 1:nrow(synonym_sheet)){synonym_sheet[i,2] = str_replace_all(synonym_sheet[i,2], "\\s", " ")}
 # change any synonyms
 for(i in 1:nrow(synonym_sheet)){
-  summary3 = summary3 %>%
+  summary2 = summary2 %>%
     mutate(SPECIES_SCIENTIFIC = ifelse(SPECIES_SCIENTIFIC == synonym_sheet$Incorrect_name[i],synonym_sheet$Correct_name[i],SPECIES_SCIENTIFIC))
 }
 rm(synonym_sheet,i)
 
-# number of species
-sort(unique(summary3$SPECIES_SCIENTIFIC))
+# remove duplicates
+summary3 = unique(summary2)
 
 # summarise number of counts by species name
 observation_counts = summary3 %>%
@@ -219,6 +176,50 @@ write.csv(groups, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary_excludedspeciesg
 
 # only keep unique records
 summary3 = unique(summary3)
+
+# ---------------------------------
+# DATE FILTERING
+# ---------------------------------
+# plot of which years each dataset have
+png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=5, height=5, res=300)
+ggplot(summary3, aes(DATASET,year, colour = DATASET))+
+  geom_point()+
+  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2,size = 5),
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())+
+  # line at 1950 which indicates the GBIF data you are removing
+  geom_hline(yintercept=1950,colour = "red")
+dev.off()
+
+# second plot from 1950 onwards
+png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=5, height=5, res=300)
+ggplot(summary3, aes(DATASET,year, colour = DATASET))+
+  geom_point()+
+  # rotate x axis
+  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2, size = 5),
+        legend.position = "none",
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())+
+  scale_y_continuous(breaks=seq(1950,2022,10), limits = c(1950,2022))
+dev.off()
+
+# filter to only keep data points after 1950
+# this only filters GBIF data in any case
+gbif_obis = summary3 %>%
+  filter(DATASET == "gbif_obis") %>%
+  filter(DATE >= as.Date("1950-01-01"))
+
+# remove gbif dataset from main dataset
+summary3 = summary3 %>%
+  filter(DATASET != "gbif_obis")
+
+# add filtered gbif dataset back into main dataset
+summary3 = full_join(summary3,gbif_obis)
+
+# check date range again
+range(summary3$DATE, na.rm = TRUE)
+##############
 
 # extract species names
 sp = unique(observation_counts$SPECIES_SCIENTIFIC, ignore.case = TRUE)

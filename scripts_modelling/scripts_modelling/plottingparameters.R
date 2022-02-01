@@ -67,3 +67,27 @@ intervals = seq(0,1000,200)
 # colours for plots
 cols <- colorRampPalette(c("white","darkgreen"))
 cols2 <- colorRampPalette(c("yellow"))
+
+# Expert extents
+load(list.files(pattern = "points.RData", recursive = TRUE, full.names = TRUE))
+expert_extent = points
+colnames(expert_extent)[1] = "Scientific_name" 
+expert_extent = as(expert_extent, Class = "Spatial")
+expert_extent$Scientific_name = tolower(expert_extent$Scientific_name)
+rm(points)
+
+# blank template (for raw plots script)
+blank_template = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
+values(blank_template) = 0
+
+# legend coordinates (for raw plots script)
+legend = data.frame()
+legend[1,1] = 36
+legend[1,2] = -36.5
+legend[2,1] = 36
+legend[2,2] = -37
+legend[3,1] = 36
+legend[3,2] = -37.5
+coordinates(legend) <- ~V1+V2
+
+

@@ -55,9 +55,14 @@ colnames(excl) = "SPECIES_SCIENTIFIC"
 master = full_join(master,excl)
 rm(excl)
 
-# find out which species are in master sheet but with no data
-master %>%
+# filter out species in master sheet but with no data
+master = master %>%
   filter((SPECIES_SCIENTIFIC %in% alldata))
+
+# find any species with only genus
+names = as.data.frame(str_split(master$SPECIES_SCIENTIFIC, " ", simplify = TRUE))
+# filter master sheet
+master = master[which(names$V2 != ""),]
 
 # ---------------------------------
 #  PRE-MODELING RUN: computes data prevalence per species at 5 and 10 km resolution
@@ -77,7 +82,7 @@ list_cells = list() # list of cells values 5km res
 list_cells_10 = list() # list of cells values 10km res
 
 # each iteration looks at one species from the master sheet
-for(i in 1:nrow(master)){
+for(i in 157:nrow(master)){
 
   # template grids (5 and 10km resolution)
   template = raster(list.files(pattern = "template_5km.tif", recursive = TRUE, full.names = TRUE))
