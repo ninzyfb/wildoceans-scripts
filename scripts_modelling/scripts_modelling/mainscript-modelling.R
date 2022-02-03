@@ -8,7 +8,19 @@
 # SCRIPT DESCRIPTION
 # ---------------------------------
 # This script is the parent modelling script, it calls all sub-scripts
+# The subscripts load in clean occurrence data and predictor variables (which have already been analysed for collinearity)
+# The subscripts then run modelling algorithms and produce an ensemble model as well as plots for each species
 # IMPORTANT: Run each subscript one at a time as running the whole parent script at once seems to cause some issues
+# ---------------------------------
+
+
+# ---------------------------------
+# DATA AVAILABILITY 
+# ---------------------------------
+# The raw occurrence data used to run this script is not available due to data sharing agreements in place
+# However for an example of what format the data should be in see: example_data.csv on github page
+# The predictor variable stack is available as well as the code used to deal with collinearity and decide on final number of variables used
+# See independentvariableselection.R on github for the script that analysed for collinearity in predictor variables
 # ---------------------------------
 
 
@@ -59,6 +71,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # ---------------------------------
 # specify your chosen resolution of models
 # here we chose a grid of either 5 x 5 km (res = 5) or 10 x 10 km (res = 10)  
+# Both template grids are available in github folder
 res = 10
 
 if(res == 5){
@@ -103,7 +116,6 @@ for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
-  folder = "speciesdata/" # folder with occurrence data files
   substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
   seasonal = "no" # specifies if seasonal (summer & winter) models are too also be run
 

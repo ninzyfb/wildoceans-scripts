@@ -107,10 +107,10 @@ performancefolder = "Planning/Outputs/performances/"
 options(scipen = 100) 
 
 # scenarios
-scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 2)
+scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # start counter
-number = 0
+problem_number = 0
 
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
@@ -143,41 +143,38 @@ for(i in 1:nrow(scenario_sheet)){
   boundary_penalty = as.numeric(scenario_sheet$boundary_penalty[i]) 
   
   # each scenario is run 9 times (10% target increase from 10% to 90%)
-  for(t in 1:9){
+  for(t in (1:9)/10){
     
     # problem number
-    problem_number = number + 1
-    
-    # targets
-    t = t/10
+    problem_number=problem_number+1
     
     # BASIC CONSERVATION PROBLEM
-    problem_base= problem(pu,features)%>%
+    problem_single= problem(pu,features)%>%
       # protection targets (will apply to each feature)
       add_relative_targets(t) %>%
-      # generate 5 solutions per problem
-      add_gap_portfolio(number_solutions=5)%>%
       # budget representing 10% of EEZ
       add_min_shortfall_objective(budget = 1080)%>%
       # solutions needs to be within 10% of optimality
       add_gurobi_solver(gap=0.1) %>%
-      # proportion decisions is faster to compute than binary decisions
-      add_proportion_decisions()
+      # generate 10 solutions per problem
+      add_gap_portfolio(number_solutions=10, pool_gap = 0.1)%>%
+      # binary decisions
+      add_binary_decisions()
     
     # ADDITIONAL PARAMETERS
     # these will increase the complexity of the conservation problem
     
     # weights
-    if(weights == "yes"){problem_base = problem_base %>% add_feature_weights(weights)}
+    if(weights == "yes"){problem_single = problem_single %>% add_feature_weights(weights)}
   
     # locked in areas
-    if(locked_in != "none"){problem_base = problem_base %>% add_locked_in_constraints(lockedin[[locked_in]])}
+    if(locked_in != "none"){problem_single = problem_single %>% add_locked_in_constraints(lockedin[[locked_in]])}
   
     # costs (fishing - threshold)
-    if(costs == "fp_threshold"){problem_base = problem_base %>% add_linear_constraints(threshold = fp_threshold, sense = "<=", data = costs_all)}
+    if(costs == "fp_threshold"){problem_single = problem_single %>% add_linear_constraints(threshold = fp_threshold, sense = "<=", data = costs_all)}
   
     # costs (fishing - binary)
-    if(costs == "fp_binary"){problem_base = problem_base %>% add_locked_out_constraints(fp_binary)}
+    if(costs == "fp_binary"){problem_single = problem_single %>% add_locked_out_constraints(fp_binary)}
   
     # solve problem
     solution_single = solve(problem_single)
@@ -188,28 +185,13 @@ for(i in 1:nrow(scenario_sheet)){
     solution_sum= calc(stack(unlist(solution_single)),sum)
   
     # save solution as raster
-    writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario.tiff"),overwrite = TRUE)
-  
-  # evaluate performance of solution
-  performances = data.frame()
-  performances$prop_eez = NULL
-  for(i in 1:length(solution_single)){
-  # number of planning units selected within a solution.
-  pus = eval_n_summary(problem_single, solution_single[[i]])
-  performances[i,1] = pus[1,2]
-  # calculate % of EEZ represented (there are 42053 cells in the EEZ)
-  performances$prop_eez[i] = (performances$cost/10809)*100}
-  
-  # get an average proportion of the EEZ to add onto plots
-  prop_eez = round(mean(performances$prop_eez), 1)
+    writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario.tiff"),overwrite = TRUE)
   
   # create coverage summary
   coverage_summary = data.frame()
   for(i in 1:length(solution_single)){
   temp = eval_target_coverage_summary(problem_single,solution_single[[i]])
   temp = cbind(temp,featurenames)
-  temp = temp %>%
-    filter(met == FALSE)
   temp$absolute_shortfall = round(temp$absolute_shortfall, 2)
   temp$relative_held = round(temp$relative_held, 2)
   temp$relative_shortfall = round(temp$relative_shortfall, 2)
@@ -218,8 +200,7 @@ for(i in 1:nrow(scenario_sheet)){
     temp$solution = i
     temp$feature = NULL
     temp$FEATURENAME_BINARY = NULL
-    temp$FEATURENAME = NULL
-    temp$numbershortfallspp = nrow(temp)}
+    temp$FEATURENAME = NULL}
   # save coverage summary
   coverage_summary = rbind(coverage_summary,temp)}
   
@@ -230,11 +211,9 @@ for(i in 1:nrow(scenario_sheet)){
     summarise(km_shortfall_avg = mean(km_shortfall),
               km_shortfall_sd = sd(km_shortfall),
               target = mean(relative_target),
-              target_achieved = mean(relative_held),
-              number_of_solutions = n_distinct(solution))
+              target_achieved = mean(relative_held))%>%
+    arrange(SCORE)
   coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
-  coverage_summary = coverage_summary %>%
-    filter(target != target_achieved)
   write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
   
   # ferrier score for single problem
@@ -247,8 +226,8 @@ for(i in 1:nrow(scenario_sheet)){
   ferrierscore_sum= calc(ferrierscore_sum,sum)
   
   # save as raw raster file
-  writeRaster(ferrierscore_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario_FS.tiff"), overwrite = TRUE)
+  writeRaster(ferrierscore_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario_FS.tiff"), overwrite = TRUE)
   
-  # leave solution_single in environment to facilitate plotting tests
-  rm(solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,f,c,t,boundary_penalty,season,scenario,target,locked_in,costs,features,format,problem_single,performances,pus,w,weights,tailoredweights,tailoredtargets,n,objective,temp,feat,cost)
-}}
+  rm(problem_single,solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,t)}
+  rm(boundary_penalty,scenario,locked_in,costs,features,performances,objective,temp)
+}

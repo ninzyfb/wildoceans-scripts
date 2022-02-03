@@ -27,7 +27,14 @@ if("biomod2" %in% (.packages())){detach("package:biomod2", unload=TRUE) }
 # ---------------------------------
 # read in occurrences of target species
 # the target is specified from the master sheet in the parent script
-files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = paste(toupper(target),".rds",sep=""))
+
+# the following is how I input the data 
+# assign FILENAME to the name of your occurrence data file
+# assign FILELOCATION to the location to your occurrence data file
+FILENAME = paste(toupper(target),".rds",sep="")
+FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata")
+# identifies location of occurrence file on computer
+files = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -38,7 +45,7 @@ files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdat
 # this if statement runs the script only if the target species has associated data
 if(length(files)>0){ 
   
-# load in data file (point and polygon formats)
+# load in data file
 obs.data = readRDS(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/",folder,toupper(target),".rds",sep="")) 
 
 # convert latitude and longitude to numeric variables
