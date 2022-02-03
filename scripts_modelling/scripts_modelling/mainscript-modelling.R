@@ -111,7 +111,7 @@ for(i in 1:nrow(master_keep)){
   source(list.files(pattern = "subsampling.R", recursive = TRUE, full.names = TRUE))
   
   # BACKGROUND SAMPLE
-  source(list.files(pattern ="pseudoabsence_1.R", recursive = TRUE, full.names = TRUE))
+  source(list.files(pattern ="pseudoabsence.R", recursive = TRUE, full.names = TRUE))
   
   # BIOMOD OBJECT CREATION
   source(list.files(pattern = "Biomod.R", recursive = TRUE, full.names = TRUE))
