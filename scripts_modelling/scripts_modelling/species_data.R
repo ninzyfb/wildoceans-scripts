@@ -34,7 +34,7 @@ if("biomod2" %in% (.packages())){detach("package:biomod2", unload=TRUE) }
 FILENAME = paste(toupper(target),".rds",sep="")
 FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata")
 # identifies location of occurrence file on computer
-files = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, full.names = TRUE)
+file = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -43,10 +43,10 @@ files = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, ful
 # ---------------------------------
 # not all species from master sheet have data
 # this if statement runs the script only if the target species has associated data
-if(length(files)>0){ 
+if(length(file)>0){ 
   
 # load in data file
-obs.data = readRDS(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/",folder,toupper(target),".rds",sep="")) 
+obs.data = readRDS(file) 
 
 # convert latitude and longitude to numeric variables
 obs.data$LONGITUDE = as.numeric(obs.data$LONGITUDE)
