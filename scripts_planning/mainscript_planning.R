@@ -96,98 +96,99 @@ featurenames = featurenames %>%
 # ---------------------------------
 # BUILDING AND SOLVING A CONSERVATION PROBLEM
 # ---------------------------------
+
+# parent folder to save all solution outputs
+solutionsfolder = "Planning/Outputs/solutions/rasters_rawsolutions/"
+
+# parent folder to save all performance outputs
+performancefolder = "Planning/Outputs/performances/"
+
 # turn off scientific numbering
 options(scipen = 100) 
 
 # scenarios
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 2)
 
-# first decide on which scenario you are running (row number of spreadsheet)
-for(i in 1:9){
-  n = i # problem number
-  scenario = scenario_sheet$scenario[n] # scenario name
-  season = scenario_sheet$season[n] # season
-  features = scenario_sheet$features[n] # features to use
-  format = scenario_sheet$format[n] # format of features i.e. continuous or seasonal
-  locked_in = scenario_sheet$lockedin[n] # sets areas to be locked-in
-  costs = scenario_sheet$costs[n] # sets costs
-  target = scenario_sheet$targets[n] # sets targets i.e. uniform or tailored
-  tailoredtargets = scenario_sheet$tailored_targets[n] # set level of tailored targets
-  boundary_penalty = as.numeric(scenario_sheet$boundary_penalty[n]) # sets boundary penalties
-  objective = scenario_sheet$objective_budget[n]
-  feat = get(features) # features
+# start counter
+number = 0
+
+# Building and solving conservation problems
+# these are all outlined in the scenario sheet
+# the following loop goes through each row of the scenario sheet and outputs a solution
+for(i in 1:nrow(scenario_sheet)){
+  
+  # scenario stream (A or B)
+  stream = scenario_sheet$stream[i]
+  
+  # scenario name (Control, MPA, Fishing)
+  scenario = scenario_sheet$scenario[i]
+  
+  # features
+  features = get(scenario_sheet$features[i])
   
   # weights
-  weights = scenario_sheet$weights[n]
-  if(weights == "yes"){w = featurenames$SCORE}
+  weights = scenario_sheet$weights[i]
+  if(weights == "yes"){weights = featurenames$SCORE}
   
-  # targets
-  if(target == "tailored"){
-    t = featurenames # dataframe with tailored targets
-    # further refine by season
-    if(season == "aseasonal"){t = t %>%filter(MODELTYPE == "Aseasonal")
-      # specifies which targets to pick
-    if(tailoredtargets == "low"){t = t$low}
-    if(tailoredtargets == "medium"){t = t$medium}
-    if(tailoredtargets == "high"){t = t$high}}
-    # if target is numeric just take that value
-  }else{t = as.numeric(target)}
+  # budget
+  objective = scenario_sheet$objective_budget[i]
   
-  # build your basic problem
-  problem_base= problem(pu,feat)%>%
-    add_gap_portfolio(number_solutions=5)
+  # areas to be locked-in
+  locked_in = scenario_sheet$lockedin[i] 
   
-  # additional parameters to add to your problem based on specific scenario
-  if(weights == "yes"){
-    problem_base = problem_base %>%
-      add_feature_weights(w)}
-  if(locked_in != "none"){
-    problem_base = problem_base %>%
-      add_locked_in_constraints(lockedin[[locked_in]])}
-  if(costs == "fp_threshold"){
-    problem_base = problem_base %>%
-    add_linear_constraints(threshold = fp_threshold, sense = "<=", data = costs_all)}
-  if(costs == "fp_binary"){
-    problem_base = problem_base %>%
-    add_locked_out_constraints(fp_binary)}
+  # costs
+  costs = scenario_sheet$costs[i]
   
-  # run conservation problem with selected solving objective
-  if(objective == "add_max_features_objective"){ 
-    problem_single = problem_base %>% # costs and features
-      add_max_features_objective(budget = 1080)%>%
+  # boundary penalty
+  boundary_penalty = as.numeric(scenario_sheet$boundary_penalty[i]) 
+  
+  # each scenario is run 9 times (10% target increase from 10% to 90%)
+  for(t in 1:9){
+    
+    # problem number
+    problem_number = number + 1
+    
+    # targets
+    t = t/10
+    
+    # BASIC CONSERVATION PROBLEM
+    problem_base= problem(pu,features)%>%
+      # protection targets (will apply to each feature)
       add_relative_targets(t) %>%
-      add_proportion_decisions() %>%
-      add_gurobi_solver(gap=0.1)}
-  
-  if(objective == "add_min_set_objective"){ 
-    problem_single = problem_base %>% # costs and features
-      add_min_set_objective()%>%
-      add_relative_targets(t) %>%
-      add_proportion_decisions() %>%
-      add_gurobi_solver(gap=0.1)}
-  
-  if(objective == "add_min_largest_shortfall_objective"){ 
-    problem_single = problem_base %>% # costs and features
-      add_min_largest_shortfall_objective(budget = 1080)%>%
-      add_relative_targets(t) %>%
-      add_proportion_decisions() %>%
-      add_gurobi_solver(gap=0.1)}
-  
-  if(objective == "add_min_shortfall_objective"){ 
-    problem_single = problem_base %>% # costs and features
+      # generate 5 solutions per problem
+      add_gap_portfolio(number_solutions=5)%>%
+      # budget representing 10% of EEZ
       add_min_shortfall_objective(budget = 1080)%>%
-      add_relative_targets(t) %>%
-      add_binary_decisions() %>%
-      add_gurobi_solver(gap=0.1)}
+      # solutions needs to be within 10% of optimality
+      add_gurobi_solver(gap=0.1) %>%
+      # proportion decisions is faster to compute than binary decisions
+      add_proportion_decisions()
+    
+    # ADDITIONAL PARAMETERS
+    # these will increase the complexity of the conservation problem
+    
+    # weights
+    if(weights == "yes"){problem_base = problem_base %>% add_feature_weights(weights)}
   
-  # solve problem
-  solution_single = solve(problem_single)
+    # locked in areas
+    if(locked_in != "none"){problem_base = problem_base %>% add_locked_in_constraints(lockedin[[locked_in]])}
+  
+    # costs (fishing - threshold)
+    if(costs == "fp_threshold"){problem_base = problem_base %>% add_linear_constraints(threshold = fp_threshold, sense = "<=", data = costs_all)}
+  
+    # costs (fishing - binary)
+    if(costs == "fp_binary"){problem_base = problem_base %>% add_locked_out_constraints(fp_binary)}
+  
+    # solve problem
+    solution_single = solve(problem_single)
 
-  # create solution frequency raster
-  solution_sum= calc(stack(unlist(solution_single)),sum)
+    # create solution frequency raster
+    # this sums all the solutions together
+    # it outlines the most frequently chosen areas for the given conservation problem
+    solution_sum= calc(stack(unlist(solution_single)),sum)
   
-  # save solution as raster
-  writeRaster(solution_sum,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",str_pad(n,3,pad = "0"),"_",scenario,"scenario.tiff"),overwrite = TRUE)
+    # save solution as raster
+    writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario.tiff"),overwrite = TRUE)
   
   # evaluate performance of solution
   performances = data.frame()
@@ -234,8 +235,7 @@ for(i in 1:9){
   coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
   coverage_summary = coverage_summary %>%
     filter(target != target_achieved)
-  write.csv(coverage_summary,paste0(path,"Dropbox/6-WILDOCEANS/Planning/Outputs/performances/","p",str_pad(n,3,pad = "0"),"_performance.csv"), row.names = FALSE)}
-  }
+  write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
   
   # ferrier score for single problem
   ferrierscore_sum = stack()
@@ -247,8 +247,8 @@ for(i in 1:9){
   ferrierscore_sum= calc(ferrierscore_sum,sum)
   
   # save as raw raster file
-  writeRaster(ferrierscore_sum,paste0("Planning/Outputs/solutions/rasters_rawsolutions/","p",str_pad(n,3,pad = "0"),"_",scenario,"scenario_FS.tiff"), overwrite = TRUE)
+  writeRaster(ferrierscore_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario_FS.tiff"), overwrite = TRUE)
   
   # leave solution_single in environment to facilitate plotting tests
   rm(solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,f,c,t,boundary_penalty,season,scenario,target,locked_in,costs,features,format,problem_single,performances,pus,w,weights,tailoredweights,tailoredtargets,n,objective,temp,feat,cost)
-}
+}}

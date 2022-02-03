@@ -59,6 +59,12 @@ pseudoabsences = length(which(pa==1))
 # make sure substrate is a factor
 exp$substrate_simplified = as.factor(exp$substrate_simplified)
 
+# keep or remove substrate layer
+if(!is.na(substrate) & substrate == "no"){
+  stack_model = dropLayer(stack_subset,"substrate_simplified")
+  exp$substrate_simplified = NULL}else{stack_model = stack_subset}
+
+
 # biomod object
 biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
                                                 expl.var = exp, # environmental variables

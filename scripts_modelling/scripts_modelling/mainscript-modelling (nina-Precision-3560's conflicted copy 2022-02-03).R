@@ -97,9 +97,8 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 # ---------------------------------
 #  RUNNING THE MODELS
 # ---------------------------------
-
 # the following loop runs the models for each species and creates plots
-for(i in 1:nrow(master_keep)){
+for(i in 32:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
@@ -138,8 +137,7 @@ for(i in 1:nrow(master_keep)){
     model_type = "winter"
     season = 2
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])}
-  rm(stack_new)}
+    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])}}
 # ---------------------------------
 
 # END OF SCRIPT

@@ -23,7 +23,7 @@
 # 3 * 10 * 2 = 60
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GLM', 'MAXENT.Phillips','GAM'), # 3 modelling algorithms
+  models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms
   models.options = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # 75% of data used for calibration, 25% for testing
@@ -50,7 +50,7 @@ static_modelprojections =
   BIOMOD_Projection(
     proj.name = paste0(target,model_type), # new folder will be created with this name
     modeling.output = static_models, # your modelling output object
-    new.env = stack_subset, # same environmental variables on which model will be projected
+    new.env = stack_model, # same environmental variables on which model will be projected
     selected.models = "all", # which models to project, in this case only the full ones
     binary.meth = 'TSS', # model evaluation method
     compress = 'xy', # to do with how r stores the file
