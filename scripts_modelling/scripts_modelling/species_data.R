@@ -26,15 +26,13 @@ if("biomod2" %in% (.packages())){detach("package:biomod2", unload=TRUE) }
 # DATA INPUT
 # ---------------------------------
 # read in occurrences of target species
-# the target is specified from the master sheet in the parent script
-
-# the following is how I input the data 
-# assign FILENAME to the name of your occurrence data file
-# assign FILELOCATION to the location to your occurrence data file
+# assign FILENAME to the name of your occurrence data csv file
+# assign FILELOCATION to the location to your occurrence data csv file
+# the example_data.csv on github has data from GBIF on ACROTERIOBATUS ANNULATUS and can be used to try the code
 FILENAME = paste(toupper(target),".rds",sep="")
 FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata")
 # identifies location of occurrence file on computer
-files = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, full.names = TRUE)
+file = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -43,10 +41,10 @@ files = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, ful
 # ---------------------------------
 # not all species from master sheet have data
 # this if statement runs the script only if the target species has associated data
-if(length(files)>0){ 
+if(length(file)>0){ 
   
 # load in data file
-obs.data = readRDS(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/",folder,toupper(target),".rds",sep="")) 
+obs.data = readRDS(file) 
 
 # convert latitude and longitude to numeric variables
 obs.data$LONGITUDE = as.numeric(obs.data$LONGITUDE)
@@ -55,7 +53,7 @@ obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
 # this if statement further ensures that the script should only by run if the dataframe has any data
 if(nrow(obs.data)>0){
 
-  # verify there are no NAs in latitude and longitude
+  # verify there are no NAs in latitude and longitude
 # if there are a warning message will appear
 if(unique(!is.na(obs.data$LATITUDE)) == FALSE){
   print("SOME NAs ARE PRESENT IN THE LATITUDE DATA")}
@@ -96,10 +94,6 @@ obs.data = obs.data %>%
                                        ifelse(SEASON == "Spring","Summer",SEASON)))))
 
 # convert data to spatial points data frame
-coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
-
-# set CRS of observations
-if(exists("template")){crs(obs.data) = crs(template)}}else{length(files) = 0}}
-
+coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)}else{length(files) = 0}}
 
 # ---------------------------------

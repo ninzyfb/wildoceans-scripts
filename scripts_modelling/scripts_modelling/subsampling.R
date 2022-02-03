@@ -24,6 +24,7 @@ library(dismo)
 # FORMATTING
 # ---------------------------------
 # Subsample one occurrence point per grid cell across entire dataset
+crs(obs.data) = crs(stack_subset)
 pts_sub = SpatialPoints(gridSample(obs.data, stack_subset, n=1),bbox =  bbox(stack_subset))
 # set crs to match that of environmental variables
 crs(pts_sub) = crs(stack_subset)

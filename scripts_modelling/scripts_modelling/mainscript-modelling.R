@@ -7,10 +7,13 @@
 # ---------------------------------
 # SCRIPT DESCRIPTION
 # ---------------------------------
-# This script is the parent modelling script, it calls all sub-scripts
-# The subscripts load in clean occurrence data and predictor variables (which have already been analysed for collinearity)
-# The subscripts then run modelling algorithms and produce an ensemble model as well as plots for each species
-# IMPORTANT: Run each subscript one at a time as running the whole parent script at once seems to cause some issues
+# This script is the parent modelling script, it calls a series of scripts which:
+# load in clean occurrence data and predictor variable raster stack
+# run modelling algorithms and produce an ensemble model and plots for each species
+# a small description of each script is present before calling them
+# and further descriptions can otherwise be found within each script
+
+# IMPORTANT: Even when you know each script works, i suggest running each script one at a time as running the whole parent script at once seems to cause some issues
 # ---------------------------------
 
 
@@ -18,7 +21,7 @@
 # DATA AVAILABILITY 
 # ---------------------------------
 # The raw occurrence data used to run this script is not available due to data sharing agreements in place
-# However for an example of what format the data should be in see: example_data.csv on github page
+# For an example of what format the data should enter as see: example_data.csv on github page
 # The predictor variable stack is available as well as the code used to deal with collinearity and decide on final number of variables used
 # See independentvariableselection.R on github for the script that analysed for collinearity in predictor variables
 # ---------------------------------
@@ -42,9 +45,28 @@ rm(requiredpackages)
 # the subs-scripts can be in folders within this directory as the code will look through all the folders
 path = "/home/nina/" # path for linux
 path =  "/Users/nfb/" # path for mac
+# define name of directory
 my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
 # set directory
 setwd(my.directory) 
+# ---------------------------------
+
+
+# ---------------------------------
+#  PLOTTING LAYERS
+# this subscript prepares layers required for plotting and sets plotting parameters i.e. colour etc..
+# ---------------------------------
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+# ---------------------------------
+
+
+# ---------------------------------
+#  - ENVIRONMENTAL VARIABLES 
+# ---------------------------------
+# specify model resolution
+# we chose between a grid of 5 x 5 km (res = 5) or 10 x 10 km (res = 10)  
+res = 10
+source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
 
 
@@ -53,57 +75,16 @@ setwd(my.directory)
 # ---------------------------------
 # read master file with species-specific modelling parameters
 # this sheet contains a list of all species with some additional data details
-# the prevalence value indicates how much data there is for this species
-# prevalence is the percentage of cells with data out of total cells
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
-# ---------------------------------
-
-
-# ---------------------------------
-#  PLOTTING LAYERS
-# ---------------------------------
-source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
-# ---------------------------------
-
-
-# ---------------------------------
-#  GRID
-# ---------------------------------
-# specify your chosen resolution of models
-# here we chose a grid of either 5 x 5 km (res = 5) or 10 x 10 km (res = 10)  
-# Both template grids are available in github folder
-res = 10
-
+# filter master sheet to keep species with a minimum prevalence of 1
+# the prevalence value indicates how much data there is for this species relative to entire modeling surface
+# i.e. it is the percentage of cells with data out of total cells, so the lower your resolution, the higher the prevalence
 if(res == 5){
-  # load appropriate grid
-  template = raster(list.files(pattern = "template_5km.tif", recursive = TRUE, full.names = TRUE))
-  # filter master sheet to keep species with enough prevalence for chosen resolution
-  # in our case we required a minimum prevalence of 1
   master_keep = master %>%
-    filter(rounded >=1)
-  # number of background points to use during model development 
-  # we went with 20% of total cells
-  # code to figure out 20% of cells: 0.2*length(which(values(template)==1))
-  n_bckg_pts = 8410}
-
-if(res == 10){
-  # load appropriate grid
-  template = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
-  # filter master sheet to keep species with enough prevalence for chosen resolution
-  # in our case we required a minimum prevalence of 1
+    filter(rounded >=1)}
+if(res ==10){
   master_keep = master %>%
-    filter(rounded_10>=1)
-  # number of background points to use during model development 
-  # we went with 20% of total cells
-  # code to figure out 20% of cells: 0.2*length(which(values(template)==1))
-  n_bckg_pts = 2162}
-# ---------------------------------
-
-
-# ---------------------------------
-#  - ENVIRONMENTAL VARIABLES 
-# ---------------------------------
-source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
+    filter(rounded_10 >=1)}
 # ---------------------------------
 
 
@@ -112,6 +93,9 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 # ---------------------------------
 
 # the following loop runs the models for each species and creates plots
+# this loop is based around the master_keep sheet which is a data frame of species names
+# if wanting to simply run the loop for a single species, i suggest removing the loop and starting from the species_data.R subscript
+# the master sheet is however available on github if wanting to follow the same format even with one species
 for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
@@ -120,17 +104,13 @@ for(i in 1:nrow(master_keep)){
   seasonal = "no" # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
-  source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) # finds script in directory
-  rm(folder)
+  source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
   
   # SAMPLING BIAS
   source(list.files(pattern = "subsampling.R", recursive = TRUE, full.names = TRUE))
   
   # BACKGROUND SAMPLE
   source(list.files(pattern ="pseudoabsence_1.R", recursive = TRUE, full.names = TRUE))
-  
-  # COLLINEARITY
-  #source(list.files(pattern = "variableselection.R", recursive = TRUE, full.names = TRUE))
   
   # BIOMOD OBJECT CREATION
   source(list.files(pattern = "Biomod.R", recursive = TRUE, full.names = TRUE))
