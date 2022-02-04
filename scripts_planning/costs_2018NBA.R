@@ -67,4 +67,4 @@ fp_binary = round(costs_all >= fp_threshold)
 fp_threshold = raster::cellStats(costs_all, "sum") * 0.2
 # ---------------------------------
 
-rm(costs_all,costs_scaled,costs)
+rm(costs_scaled,costs)

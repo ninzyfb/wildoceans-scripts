@@ -110,12 +110,12 @@ options(scipen = 100)
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # start counter
-problem_number = 0
+problem_number = 90
 
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
 # the following loop goes through each row of the scenario sheet and outputs a solution
-for(i in 1:nrow(scenario_sheet)){
+for(i in 11:nrow(scenario_sheet)){
   
   # scenario stream (A or B)
   stream = scenario_sheet$stream[i]
