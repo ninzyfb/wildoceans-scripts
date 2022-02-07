@@ -120,7 +120,7 @@ plot = levelplot(temp,
   # 250m isobath
   latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
   # sa coast
-  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1))+
+  latticeExtra::layer(sp.polygons(sa_coast,col = "black",fill = "white",lwd= 1))+
   # points for main cities
   latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
   # coordinates and city names

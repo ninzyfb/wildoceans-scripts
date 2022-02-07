@@ -108,6 +108,9 @@ summary2$year = year(summary2$DATE)
 # trim white space
 summary2$SPECIES_SCIENTIFIC = trimws(summary2$SPECIES_SCIENTIFIC, which = "both")
 
+# only keep unique instance
+summary2 = unique(summary2)
+
 # some species names contain hidden characters
 # this cleans all the hidden characters out
 for(i in 1:nrow(summary2)){summary2[i,3] = str_replace_all(summary2[i,3], "\\s", " ")}
@@ -181,10 +184,20 @@ summary3 = unique(summary3)
 # DATE FILTERING
 # ---------------------------------
 # plot of which years each dataset have
-png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=5, height=5, res=300)
-ggplot(summary3, aes(DATASET,year, colour = DATASET))+
+temp = summary3 %>%
+  group_by(DATASET, year) %>%
+  summarise()%>%
+  group_by(DATASET)%>%
+  summarise(n = n()) %>%
+  arrange(desc(n))
+names = temp$DATASET
+temp = summary3 
+temp$DATASET = as.factor(temp$DATASET, levels = names)
+png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=7, height=5, res=300)
+ggplot(summary3, aes(x = factor(DATASET,level = names),year, colour = DATASET))+
   geom_point()+
-  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2,size = 5),
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90,hjust = 0.95,vjust=0.2,size = 10, colour = "black"),
         legend.position = "none",
         axis.title.x = element_blank(),
         axis.title.y = element_blank())+
@@ -193,11 +206,11 @@ ggplot(summary3, aes(DATASET,year, colour = DATASET))+
 dev.off()
 
 # second plot from 1950 onwards
-png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=5, height=5, res=300)
-ggplot(summary3, aes(DATASET,year, colour = DATASET))+
+png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=7, height=5, res=300)
+ggplot(summary3, aes(x = factor(DATASET,level = names),year, colour = DATASET))+
   geom_point()+
-  # rotate x axis
-  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2, size = 5),
+  theme_bw()+
+  theme(axis.text.x = element_text(angle = 90,hjust=0.95,vjust=0.2, size = 10,colour = "black"),
         legend.position = "none",
         axis.title.x = element_blank(),
         axis.title.y = element_blank())+
