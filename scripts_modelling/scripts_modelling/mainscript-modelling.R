@@ -102,7 +102,7 @@ for(i in 1:nrow(master_keep)){
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = "no" # specifies if seasonal (summer & winter) models are too also be run
+  seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
