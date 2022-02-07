@@ -47,6 +47,9 @@ files = list.files(pattern = ".rds", recursive = TRUE, path = paste0(path,"Dropb
 # ---------------------------------
 #  - ENVIRONMENTAL VARIABLES 
 # ---------------------------------
+# specify resolution (5 or 10 km2)
+# not actually important for this script, but needed to load environmental variable stack
+res = 10
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
 
@@ -65,7 +68,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # this loops plots a raw map for each species with data
 for(i in 1:nrow(master)){
   # species name
-  target = master_keep$SPECIES_SCIENTIFIC[i]
+  target = master$SPECIES_SCIENTIFIC[i]
   # folder with occurrence data files (all stored as R object)
   folder = "speciesdata/"
   # run script to load species data
