@@ -12,10 +12,18 @@
 
 
 # ---------------------------------
+# OUTPUT FOLDER DESTINATION
+# ---------------------------------
+evalutationfolder = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/")
+plotfolder = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/")
+# ---------------------------------
+
+
+# ---------------------------------
 # MODELLING
 # ---------------------------------
 
-# Build individual aseaonsal models
+# Build individual aseasonal models
 # this static models object will contain 60 model projections
 # this is because we are running 3 model algorithms (GLM, MAXENT, GAM)
 # each model algorithm is being run 10 times as a cross-validation approach
@@ -23,7 +31,8 @@
 # 3 * 10 * 2 = 60
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms
+  VarImport = 5,
+  models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms 
   models.options = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # 75% of data used for calibration, 25% for testing
@@ -31,6 +40,11 @@ static_models <- BIOMOD_Modeling(
   SaveObj = TRUE, # keep all results on hard drive 
   rescal.all.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
   modeling.id = target) # name of model = species name (target)
+
+# get important variables
+variables = as.data.frame(get_variables_importance(static_models))
+# save
+write.csv(variables,paste0(evalutationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
 
 rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
 
@@ -64,8 +78,8 @@ static_ensembleprojection = BIOMOD_EnsembleForecasting(
 # get all models evaluation scores
 all_evals = get_evaluations(static_models, as.data.frame = TRUE)
 ensemble_evals = get_evaluations(static_ensemblemodel, as.data.frame = TRUE)
-write.csv(all_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"_res",res,"_allevals.csv"))
-write.csv(ensemble_evals,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/",model_type,target,"_res",res,"_ensembleevals.csv"))
+write.csv(all_evals,paste0(evalutationfolder,model_type,target,"_res",res,"_allevals.csv"))
+write.csv(ensemble_evals,paste0(evalutationfolder,model_type,target,"_res",res,"_ensembleevals.csv"))
 
 # Threshold calculation
 # this function calculates the threshold at which a probability can be considered a presence
@@ -116,7 +130,7 @@ plot = levelplot(temp,
   latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
 
 # this saves the plot to a folder
-png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
+png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
 rm(temp,plot) # remove unnecessary variables
@@ -133,7 +147,7 @@ plot = levelplot(temp,
   latticeExtra::layer(sp.polygons(eez,col = "black"))
 
 # this saves the plot to a folder
-png(file=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/",target,"_",model_type,"_res",res,"_binary_ensemble.png"), width=3000, height=3000, res=300)
+png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_binary_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
 rm(plot) # remove unnecessary variables
