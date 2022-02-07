@@ -14,7 +14,7 @@
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-# pick number of background points to choose from during model development (we went with 20% of modeling surface)
+# pick number of background points to choose from during model development (we went with 20% of modelling surface)
 # pseudo-absences choice procedure: Barbet-Messin et al., 2012
 if(res == 5){n_bckg_pts = 0.2*length(which(values(!is.na(stack_subset[[1]]))))}
 if(res == 10){n_bckg_pts = 0.2*length(which(values(!is.na(stack_subset[[1]]))))}

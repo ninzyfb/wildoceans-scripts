@@ -15,7 +15,7 @@
 # ---------------------------------
 # PACKAGES
 # ---------------------------------
-# biomod2 is loaded in seperately as it interacts with functions from other packages
+# biomod2 is loaded in separately as it interacts with functions from other packages
 detach(package:dismo,unload=TRUE)
 library(biomod2)
 # ---------------------------------
@@ -34,15 +34,15 @@ Print_Default_ModelingOptions() # these are the default parameters used for eac
 mxtPh = BIOMOD_ModelingOptions(MAXENT = list(path_to_maxent.jar = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/maxent")),
                                GLM = list(type = 'polynomial'))
 
-# remove all NAs
+# remove NAs
 pts_env = na.omit(pts_env)
+
+# isolate presence/background points column of 1s and 0s
+pa = pts_env$pa 
 
 # convert 0 to NAs
 # this is important as it means they ar eseen as background points and not true absences
-pts_env = pts_env %>% mutate(pa=ifelse(pa==0,NA,pa))
-
-# isolate presence/background points column of 1s and NAs
-pa = pts_env$pa 
+pa[which(pa == 0)] = NA
 
 # isolate presence/background points coordinates
 pa_xy = pts_env[,c(2,3)] 
@@ -83,23 +83,42 @@ biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
 if(seasonal == 'yes' & !is.na(seasonal)){
 biomod_obj_seasons = list()
 for(i in 1:length(pts_env_seasons)){
+  if(i == 1){
   temp = pts_env_seasons[[i]]
-  temp = na.omit(temp) # remove all NAs
-  temp = temp %>% # convert 0 to NAs (allows them to be seen as backgorund and not true absence)
-    mutate(pa = ifelse(pa==0,NA,pa))
-  pa = temp$pa # presence absence column
-  pa_xy = temp[,c(2,3)] # presence absence coordinates
-  exp =  temp[,-c(1:3)] # environmental variables
-  biomod_obj_seasons[[i]] =  BIOMOD_FormatingData(resp.var = pa, # presence/absence data
-                                         expl.var = exp, # environmental variables
-                                         resp.xy = pa_xy,
+  temp = na.omit(temp)
+  pa1 = temp$pa
+  pa1[which(pa1 == 0)] = NA
+  pseudoabsences1 = length(which(pa==1))
+  pa1xy = temp[,c(2,3)]
+  exp1 = temp[,-c(1:3)]
+  exp1$substrate_simplified = as.factor(exp1$substrate_simplified)
+  biomod_obj_seasons[[i]] =  BIOMOD_FormatingData(resp.var = pa1, # presence/absence data
+                                         expl.var = exp1, # environmental variables
+                                         resp.xy = pa1xy,
                                          resp.name = target, # species name
                                          # random background cells at 20% area of EEZ (5km2 res): 8500
-                                         PA.nb.absences = pseudoabsences,
+                                         PA.nb.absences = pseudoabsences1,
                                          PA.nb.rep = 2,
                                          # for high specificity pseudo-absences should be randomly selected 
                                          # OR they can also be chosen at a minimal and maximum distance from presence points
-                                         PA.strategy = 'random') 
-  }} 
+                                         PA.strategy = 'random')} 
+  if(i == 2){
+    temp = pts_env_seasons[[i]]
+    temp = na.omit(temp)
+    pa2 = temp$pa
+    pa2[which(pa2 == 0)] = NA
+    pseudoabsences2 = length(which(pa==1))
+    pa2xy = temp[,c(2,3)]
+    exp2 = temp[,-c(1:3)]
+    exp2$substrate_simplified = as.factor(exp2$substrate_simplified)
+    biomod_obj_seasons[[i]] =  BIOMOD_FormatingData(resp.var = pa2, # presence/absence data
+                                                    expl.var = exp2, # environmental variables
+                                                    resp.xy = pa2xy,
+                                                    resp.name = target, # species name
+                                                    # random background cells at 20% area of EEZ (5km2 res): 8500
+                                                    PA.nb.absences = pseudoabsences2,
+                                                    PA.nb.rep = 2,
+                                                    # for high specificity pseudo-absences should be randomly selected 
+                                                    # OR they can also be chosen at a minimal and maximum distance from presence points
+                                                    PA.strategy = 'random')}}} 
 # ---------------------------------
-
