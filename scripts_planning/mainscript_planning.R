@@ -117,12 +117,12 @@ options(scipen = 100)
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # start counter
-problem_number = 90
+problem_number = 126
 
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
 # the following loop goes through each row of the scenario sheet and outputs a solution
-for(i in 11:nrow(scenario_sheet)){
+for(i in 15:nrow(scenario_sheet)){
   
   # scenario stream (A or B)
   stream = scenario_sheet$stream[i]
@@ -133,9 +133,15 @@ for(i in 11:nrow(scenario_sheet)){
   # features
   features = get(scenario_sheet$features[i])
   
+  # season
+  season = toupper(scenario_sheet$season[i])
+  featurenames_temp = featurenames %>%
+    filter(MODELTYPE == season)
+  featurenames_temp = featurenames_temp[featurenames_temp$FEATURENAME %in% names(features),]
+  
   # weights
   weights = scenario_sheet$weights[i]
-  if(weights == "yes"){weights = featurenames$SCORE}
+  if(weights == "yes"){weights = featurenames_temp$SCORE}
   
   # budget
   objective = scenario_sheet$objective_budget[i]
@@ -198,7 +204,7 @@ for(i in 11:nrow(scenario_sheet)){
   coverage_summary = data.frame()
   for(i in 1:length(solution_single)){
   temp = eval_target_coverage_summary(problem_single,solution_single[[i]])
-  temp = cbind(temp,featurenames)
+  temp = cbind(temp,featurenames_temp)
   temp$absolute_shortfall = round(temp$absolute_shortfall, 2)
   temp$relative_held = round(temp$relative_held, 2)
   temp$relative_shortfall = round(temp$relative_shortfall, 2)
