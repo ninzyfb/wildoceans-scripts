@@ -52,6 +52,13 @@ source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE))
 
 
 # ---------------------------------
+# IUCN FEATURES
+# ---------------------------------
+source(list.files(pattern = "iucnmaps.R", recursive = TRUE)) 
+# ---------------------------------
+
+
+# ---------------------------------
 # COSTS
 # ---------------------------------
 source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))

@@ -1,0 +1,82 @@
+# ---------------------------------------------------------------------------------
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
+# ---------------------------------------------------------------------------------
+
+
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script plots the models
+# ---------------------------------
+
+
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+# list of required packages
+requiredpackages = c("rgeos","viridis","rasterVis","ggplot2","raster","stringr", "raster", "sp", "dplyr", "lubridate")
+# load packages
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+
+
+# ---------------------------------
+#  PLOTTING LAYERS
+# this subscript prepares layers required for plotting and sets plotting parameters i.e. colour etc..
+# ---------------------------------
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+# ---------------------------------
+
+
+# ---------------------------------
+# DATA FILES
+# ---------------------------------
+sdms_rasters = list.files(pattern = "Aseasonal_res10_ensemblemean.tif", recursive = TRUE, full.names =TRUE)
+# list of species
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
+# ---------------------------------
+
+
+# ---------------------------------
+# PLOTTING
+# ---------------------------------
+for(i in 1:length(sdms_rasters)){
+  target = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][2]
+  model_type = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][3]
+  temp = raster(sdms_rasters[i])
+  # species info
+  spp_info = master %>%
+    filter(SPECIES_SCIENTIFIC == target)
+  plot = levelplot(temp,
+                   main = paste(target,"\n",spp_info$Species_common,"\n",model_type),
+                   names.attr = c("Ensemble model"),
+                   par.settings = rasterTheme(viridis_pal(option="D")(10)),
+                   at = intervals,
+                   margin = FALSE)+
+    # eez
+    latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+    # 250m isobath
+    latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
+    # sa coast
+    latticeExtra::layer(sp.polygons(sa_coast,col = "black",fill = "white",lwd= 1))+
+    # points for main cities
+    latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+    # coordinates and city names
+    # done in three lines as a "pretty" position varies based on their place on the map
+    latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+    latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+    latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
+  
+  # this saves the plot to a folder
+  png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
+  print(plot)
+  dev.off()
+  rm(temp,plot) # remove unnecessary variables
+  }
+
+# ---------------------------------
+
+
+

@@ -87,17 +87,16 @@ if(res ==10){
   master_keep = master %>%
     filter(rounded_10 >=1)}
 # ---------------------------------
-
+master_keep = master_keep %>% filter(Seasonality == "yes")
 
 # ---------------------------------
 #  RUNNING THE MODELS
 # ---------------------------------
-
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
 # if wanting to simply run the loop for a single species, i suggest removing the loop and starting from the species_data.R subscript
 # the master sheet is however available on github if wanting to follow the same format even with one species
-for(i in 1:nrow(master_keep)){
+for(i in 2:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
@@ -117,9 +116,9 @@ for(i in 1:nrow(master_keep)){
   source(list.files(pattern = "Biomod.R", recursive = TRUE, full.names = TRUE))
   
   # ASEASONAL MODEL RUNS AND PROJECTIONS
-  model_type = "Aseasonal" # specify model_type
-  data = biomod_obj # specify which biomod_obj
-  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
+  #model_type = "Aseasonal" # specify model_type
+  #data = biomod_obj # specify which biomod_obj
+  #source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
 
   # SEASONAL MODEL RUNS AND PROJECTIONS
   if(seasonal == "yes"){
