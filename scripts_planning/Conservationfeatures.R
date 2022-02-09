@@ -58,6 +58,9 @@ colnames(featurenames) = toupper(colnames(featurenames))
 featurenames = cbind(featurenames,featurenamesbinary)
 rm(featurenamesbinary)
 
+# turn season type to upper case
+featurenames$MODELTYPE = toupper(featurenames$MODELTYPE)
+
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
@@ -97,6 +100,7 @@ keep = str_detect(names(feature_stack),"Aseasonal")  # identify Aseasonal layers
 idx = which(keep == FALSE) # find out layer number with feature to omit
 feature_stack_aseasonal = dropLayer(feature_stack,idx)
 rm(idx,keep) # remove
+
 
 #keep = str_detect(names(feature_stack_binary),"Aseasonal")  # identify Aseasonal layers in stack
 #idx = which(keep == FALSE) # find out layer number with feature to omit
