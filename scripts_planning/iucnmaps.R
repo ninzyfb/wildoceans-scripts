@@ -15,7 +15,7 @@
 # DATA
 # ---------------------------------
 # extract names of IUCN range maps
-files = list.files(path = "wildoceans-scripts/IUCN/Sharks_rays_SA_raw",pattern = paste(".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE, full.names = TRUE)
+files = list.files(path = "Modelling/Ranges/IUCN",pattern = paste(".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -25,7 +25,7 @@ files = list.files(path = "wildoceans-scripts/IUCN/Sharks_rays_SA_raw",pattern =
 
 # extract scientific name from file name
 names = toupper(files)
-names = str_split(names,toupper("wildoceans-scripts/IUCN/Sharks_rays_SA_raw/"), simplify = TRUE)[,2]
+names = str_split(names,"MODELLING/RANGES/IUCN/SHARKS_RAYS_SA_RAW/", simplify = TRUE)[,2]
 names = str_split(names,".GPKG", simplify = TRUE)[,1]
 
 # only keep IUCN ranges from ones which you have distribution data for
@@ -48,7 +48,7 @@ iucn_stack = addLayer(iucn_stack,temp)
 # add names to maps
 filtered = featurenames %>%
   filter(SPECIES_SCIENTIFIC %in% names) %>%
-  filter(MODELTYPE == "ASEASONAL")
+  filter(MODELTYPE == "Aseasonal")
 names(iucn_stack) = filtered$FEATURENAME
 plot(iucn_stack)
 # ---------------------------------

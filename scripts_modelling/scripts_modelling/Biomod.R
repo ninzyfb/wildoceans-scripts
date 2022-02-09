@@ -92,9 +92,6 @@ for(i in 1:length(pts_env_seasons)){
   pa1xy = temp[,c(2,3)]
   exp1 = temp[,-c(1:3)]
   exp1$substrate_simplified = as.factor(exp1$substrate_simplified)
-  # keep or remove substrate layer
-  if(!is.na(substrate) & substrate == "no"){exp1$substrate_simplified = NULL}
-  
   biomod_obj_seasons[[i]] =  BIOMOD_FormatingData(resp.var = pa1, # presence/absence data
                                          expl.var = exp1, # environmental variables
                                          resp.xy = pa1xy,
@@ -114,7 +111,6 @@ for(i in 1:length(pts_env_seasons)){
     pa2xy = temp[,c(2,3)]
     exp2 = temp[,-c(1:3)]
     exp2$substrate_simplified = as.factor(exp2$substrate_simplified)
-    if(!is.na(substrate) & substrate == "no"){exp2$substrate_simplified = NULL}
     biomod_obj_seasons[[i]] =  BIOMOD_FormatingData(resp.var = pa2, # presence/absence data
                                                     expl.var = exp2, # environmental variables
                                                     resp.xy = pa2xy,

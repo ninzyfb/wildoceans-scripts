@@ -1,0 +1,512 @@
+# ---------------------------------
+# DATA
+# ---------------------------------
+# extract names of IUCN range maps
+files = list.files(pattern = paste(".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE, full.names = TRUE)
+files
+# ---------------------------------
+# DATA
+# ---------------------------------
+# extract names of IUCN range maps
+files = list.files(path = "wildoceans-scripts/IUCN/Sharks_rays_SA_raw",pattern = paste(".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE, full.names = TRUE)
+# extract scientific name from file name
+names = toupper(files)
+names = str_split(names,"MODELLING/RANGES/IUCN/SHARKS_RAYS_SA_RAW/", simplify = TRUE)[,2]
+names = str_split(names,"wildoceans-scripts/IUCN/Sharks_rays_SA_raw", simplify = TRUE)[,2]
+names
+names = str_split(names,toupper("wildoceans-scripts/IUCN/Sharks_rays_SA_raw"), simplify = TRUE)[,2]
+# ---------------------------------
+# DATA
+# ---------------------------------
+# extract names of IUCN range maps
+files = list.files(path = "wildoceans-scripts/IUCN/Sharks_rays_SA_raw",pattern = paste(".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE, full.names = TRUE)
+# extract scientific name from file name
+names = toupper(files)
+names = str_split(names,toupper("wildoceans-scripts/IUCN/Sharks_rays_SA_raw/"), simplify = TRUE)[,2]
+names = str_split(names,".GPKG", simplify = TRUE)[,1]
+# only keep IUCN ranges from ones which you have distribution data for
+files = files[names %in% featurenames$SPECIES_SCIENTIFIC]
+# only keep those species' names
+names = names[names %in% featurenames$SPECIES_SCIENTIFIC]
+# not all species have an IUCN range map
+# currently missing for Etmopterus granulosus
+featurenames$SPECIES_SCIENTIFIC[!(featurenames$SPECIES_SCIENTIFIC %in% names)]
+# create raster stack of iucn range maps (only for species with modelled data)
+iucn_stack = stack()
+for(i in 1:length(files)){
+temp = st_read(files[i])
+temp = fasterize(temp,pu)
+iucn_stack = addLayer(iucn_stack,temp)
+}
+# add names to maps
+filtered = featurenames %>%
+filter(SPECIES_SCIENTIFIC %in% names) %>%
+filter(MODELTYPE == "Aseasonal")
+names(iucn_stack) = filtered$FEATURENAME
+plot(iucn_stack)
+names(iucn_stack)
+filtered$FEATURENAME
+# add names to maps
+filtered = featurenames %>%
+filter(SPECIES_SCIENTIFIC %in% names) %>%
+filter(MODELTYPE == "Aseasonal")
+names
+# add names to maps
+filtered = featurenames %>%
+filter(SPECIES_SCIENTIFIC %in% names) %>%
+filter(MODELTYPE == "ASEASONAL")
+names(iucn_stack) = filtered$FEATURENAME
+plot(iucn_stack)
+# ---------------------------------
+# COSTS
+# ---------------------------------
+source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
+# ---------------------------------
+# LOCKED IN AREAS
+# ---------------------------------
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+# ---------------------------------
+# LOCKED IN AREAS
+# ---------------------------------
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+# ---------------------------------
+# CONSERVATION TARGETS
+# ---------------------------------
+# load in spreadsheet with species and their targets
+targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
+# only keep species names and targets
+targets = targets %>%
+dplyr::select(SPECIES_SCIENTIFIC,Score)
+# turn colnames to upper case
+colnames(targets) = toupper(colnames(targets))
+# join these targets to featurenames dataframe
+colnames(featurenames) = toupper(colnames(featurenames))
+featurenames = left_join(featurenames,targets)
+rm(targets) # remove
+# load data summary sheet
+master = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/data_summary_master.xlsx"),sheet = 1)
+master  = master %>%
+dplyr::select(SPECIES_SCIENTIFIC,target_species)
+featurenames = left_join(featurenames,master)
+# weights, give higher weighting to target species
+# i.e. species with a high endemism, high threat and restricted range
+featurenames = featurenames %>%
+mutate(SCORE = ifelse(target_species == "yes",SCORE+1,SCORE))
+# parent folder to save all solution outputs
+solutionsfolder = "Planning/Outputs/solutions/rasters_rawsolutions/"
+# parent folder to save all performance outputs
+performancefolder = "Planning/Outputs/performances/"
+# turn off scientific numbering
+options(scipen = 100)
+# scenarios
+scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
+# start counter
+problem_number = 162
+# Building and solving conservation problems
+# these are all outlined in the scenario sheet
+# the following loop goes through each row of the scenario sheet and outputs a solution
+for(i in 19:nrow(scenario_sheet)){
+# scenario stream (A or B)
+stream = scenario_sheet$stream[i]
+# scenario name (Control, MPA, Fishing)
+scenario = scenario_sheet$scenario[i]
+# features
+features = get(scenario_sheet$features[i])
+# season
+season = toupper(scenario_sheet$season[i])
+featurenames_temp = featurenames %>%
+filter(MODELTYPE == season)
+featurenames_temp = featurenames_temp[featurenames_temp$FEATURENAME %in% names(features),]
+# weights
+weights = scenario_sheet$weights[i]
+if(weights == "yes"){weights = featurenames_temp$SCORE}
+# budget
+objective = scenario_sheet$objective_budget[i]
+# areas to be locked-in
+locked_in = scenario_sheet$lockedin[i]
+# costs
+costs = scenario_sheet$costs[i]
+# boundary penalty
+boundary_penalty = as.numeric(scenario_sheet$boundary_penalty[i])
+# each scenario is run 9 times (10% target increase from 10% to 90%)
+for(t in (1:9)/10){
+# problem number
+problem_number=problem_number+1
+# BASIC CONSERVATION PROBLEM
+problem_single= problem(pu,features)%>%
+# protection targets (will apply to each feature)
+add_relative_targets(t) %>%
+# budget representing 10% of EEZ
+add_min_shortfall_objective(budget = 1080)%>%
+# solutions needs to be within 10% of optimality
+add_gurobi_solver(gap=0.1) %>%
+# generate 10 solutions per problem
+add_gap_portfolio(number_solutions=10, pool_gap = 0.1)%>%
+# binary decisions
+add_binary_decisions()
+# ADDITIONAL PARAMETERS
+# these will increase the complexity of the conservation problem
+# weights
+if(weights == "yes"){problem_single = problem_single %>% add_feature_weights(weights)}
+# locked in areas
+if(locked_in != "none"){problem_single = problem_single %>% add_locked_in_constraints(lockedin[[locked_in]])}
+# costs (fishing - threshold)
+if(costs == "fp_threshold"){problem_single = problem_single %>% add_linear_constraints(threshold = fp_threshold, sense = "<=", data = costs_all)}
+# costs (fishing - binary)
+if(costs == "fp_binary"){problem_single = problem_single %>% add_locked_out_constraints(fp_binary)}
+# solve problem
+solution_single = solve(problem_single)
+# create solution frequency raster
+# this sums all the solutions together
+# it outlines the most frequently chosen areas for the given conservation problem
+solution_sum= calc(stack(unlist(solution_single)),sum)
+# save solution as raster
+writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario.tiff"),overwrite = TRUE)
+# create coverage summary
+coverage_summary = data.frame()
+for(i in 1:length(solution_single)){
+temp = eval_target_coverage_summary(problem_single,solution_single[[i]])
+temp = cbind(temp,featurenames_temp)
+temp$absolute_shortfall = round(temp$absolute_shortfall, 2)
+temp$relative_held = round(temp$relative_held, 2)
+temp$relative_shortfall = round(temp$relative_shortfall, 2)
+temp$km_shortfall = temp$absolute_shortfall*10
+if(nrow(temp)>0){
+temp$solution = i
+temp$feature = NULL
+temp$FEATURENAME_BINARY = NULL
+temp$FEATURENAME = NULL}
+# save coverage summary
+coverage_summary = rbind(coverage_summary,temp)}
+if(nrow(coverage_summary)>0){
+# get some numbers that are easier to interpret
+coverage_summary = coverage_summary %>%
+group_by(SPECIES_SCIENTIFIC,target_species,SCORE) %>%
+summarise(km_shortfall_avg = mean(km_shortfall),
+km_shortfall_sd = sd(km_shortfall),
+target = mean(relative_target),
+target_achieved = mean(relative_held))%>%
+arrange(SCORE)
+coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
+write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
+# ferrier score for single problem
+ferrierscore_sum = stack()
+for(i in 1:length(solution_single)){
+ferrierscore_single = eval_ferrier_importance(problem_single, solution_single[[i]])[["total"]]
+ferrierscore_single = rescale(ferrierscore_single)
+ferrierscore_sum = addLayer(ferrierscore_sum,ferrierscore_single)}
+# calculate sum
+ferrierscore_sum= calc(ferrierscore_sum,sum)
+# save as raw raster file
+writeRaster(ferrierscore_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario_FS.tiff"), overwrite = TRUE)
+rm(problem_single,solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,t)}
+rm(boundary_penalty,scenario,locked_in,costs,features,performances,objective,temp)
+}
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+# list of required packages
+requiredpackages = c("gridExtra","rgeos","sf","dplyr","tidyr","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+# load packages
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLOTTING PARAMETERS
+# ---------------------------------
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+# list of all solutions in raster format
+files = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario.tif",recursive = TRUE, full.names = TRUE)
+# list of all solution information
+files2 = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "performance.csv",recursive = TRUE, full.names = TRUE)
+# targets
+targets = rep(1:9,14)*10
+files = files[127:]
+files = files[127:length(files)]
+files2 = files2[127:length(files2)]
+# the following loop will plot each raster individually
+# 4 plots are produce for each raster: the entire EEZ, and then the west, south and east coast seperately
+for(i in 1:length(files)){
+# temporary raster
+temp = raster(files[i])
+# raster name
+name = names(temp)
+# problem number
+pnumber = str_split(name,"_")[[1]][1]
+# stream
+stream = str_split(name,"_")[[1]][2]
+if(stream == "streamA"){stream = "no"}else{stream = "yes"}
+# scenario
+scenario = str_split(name,"_")[[1]][3]
+# prop_eez
+maxvalue = max(values(temp),na.rm=TRUE)
+prop_eez = round((length(which(values(temp)==maxvalue))/10809)*100,1)
+# target
+t = targets[i]
+# mpas included
+none = c(1:18)
+all = c(19:36,55:63,73:81,91:99,109:117)
+fully_only = c(37:54,64:72,82:90,100:108,118:126)
+if(i %in% none){inclusion = "none"}
+if(i %in% all){inclusion = "all"}
+if(i %in% fully_only){inclusion = "no-take zones only"}
+# species targets acheived
+info = read.csv(files2[i])
+info$target_achieved = round(info$target_achieved,1)
+info = info %>%
+filter(target > target_achieved)
+n_shortfall = nrow(info)
+min_shortfall = round(min(info$km_shortfall_avg),0)
+if(min_shortfall == Inf){min_shortfall = 0}
+max_shortfall = round(max(info$km_shortfall_avg),0)
+if(max_shortfall == -Inf){max_shortfall = 0}
+# plot of entire EEZ
+plot=levelplot(temp,
+main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+col.regions = cols,
+margin = FALSE,
+colorkey=FALSE)+
+# mpa filled no take only
+#levelplot(mpas,col.regions = cols2, alpha.regions=0.6)+
+# mpa outline
+latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
+# eez
+latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+# sa coast
+latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
+# points for main cities
+latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+# coordinates and city names
+# done in three lines as a "pretty" position varies based on their place on the map
+latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Shortfall (range): ",n_shortfall," species (",min_shortfall," - ",max_shortfall," km2)"),pch = 20, pos=2,cex = 1))
+png(file=paste0("Planning/Outputs/solutions/national/","p",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+print(plot)
+dev.off()
+# plot of each region seperately
+# plot single solution per ebert range
+for(j in 1:length(range)){
+# subset range
+subset = regions[regions$Region%in%range[j],]
+cropped = crop(temp,subset)
+plot = levelplot(cropped,
+main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+margin = FALSE,
+colorkey=FALSE,
+col.regions = cols)+
+# mpa filled no take only
+#levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
+# mpa outline
+latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
+# eez
+latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+# sa coast
+latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
+# points for main cities
+latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+# coordinates and city names
+# done in three lines as a "pretty" position varies based on their place on the map
+latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Shortfall (range): ",n_shortfall," species (",min_shortfall," - ",max_shortfall," km2)"),pch = 20, pos=2,cex = 1))
+png(file=paste0("Planning/Outputs/solutions/regional/","p",str_pad(pnumber,3,pad = "0"),"_",range[j],"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+print(plot)
+dev.off()
+}}
+# ---------------------------------
+# PLOTTING PARAMETERS
+# ---------------------------------
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLOTTING PARAMETERS
+# ---------------------------------
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE)
+# ---------------------------------
+# PLOTTING FEATURES
+# ---------------------------------
+# South African EEZ
+eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE, full.names = TRUE)) # load eez
+# ---------------------------------
+# PLOTTING FEATURES
+# ---------------------------------
+# South African EEZ
+eez = shapefile(list.files(pattern="eez.shp", recursive = TRUE, full.names = TRUE)) # load eez
+# isobaths
+contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, full.names=TRUE))
+# isobaths
+contours = shapefile(list.files(pattern="contoursGEBCO.shp", recursive = TRUE, full.names=TRUE))
+# South African province outline
+sa  <- getData("GADM",country="South Africa",level=1)
+# Names of coastal cities
+places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE))
+# Names of coastal cities
+places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE))
+# West, South and East marine regions as defined by Ebert et al.
+regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,full.names = TRUE))
+# South African continetnal marine protected areas
+mpas = shapefile(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+# turn region names to upper case
+regions$Region = toupper(regions$Region)
+# create west south and east vector
+# this will come into handdy during plotting
+range = c("WEST","SOUTH","EAST")
+# extract 250m isobath
+contours = contours[which(contours$DEPTH=="-250"),]
+# simplify provinces to reduce the weight of the file
+sa <- gSimplify(sa, tol=0.01, topologyPreserve=TRUE)
+# only keep coastal provinces
+sa_coast=sa[c(1,4,8,9),]
+# adjust coordinates for some cities
+# this is to ensure the name is displayed in a "pretty" way on the map
+adjustedcoords = coordinates(places)[c(10,14),]
+adjustedcoords[,2] = adjustedcoords[,2]+0.2
+# simplify MPA shapefile
+mpas = gSimplify(mpas,tol = 0.01)
+# set intervals for modelling
+intervals = seq(0,1000,200)
+# colours for plots
+cols <- colorRampPalette(c("white","darkgreen"))
+cols2 <- colorRampPalette(c("yellow"))
+# Expert extents
+load(list.files(pattern = "points.RData", recursive = TRUE, full.names = TRUE))
+# Expert extents
+load(list.files(pattern = "points.RData", recursive = TRUE, full.names = TRUE))
+expert_extent = points
+colnames(expert_extent)[1] = "Scientific_name"
+expert_extent = as(expert_extent, Class = "Spatial")
+expert_extent$Scientific_name = tolower(expert_extent$Scientific_name)
+rm(points)
+# blank template (for raw plots script)
+blank_template = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
+values(blank_template) = 0
+# legend coordinates (for raw plots script)
+legend = data.frame()
+legend[1,1] = 36
+legend[1,2] = -36.5
+legend[2,1] = 36
+legend[2,2] = -37
+legend[3,1] = 36
+legend[3,2] = -37.5
+coordinates(legend) <- ~V1+V2
+files
+# the following loop will plot each raster individually
+# 4 plots are produce for each raster: the entire EEZ, and then the west, south and east coast seperately
+for(i in 1:length(files)){
+# temporary raster
+temp = raster(files[i])
+# raster name
+name = names(temp)
+# problem number
+pnumber = str_split(name,"_")[[1]][1]
+# stream
+stream = str_split(name,"_")[[1]][2]
+if(stream == "streamA"){stream = "no"}else{stream = "yes"}
+# scenario
+scenario = str_split(name,"_")[[1]][3]
+# prop_eez
+maxvalue = max(values(temp),na.rm=TRUE)
+prop_eez = round((length(which(values(temp)==maxvalue))/10809)*100,1)
+# target
+t = targets[i]
+# mpas included
+none = c(1:18)
+all = c(19:36,55:63,73:81,91:99,109:117)
+fully_only = c(37:54,64:72,82:90,100:108,118:126)
+if(i %in% none){inclusion = "none"}
+if(i %in% all){inclusion = "all"}
+if(i %in% fully_only){inclusion = "no-take zones only"}
+# species targets acheived
+info = read.csv(files2[i])
+info$target_achieved = round(info$target_achieved,1)
+info = info %>%
+filter(target > target_achieved)
+n_shortfall = nrow(info)
+min_shortfall = round(min(info$km_shortfall_avg),0)
+if(min_shortfall == Inf){min_shortfall = 0}
+max_shortfall = round(max(info$km_shortfall_avg),0)
+if(max_shortfall == -Inf){max_shortfall = 0}
+# plot of entire EEZ
+plot=levelplot(temp,
+main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+col.regions = cols,
+margin = FALSE,
+colorkey=FALSE)+
+# mpa filled no take only
+#levelplot(mpas,col.regions = cols2, alpha.regions=0.6)+
+# mpa outline
+latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
+# eez
+latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+# sa coast
+latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
+# points for main cities
+latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+# coordinates and city names
+# done in three lines as a "pretty" position varies based on their place on the map
+latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Shortfall (range): ",n_shortfall," species (",min_shortfall," - ",max_shortfall," km2)"),pch = 20, pos=2,cex = 1))
+png(file=paste0("Planning/Outputs/solutions/national/","p",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+print(plot)
+dev.off()
+# plot of each region seperately
+# plot single solution per ebert range
+for(j in 1:length(range)){
+# subset range
+subset = regions[regions$Region%in%range[j],]
+cropped = crop(temp,subset)
+plot = levelplot(cropped,
+main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+margin = FALSE,
+colorkey=FALSE,
+col.regions = cols)+
+# mpa filled no take only
+#levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
+# mpa outline
+latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
+# eez
+latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+# sa coast
+latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
+# points for main cities
+latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+# coordinates and city names
+# done in three lines as a "pretty" position varies based on their place on the map
+latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Shortfall (range): ",n_shortfall," species (",min_shortfall," - ",max_shortfall," km2)"),pch = 20, pos=2,cex = 1))
+png(file=paste0("Planning/Outputs/solutions/regional/","p",str_pad(pnumber,3,pad = "0"),"_",range[j],"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+print(plot)
+dev.off()
+}}

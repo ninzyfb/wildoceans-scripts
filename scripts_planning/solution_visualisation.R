@@ -46,9 +46,11 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 
 # list of all solutions in raster format
 files = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario.tif",recursive = TRUE, full.names = TRUE)
+files = files[127:length(files)]
 
 # list of all solution information
 files2 = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "performance.csv",recursive = TRUE, full.names = TRUE)
+files2 = files2[127:length(files2)]
 
 # targets
 targets = rep(1:9,14)*10
