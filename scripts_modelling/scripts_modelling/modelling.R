@@ -46,7 +46,7 @@ variables = as.data.frame(get_variables_importance(static_models))
 # save
 write.csv(variables,paste0(evalutationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
 
-rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
+#rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
 
 # Build ensemble model
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
