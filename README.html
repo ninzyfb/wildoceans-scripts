@@ -173,12 +173,15 @@ pre code {
 This repository contains all the necessary code to build the shark and ray conservation plan developed for WILDOCEANS.
 </p>
 <p>
-There are <strong>three main folders</strong> in this repository.
+There are <strong>three folders containing scripts</strong> in this repository, as well as additional folders which contain data and layers necessary to run the scripts. Below is an outline of the contents of each folder
+</p>
+<p>
+There is also an <strong>example.csv</strong> file in this repository. This allows for the modelling scripts to be run on some example data from GBIF and OBIS for <em>Acroteriobatus annulatus</em>.
 </p>
 <div id="scripts_occurencedata" class="section level3">
 <h3>1. scripts_occurencedata</h3>
 <p>
-This folder contains scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The occurence data in itself is confidential but the scripts may be useful to see how it was cleaned and formatted.
+This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The occurrence data in itself is confidential but the scripts may be useful to see how it was cleaned and formatted.
 </p>
 <p>
 <em>merging_datasets.R</em> is the script used to combine data from the various different data providers and output one file per species. These output files are used as input in the modelling scripts.
@@ -202,6 +205,15 @@ This folder contains the code to run the spatial planning algorithm <em>prioriti
 <p>
 Similarly to the modelling scripts, start with <em>mainscript-planning.R</em> as this is the parent script through which the other scripts are run.
 </p>
+</div>
+<div id="iucn" class="section level3">
+<h3>4. IUCN</h3>
+</div>
+<div id="alllayers-5-10-kmresolution" class="section level3">
+<h3>5. ALLLAYERS 5 &amp; 10 kmresolution</h3>
+</div>
+<div id="plotting_features" class="section level3">
+<h3>6. plotting_features</h3>
 </div>
 </div>
 
