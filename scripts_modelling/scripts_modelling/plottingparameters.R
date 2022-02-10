@@ -64,6 +64,9 @@ mpas = gSimplify(mpas,tol = 0.01)
 # set intervals for modelling
 intervals = seq(0,1000,200)
 
+# set intervals for planning plot
+intervals2 = seq(0,1,0.2)
+
 # colours for plots
 cols <- colorRampPalette(c("white","darkgreen"))
 cols2 <- colorRampPalette(c("yellow"))

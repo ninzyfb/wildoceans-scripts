@@ -88,7 +88,7 @@ featurenames = left_join(featurenames,targets)
 rm(targets) # remove
 
 # load data summary sheet
-master = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/data_summary_master.xlsx"),sheet = 1)
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE),sheet = 1)
 master  = master %>%
   dplyr::select(SPECIES_SCIENTIFIC,target_species)
 featurenames = left_join(featurenames,master)
@@ -117,12 +117,12 @@ options(scipen = 100)
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # start counter
-problem_number = 162
+problem_number = 0
 
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
 # the following loop goes through each row of the scenario sheet and outputs a solution
-for(i in 19:nrow(scenario_sheet)){
+for(i in 1:14){
   
   # scenario stream (A or B)
   stream = scenario_sheet$stream[i]
@@ -141,7 +141,7 @@ for(i in 19:nrow(scenario_sheet)){
   
   # weights
   weights = scenario_sheet$weights[i]
-  if(weights == "yes"){weights = featurenames_temp$SCORE}
+  if(weights == "yes"){w = featurenames_temp$SCORE}
   
   # budget
   objective = scenario_sheet$objective_budget[i]
@@ -155,9 +155,9 @@ for(i in 19:nrow(scenario_sheet)){
   # boundary penalty
   boundary_penalty = as.numeric(scenario_sheet$boundary_penalty[i]) 
   
-  # each scenario is run 9 times (10% target increase from 10% to 90%)
-  for(t in (1:9)/10){
-    
+  # target
+  t = as.numeric(scenario_sheet$targets[i])
+
     # problem number
     problem_number=problem_number+1
     
@@ -166,7 +166,7 @@ for(i in 19:nrow(scenario_sheet)){
       # protection targets (will apply to each feature)
       add_relative_targets(t) %>%
       # budget representing 10% of EEZ
-      add_min_shortfall_objective(budget = 1080)%>%
+      add_min_set_objective()%>%
       # solutions needs to be within 10% of optimality
       add_gurobi_solver(gap=0.1) %>%
       # generate 10 solutions per problem
@@ -178,7 +178,7 @@ for(i in 19:nrow(scenario_sheet)){
     # these will increase the complexity of the conservation problem
     
     # weights
-    if(weights == "yes"){problem_single = problem_single %>% add_feature_weights(weights)}
+    if(weights == "yes"){problem_single = problem_single %>% add_feature_weights(w)}
   
     # locked in areas
     if(locked_in != "none"){problem_single = problem_single %>% add_locked_in_constraints(lockedin[[locked_in]])}
@@ -237,10 +237,11 @@ for(i in 19:nrow(scenario_sheet)){
   ferrierscore_sum = addLayer(ferrierscore_sum,ferrierscore_single)}
   # calculate sum
   ferrierscore_sum= calc(ferrierscore_sum,sum)
+  ferrierscore_sum= rescale(ferrierscore_sum)
   
   # save as raw raster file
   writeRaster(ferrierscore_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario_FS.tiff"), overwrite = TRUE)
   
-  rm(problem_single,solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,t)}
+  rm(problem_single,solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,t)
   rm(boundary_penalty,scenario,locked_in,costs,features,performances,objective,temp)
 }
