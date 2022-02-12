@@ -31,7 +31,11 @@ places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, 
 regions = shapefile(list.files(pattern = "ebert_regions.shp", recursive = TRUE,full.names = TRUE))
 
 # South African continetnal marine protected areas
-mpas = shapefile(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+mpas = st_read(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+
+# South African continetnal marine protected areas (no takes only)
+mpas_notake = st_read(list.files(pattern ="mpa_layer_protected.shp" ,recursive = TRUE, full.names = TRUE))
+
 # ---------------------------------
 
 # ---------------------------------
@@ -49,9 +53,14 @@ range = c("WEST","SOUTH","EAST")
 contours = contours[which(contours$DEPTH=="-250"),]
 
 # simplify provinces to reduce the weight of the file
-sa <- gSimplify(sa, tol=0.01, topologyPreserve=TRUE)
-# only keep coastal provinces
-sa_coast=sa[c(1,4,8,9),]
+sa = st_as_sf(sa)
+sa <- st_simplify(sa,dTolerance=100)
+sa = sa %>%
+  # only keep coastal provinces
+  filter(NAME_1 %in% c("Eastern Cape","KwaZulu-Natal","Northern Cape","Western Cape")) %>%
+  group_by(GID_0) %>%
+  summarise()
+sa = as(sa, Class = "Spatial")
 
 # adjust coordinates for some cities 
 # this is to ensure the name is displayed in a "pretty" way on the map
@@ -59,7 +68,19 @@ adjustedcoords = coordinates(places)[c(10,14),]
 adjustedcoords[,2] = adjustedcoords[,2]+0.2
 
 # simplify MPA shapefile
-mpas = gSimplify(mpas,tol = 0.01)
+mpas = mpas %>%
+  filter(CUR_NME != "Prince Edward Island Marine Protected Area") %>%
+  group_by(CUR_ZON_NM,CUR_NME) %>%
+  summarise()
+mpas = st_simplify(mpas,dTolerance = 100)
+mpas = as(mpas, Class = "Spatial")
+
+# simplify MPA no take shapefile
+mpas_notake = st_simplify(mpas_notake,dTolerance = 100)
+mpas_notake = as(mpas_notake, Class = "Spatial")
+
+# get all "take" mpas
+mpas_take = mpas - mpas_notake
 
 # set intervals for modelling
 intervals = seq(0,1000,200)
@@ -93,4 +114,6 @@ legend[3,1] = 36
 legend[3,2] = -37.5
 coordinates(legend) <- ~V1+V2
 
+# color palette
+manual.col = colorRampPalette(c("#f7f6fd","#4635d0"))
 

@@ -50,23 +50,29 @@ aggregations = projectRaster(aggregations,pu)
 
 # mpas (all of them)
 mpa_layer_all = st_read(list.files(pattern = "SAMPAZ_OR_2020_Q3.shp",recursive=TRUE,full.names = TRUE))
-# drop z dimension
-mpa_layer_all = st_zm(mpa_layer_all, drop = TRUE, what = "ZM")
+# mpas (no-takes only)
+mpa_layer_fullyprotected = st_read(list.files(pattern = "mpa_layer_protected.shp",recursive=TRUE,full.names = TRUE))
+
+# remove prince edward islands and group by name
+mpa_layer_all = mpa_layer_all %>%
+  filter(CUR_NME != "Prince Edward Island Marine Protected Area") %>%
+  group_by(CUR_NME) %>%
+  summarise()
 # rasterize
 mpa_layer_all = rasterize(mpa_layer_all,pu)
 # convert all values to 1
-values(mpa_layer_all)[which(values(mpa_layer_all)>0)] = 1
+values(mpa_layer_all)[which(!is.na(values(mpa_layer_all)))] = 1
 # rename layer
 names(mpa_layer_all) = "mpa_layer_all"
 mpa_layer_all = projectRaster(mpa_layer_all,pu)
 
 
 # mpas (only fully protected ones)
-mpa_layer_fullyprotected = raster(list.files(pattern = "mpa_lockedin.tif",recursive=TRUE,full.names = TRUE))
+# rasterize
+mpa_layer_fullyprotected = rasterize(mpa_layer_fullyprotected,pu)
 # rename layer
 names(mpa_layer_fullyprotected) = "mpa_layer_fullyprotected"
-mpa_layer_fullyprotected = projectRaster(mpa_layer_fullyprotected,pu)
-values(mpa_layer_fullyprotected)[which(values(mpa_layer_fullyprotected)!=0)]=1
+values(mpa_layer_fullyprotected)[which(!is.na(values(mpa_layer_fullyprotected)))]=1
 
 # ---------------------------------
 # FORMATTING

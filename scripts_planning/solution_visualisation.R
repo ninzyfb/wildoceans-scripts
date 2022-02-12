@@ -37,6 +37,31 @@ setwd(my.directory)
 # PLOTTING PARAMETERS
 # ---------------------------------
 source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+# plotting settings
+settings = latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
+  # mpa no-take fill
+  latticeExtra::layer(sp.polygons(mpas_notake, fill = "purple",alpha = 0.1))+
+  # mpa no-take outline
+  latticeExtra::layer(sp.polygons(mpas_notake,col = "purple",lwd = 0.7))+
+  # eez
+  latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+  # sa coast
+  latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 1, fill = "white"))+
+  # points for main cities
+  latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+  # coordinates and city names
+  # done in three lines as a "pretty" position varies based on their place on the map
+  latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+  latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+  latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+  latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
+  latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))
+
+mpa_labels = st_as_sf(mpas)
+mpa_labels = mpa_labels %>%
+  group_by(CUR_NME) %>%
+  summarise()
+mpa_labels = as(mpa_labels, Class = "Spatial")
 # ---------------------------------
 
 
@@ -57,8 +82,7 @@ files2 = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "
 files3 = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario_FS.tif",recursive = TRUE, full.names = TRUE)
 
 # the following loop will plot each raster individually
-# 4 plots are produce for each raster: the entire EEZ, and then the west, south and east coast separately
-for(i in 1:11){
+for(i in 1:length(files)){
   
   # temporary raster
   temp = raster(files[i])
@@ -78,109 +102,103 @@ for(i in 1:11){
   t = as.numeric(scenario_sheet$targets[i])*100
   # mpas included
   inclusion = scenario_sheet$lockedin[i]
-  # species targets acheived
-  info = read.csv(files2[i])
-  info$target_achieved = round(info$target_achieved,1)
-  info = info %>%
-    filter(target > target_achieved)
-  n_shortfall = nrow(info)
-  min_shortfall = round(min(info$km_shortfall_avg),0)
-  if(min_shortfall == Inf){min_shortfall = 0}
-  max_shortfall = round(max(info$km_shortfall_avg),0)
-  if(max_shortfall == -Inf){max_shortfall = 0}
+  if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
+  if(inclusion == "mpa_layer_all"){inclusion = "all MPAs"}
+  if(inclusion == "none"){inclusion = "No MPAs"}
   
-  # plot of entire EEZ
+  # solution plot 
   plot=levelplot(temp,
+                 xlab = NULL,
+                 ylab = NULL,
                  main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
                  col.regions = cols,
                  margin = FALSE,
-                 colorkey=FALSE)+
-    # mpa filled no take only
-    #levelplot(mpas,col.regions = cols2, alpha.regions=0.6)+
-    # mpa outline
-    latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
-    # eez
-    latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-    # sa coast
-    latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
-    # points for main cities
-    latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
-    # coordinates and city names
-    # done in three lines as a "pretty" position varies based on their place on the map
-    latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
-    latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-    latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
-    latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
-    latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))+
-    latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Shortfall (range): ",n_shortfall," species (",min_shortfall," - ",max_shortfall," km2)"),pch = 20, pos=2,cex = 1))
+                 colorkey=FALSE)+settings+
+    latticeExtra::layer(sp.text(coordinates(mpa_labels),mpa_labels$CUR_NME,col = "black",pch = 20, pos=2,cex = 1))
   png(file=paste0("Planning/Outputs/solutions/national/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
   print(plot)
   dev.off()
   
-  # plot of each region seperately
-  # plot single solution per ebert range
+  # ferrier/irraplaceability plot
+  temp = raster(files3[i])
+  temp[which(values(temp) == 0)] = NA
+  plot = levelplot(temp,
+                   xlab = NULL,
+                   ylab = NULL,
+                   colorkey=list(space="bottom", title = "Irraplaceability "),
+                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   margin = FALSE,
+                   col.regions = rev(heat.colors(32)),at = intervals2)+settings
+  png(file=paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
+  print(plot)
+  dev.off()
+  
+  # individual region plots (east, south, west)
   for(j in 1:length(range)){
     # subset range
     subset = regions[regions$Region%in%range[j],]
     cropped = crop(temp,subset)
     plot = levelplot(cropped, 
+                     xlab = NULL,
+                     ylab = NULL,
+                     colorkey=list(space="bottom", title = "Irraplaceability "),
                      main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
                      margin = FALSE,
-                     colorkey=FALSE,
-                     col.regions = cols)+
-      # mpa filled no take only
-      #levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
-      # mpa outline
-      latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
-      # eez
-      latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-      # sa coast
-      latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
-      # points for main cities
-      latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
-      # coordinates and city names
-      # done in three lines as a "pretty" position varies based on their place on the map
-      latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
-      latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-      latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
-      latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
-      latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))+
-      latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Shortfall (range): ",n_shortfall," species (",min_shortfall," - ",max_shortfall," km2)"),pch = 20, pos=2,cex = 1))
+                     col.regions = rev(heat.colors(32)),at = intervals2)+settings
     png(file=paste0("Planning/Outputs/solutions/regional/","p",str_pad(pnumber,3,pad = "0"),"_",range[j],"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
     print(plot)
-    dev.off()
-  }
-  
-  # plot ferrier scores
-  temp = raster(files3[i])
-  plot = levelplot(temp, 
+    dev.off()}
+
+  # extract importance values in "take" mpas
+  # this will give regions useful for rezoning
+  values = extract(temp,mpas_take)
+  mpas_take_temp = mpas_take
+  for (i in 1:length(values)){
+    sum = sum(values[[i]], na.rm = TRUE)
+    mpas_take_temp$importance[i] = sum
+    result = mpas_take_temp@data %>%
+      arrange(importance)
+    colnames(result) = c("Zone","MPA","Irreplaceability")
+    write.csv(result,paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_notakeimportance.csv"), row.names = FALSE)
+    }
+  # Find unique colors from color ramp,based on 'importance' column 
+  color.match = manual.col(length(unique(mpas_take_temp$importance)))
+  # Sort the values of interest (in this case, 'Prop')
+  lookupTable = sort(unique(mpas_take_temp$importance))
+  # Match colors to sorted unique values in polygon
+  # and assign them to a new column in the polygon data
+  # so that they plot smallest values as lightest and largest values as darkest
+  mpas_take_temp$color = color.match[match(mpas_take_temp$importance, lookupTable)]
+  # Plot the final product!
+  plot = levelplot(temp,
+                   xlab = NULL,
+                   ylab = NULL,
+                   colorkey=list(space="bottom", title = "Irraplaceability "),
                    main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
-                   sub = paste("Priority areas (ferrier score)"),
                    margin = FALSE,
-                   col.regions = rev(heat.colors(32)),
-                   #par.settings = rasterTheme(viridis_pal(option="B")(10)),
-                   at = intervals2)+
-    # mpa filled no take only
-    #levelplot(mpa_layer,col.regions = cols2, alpha.regions=0.6)+
-    # mpa outline
-    latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
-    # eez
-    latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-    # sa coast
-    latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
-    # points for main cities
-    latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
-    # coordinates and city names
-    # done in three lines as a "pretty" position varies based on their place on the map
-    latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
-    latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-    latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
-    latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+    latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))
-  
-  png(file=paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_ferrierscore.png"),width=3000, height=2000, res=300)
+                   col.regions = rev(heat.colors(32)),at = intervals2)+settings+
+    latticeExtra::layer(sp.polygons(mpas_take_temp,colour=mpas_take_temp$color,fill = mpas_take_temp$color, lwd = 1))
+  png(file=paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_ferrierscore_notakeranks.png"),width=3000, height=2000, res=300)
   print(plot)
-  dev.off()
-  }
+  dev.off()  
+  rm(mpas_take_temp)
+    }
+
+
+# END OF SCRIPT. SOME SPARE CODE BELOW TO DELETE IF UNUSED
+
+
+# species targets acheived
+#info = read.csv(files2[i])
+#info$target_achieved = round(info$target_achieved,1)
+#info = info %>%
+#  filter(target > target_achieved)
+#n_shortfall = nrow(info)
+#min_shortfall = round(min(info$km_shortfall_avg),0)
+#if(min_shortfall == Inf){min_shortfall = 0}
+#max_shortfall = round(max(info$km_shortfall_avg),0)
+#if(max_shortfall == -Inf){max_shortfall = 0}
+
 
 # the following loop will plot rasters in groups of 4 and save each plot
 #for(i in seq(1,length(files),4)){
@@ -199,25 +217,9 @@ temp_plot = rasterVis::levelplot(temp,
                                  # reduces space at top and bottom of plot
                                  par.settings = list(layout.heights=list(top.padding=-2, bottom.padding = -1),
                                                      axis.line = list(col = "transparent"), 
-                                                     strip.background = list(col = 'transparent')))+
-  # mpa outline
-  latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
-  # eez
-  latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-  # sa coast
-  latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 1, fill = "white"))+
-  # points for main cities
-  latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
-  # mpa filled no take only
-  #levelplot(mpas,col.regions = cols2, alpha.regions=0.6)+
-  # coordinates and city names
-  # done in three lines as a "pretty" position varies based on their place on the map
-  latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
-  latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-  latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
+                                                     strip.background = list(col = 'transparent')))+ settings
 # save plot
 str_split(files[i],"/Users/nfb/Dropbox/6-WILDOCEANS/Planning/Outputs//solutions/rasters_rawsolutions/")[[1]][2]
 png(paste0(".png"),width=3000, height=2000, res=300)
 temp_plot
 dev.off()
-
