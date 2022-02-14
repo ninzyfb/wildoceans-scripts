@@ -44,10 +44,7 @@ rm(requiredpackages)
 # ---------------------------------
 # set directory to same parent folder where sub-scripts are found
 # the subs-scripts can be in folders within this directory as the code will look through all the folders
-path = "/home/nina/" # path for linux
-path =  "/Users/nfb/" # path for mac
-# define name of directory
-my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+my.directory = getwd()
 # set directory
 setwd(my.directory) 
 # ---------------------------------
@@ -87,7 +84,6 @@ if(res ==10){
   master_keep = master %>%
     filter(rounded_10 >=1)}
 # ---------------------------------
-master_keep = master_keep %>% filter(Seasonality == "yes")
 
 # ---------------------------------
 #  RUNNING THE MODELS
@@ -96,7 +92,7 @@ master_keep = master_keep %>% filter(Seasonality == "yes")
 # this loop is based around the master_keep sheet which is a data frame of species names
 # if wanting to simply run the loop for a single species, i suggest removing the loop and starting from the species_data.R subscript
 # the master sheet is however available on github if wanting to follow the same format even with one species
-for(i in 3:nrow(master_keep)){
+for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name

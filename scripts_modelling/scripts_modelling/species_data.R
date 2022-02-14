@@ -44,11 +44,14 @@ file = list.files(path = FILELOCATION, pattern = FILENAME,recursive = TRUE, full
 if(length(file)>0){ 
   
 # load in data file
-obs.data = readRDS(file) 
+  if(str_detect(file,".csv")){obs.data = read.csv(file)}else{obs.data = readRDS(file)}
 
 # convert latitude and longitude to numeric variables
 obs.data$LONGITUDE = as.numeric(obs.data$LONGITUDE)
 obs.data$LATITUDE = as.numeric(obs.data$LATITUDE)
+
+# convert column names to upper
+colnames(obs.data) = toupper(colnames(obs.data))
 
 # this if statement further ensures that the script should only by run if the dataframe has any data
 if(nrow(obs.data)>0){
@@ -77,7 +80,10 @@ abundance = nrow(obs.data)
 
 # add month variable from Date
 obs.data = obs.data %>%
-  mutate(Month = month(obs.data$DATE))
+  mutate(MONTH = month(obs.data$DATE))
+
+# check for seasonality column
+if(!"SEASON" %in% colnames(obs.data)){obs.data$SEASON = NA}
 
 # group observations by season
 # important: some datasets came with season already specified
@@ -85,15 +91,16 @@ obs.data = obs.data %>%
   # if SEASON variable is empty, convert to NA
   mutate(SEASON = ifelse(SEASON == "",NA,SEASON)) %>%
   # specify winter months
-  mutate(SEASON = ifelse(is.na(SEASON) & Month %in% c(3,4,5,6,7,8),"Winter",
+  mutate(SEASON = ifelse(is.na(SEASON) & MONTH %in% c(3,4,5,6,7,8),"Winter",
                          # specify summer months
-                         ifelse(is.na(SEASON) & Month %in% c(9,10,11,12,1,2), "Summer",
+                         ifelse(is.na(SEASON) & MONTH %in% c(9,10,11,12,1,2), "Summer",
                                 # if season was stated as autumn then turn to winter
                                 ifelse(SEASON == "Autumn","Winter",
                                        # if season was stated as spring then turn to summer
                                        ifelse(SEASON == "Spring","Summer",SEASON)))))
 
 # convert data to spatial points data frame
-coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)}else{length(files) = 0}}
+coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
+}else{length(files) = 0}}
 
 # ---------------------------------
