@@ -117,3 +117,15 @@ coordinates(legend) <- ~V1+V2
 # color palette
 manual.col = colorRampPalette(c("#f7f6fd","#4635d0"))
 
+# mpa labels
+mpa_labels = st_as_sf(mpas)
+mpa_labels = mpa_labels %>%
+  group_by(CUR_NME) %>%
+  summarise()
+mpa_labels$CUR_NME = str_split(mpa_labels$CUR_NME," Marine Protected Area", simplify = TRUE)[,1]
+mpa_labels$number = as.numeric(as.factor(mpa_labels$CUR_NME))
+mpa_labels = as(mpa_labels, Class = "Spatial")
+
+# label dot
+label_coords = data.frame(mpa_labels$number)
+coordinates(label_coords) = data.frame(coordinates(mpa_labels))

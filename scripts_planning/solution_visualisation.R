@@ -42,7 +42,7 @@ settings = latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
   # mpa no-take fill
   latticeExtra::layer(sp.polygons(mpas_notake, fill = "purple",alpha = 0.1))+
   # mpa no-take outline
-  latticeExtra::layer(sp.polygons(mpas_notake,col = "purple",lwd = 0.7))+
+  latticeExtra::layer(sp.polygons(mpas_notake,col = "black",lwd = 0.7))+
   # eez
   latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
   # sa coast
@@ -56,13 +56,14 @@ settings = latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
   latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
   latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
   latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))
-
-mpa_labels = st_as_sf(mpas)
-mpa_labels = mpa_labels %>%
-  group_by(CUR_NME) %>%
-  summarise()
-mpa_labels = as(mpa_labels, Class = "Spatial")
 # ---------------------------------
+
+# ---------------------------------
+# VISUALIZE RESULTS
+# ---------------------------------
++
+  latticeExtra::layer(sp.points(label_coords,col = "white",pch = 20,cex = 2))+
+  latticeExtra::layer(sp.text(coordinates(mpa_labels),mpa_labels$number,col = "black",cex = 0.5))
 
 
 # ---------------------------------
@@ -113,8 +114,7 @@ for(i in 1:length(files)){
                  main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
                  col.regions = cols,
                  margin = FALSE,
-                 colorkey=FALSE)+settings+
-    latticeExtra::layer(sp.text(coordinates(mpa_labels),mpa_labels$CUR_NME,col = "black",pch = 20, pos=2,cex = 1))
+                 colorkey=FALSE)+settings
   png(file=paste0("Planning/Outputs/solutions/national/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
   print(plot)
   dev.off()
