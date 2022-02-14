@@ -110,7 +110,7 @@ coordinates(label_coords) = data.frame(coordinates(mpa_labels))
 intervals = seq(0,1000,200)
 
 # set intervals for planning plot
-intervals2 = seq(0,1,0.2)
+intervals2 = seq(0,1,0.1)
 
 # colours for plots
 cols <- colorRampPalette(c("white","darkgreen"))
