@@ -1,6 +1,6 @@
 # wildoceans-scripts
 <p>This repository contains all the necessary code to build the shark and ray conservation plan developed for WILDOCEANS.</p>
-<p>There are **three folders containing scripts** in this repository, as well as additional folders which contain data and layers necessary to run the scripts. Below is an outline of the contents of each folder</p>
+<p>There are __three folders containing scripts__ in this repository, as well as additional folders which contain data and layers necessary to run the scripts. Below is an outline of the contents of each folder</p>
 <p>There is also an **example.csv** file in this repository. This  allows for the modelling scripts to be run on some example data from GBIF and OBIS for *Acroteriobatus annulatus*.</p>
 
 ### 1. scripts_occurencedata
