@@ -134,41 +134,45 @@ for(i in 1:length(files)){
   dev.off()
   
   # individual region plots (east, south, west)
-  for(j in 1:length(range)){
+  # (j in 1:length(range)){
     # subset range
-    subset = regions[regions$Region%in%range[j],]
-    cropped = crop(temp,subset)
-    plot = levelplot(cropped, 
-                     xlab = NULL,
-                     ylab = NULL,
-                     colorkey=list(space="bottom", title = "Irraplaceability "),
-                     main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
-                     margin = FALSE,
-                     col.regions = rev(heat.colors(32)),at = intervals2)+settings
-    png(file=paste0("Planning/Outputs/solutions/regional/","p",str_pad(pnumber,3,pad = "0"),"_",range[j],"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
-    print(plot)
-    dev.off()}
+ #   subset = regions[regions$Region%in%range[j],]
+#  cropped = crop(temp,subset)
+#    plot = levelplot(cropped, 
+ #                    xlab = NULL,
+  #                   ylab = NULL,
+   #                  colorkey=list(space="bottom", title = "Irraplaceability "),
+    #                 main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+     #                margin = FALSE,
+      #               col.regions = rev(heat.colors(32)),at = intervals2)+settings
+    #png(file=paste0("Planning/Outputs/solutions/regional/","p",str_pad(pnumber,3,pad = "0"),"_",range[j],"_",scenario,"scenario.png"),width=3000, height=2000, res=300)
+    #print(plot)
+#    dev.off()}
 
-  # extract importance values in "take" mpas
-  # this will give regions useful for rezoning
-  values = extract(temp,mpas_take)
-  mpas_take_temp = mpas_take
+  # extract importance values in all mpa zones
+  # this will give regions useful for mpa importance and rezoning
+  values = extract(temp,mpas)
+  mpas_temp = mpas
   for (i in 1:length(values)){
     sum = sum(values[[i]], na.rm = TRUE)
-    mpas_take_temp$importance[i] = sum
-    result = mpas_take_temp@data %>%
+    mpas_temp$importance[i] = sum}
+    result = mpas_temp@data %>%
       arrange(importance)
-    colnames(result) = c("Zone","MPA","Irreplaceability")
-    write.csv(result,paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_notakeimportance.csv"), row.names = FALSE)
-    }
+    colnames(result) = c("MPA_zone","MPA","MPA_type","Irreplaceability")
+    write.csv(result,paste0("Planning/Outputs/solutions/importance/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_zoneimportance.csv"), row.names = FALSE)
+    result = result %>%
+      group_by(MPA) %>%
+      summarise(Irreplaceability = sum(Irreplaceability))%>%
+      arrange(Irreplaceability)
+    write.csv(result,paste0("Planning/Outputs/solutions/importance/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_mpaimportance.csv"), row.names = FALSE)
   # Find unique colors from color ramp,based on 'importance' column 
-  color.match = manual.col(length(unique(mpas_take_temp$importance)))
+  color.match = manual.col(length(unique(mpas_temp$importance)))
   # Sort the values of interest (in this case, 'Prop')
-  lookupTable = sort(unique(mpas_take_temp$importance))
+  lookupTable = sort(unique(mpas_temp$importance))
   # Match colors to sorted unique values in polygon
   # and assign them to a new column in the polygon data
   # so that they plot smallest values as lightest and largest values as darkest
-  mpas_take_temp$color = color.match[match(mpas_take_temp$importance, lookupTable)]
+  mpas_temp$color = color.match[match(mpas_temp$importance, lookupTable)]
   # Plot the final product!
   plot = levelplot(temp,
                    xlab = NULL,
@@ -177,12 +181,34 @@ for(i in 1:length(files)){
                    main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
                    margin = FALSE,
                    col.regions = rev(heat.colors(32)),at = intervals2)+settings+
-    latticeExtra::layer(sp.polygons(mpas_take_temp,colour=mpas_take_temp$color,fill = mpas_take_temp$color, lwd = 1))
+    latticeExtra::layer(sp.polygons(mpas_temp,fill=mpas_temp$color, lwd = 1))
   png(file=paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_ferrierscore_notakeranks.png"),width=3000, height=2000, res=300)
   print(plot)
   dev.off()  
-  rm(mpas_take_temp)
-    }
+  
+  # now filter to only use no take zones
+  mpas_temp = mpas_temp[which(mpas_temp$type == "take"),]
+  # Find unique colors from color ramp,based on 'importance' column 
+  color.match = manual.col(length(unique(mpas_temp$importance)))
+  # Sort the values of interest (in this case, 'Prop')
+  lookupTable = sort(unique(mpas_temp$importance))
+  # Match colors to sorted unique values in polygon
+  # and assign them to a new column in the polygon data
+  # so that they plot smallest values as lightest and largest values as darkest
+  mpas_temp$color = color.match[match(mpas_temp$importance, lookupTable)]
+  # Plot the final product!
+  plot = levelplot(temp,
+                   xlab = NULL,
+                   ylab = NULL,
+                   colorkey=list(space="bottom", title = "Irraplaceability "),
+                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   margin = FALSE,
+                   col.regions = rev(heat.colors(32)),at = intervals2)+settings+
+    latticeExtra::layer(sp.polygons(mpas_temp,fill=mpas_temp$color, lwd = 1))
+  png(file=paste0("Planning/Outputs/solutions/ferrierscores/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_ferrierscore_notakeranks.png"),width=3000, height=2000, res=300)
+  print(plot)
+  dev.off()  
+  rm(mpas_take_temp, mpas_temp)}
 
 
 # END OF SCRIPT. SOME SPARE CODE BELOW TO DELETE IF UNUSED
