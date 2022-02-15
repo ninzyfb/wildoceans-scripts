@@ -12,6 +12,16 @@
 
 
 # ---------------------------------
+# PACKAGES
+# ---------------------------------
+# this script requires a function from the mecofun package that can 
+# be installed using the following code:
+library(devtools)
+devtools::install_git("https://gitup.uni-potsdam.de/macroecology/mecofun.git")
+# ---------------------------------
+
+
+# ---------------------------------
 # FORMATTING
 # ---------------------------------
 # tidyr package seems to mess with other packages so best to only load when needed
