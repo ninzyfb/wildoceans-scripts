@@ -42,25 +42,39 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 # ---------------------------------
 # PLOTTING
 # ---------------------------------
+# plotfolder
+plotfolder = paste0(getwd(),"/wildoceans-scripts/modelling/outputs/prettyplots/")
+
 for(i in 1:length(sdms_rasters)){
   target = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][2]
   model_type = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][3]
   temp = raster(sdms_rasters[i])
+  values(temp) = values(temp)/1000
+  res = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][4]
+  
   # species info
   spp_info = master %>%
     filter(SPECIES_SCIENTIFIC == target)
+  
+  # convert target to sentence case for plotting
+  target = str_to_sentence(master$SPECIES_SCIENTIFIC[i])
+  
   plot = levelplot(temp,
-                   main = paste(target,"\n",spp_info$Species_common,"\n",model_type),
+                   main = bquote(italic(.(target))~","~.(spp_info$Species_common)),
                    names.attr = c("Ensemble model"),
                    par.settings = rasterTheme(viridis_pal(option="D")(10)),
-                   at = intervals,
-                   margin = FALSE)+
+                   at = intervals/1000,
+                   margin = FALSE,
+                   xlab = NULL,
+                   ylab=NULL)+
+    # model type
+    latticeExtra::layer(sp.text(c(16,-27.5),paste0(model_type," model"),cex = 1.5))+
     # eez
     latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
     # 250m isobath
     latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
     # sa coast
-    latticeExtra::layer(sp.polygons(sa_coast,col = "black",fill = "white",lwd= 1))+
+    latticeExtra::layer(sp.polygons(sa,col = "black",fill = "white",lwd= 1))+
     # points for main cities
     latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
     # coordinates and city names
