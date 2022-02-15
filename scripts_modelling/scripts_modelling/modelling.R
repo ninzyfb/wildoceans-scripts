@@ -14,6 +14,8 @@
 # ---------------------------------
 # OUTPUT FOLDER DESTINATION
 # ---------------------------------
+# create output folders if they do not already exists
+# this is where the outputs will be saved to
 if(!dir.exists("Outputs")){dir.create("Outputs")}
 if(!dir.exists("Outputs/modelling")){dir.create("Outputs/modelling")}
 if(!dir.exists("Outputs/modelling/evaluations")){dir.create("Outputs/modelling/evaluations")}
