@@ -90,8 +90,13 @@ if(res ==10){
 # ---------------------------------
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
-# if wanting to simply run the loop for a single species, i suggest removing the loop and starting from the species_data.R subscript
-# the master sheet is however available on github if wanting to follow the same format even with one species
+
+# IMPORTANT: to simply run the loop with the example data
+# go to the species_data.R subscript and follow the instructions in the subscript
+# also remember to manually change the following to:
+# target = "ACROTERIOBATUS ANNULATUS
+# substrate = "yes"
+# seasonal = "yes" or "no" (your choice on if you want to run seasonal models as well)
 for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
