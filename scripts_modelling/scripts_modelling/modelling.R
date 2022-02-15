@@ -14,8 +14,13 @@
 # ---------------------------------
 # OUTPUT FOLDER DESTINATION
 # ---------------------------------
-evalutationfolder = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/evaluations/")
-plotfolder = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/prettyplots/")
+if(!dir.exists("Outputs")){dir.create("Outputs")}
+if(!dir.exists("Outputs/modelling")){dir.create("Outputs/modelling")}
+if(!dir.exists("Outputs/modelling/evaluations")){dir.create("Outputs/modelling/evaluations")}
+if(!dir.exists("Outputs/modelling/prettyplots")){dir.create("Outputs/modelling/prettyplots")}
+
+evalutationfolder = paste0(my.directory,"Outputs/modelling/evaulations")
+plotfolder = paste0(my.directory,"Outputs/modelling/prettyplots")
 # ---------------------------------
 
 
