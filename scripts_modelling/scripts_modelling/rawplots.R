@@ -30,7 +30,9 @@ rm(requiredpackages)
 # DIRECTORY
 # ---------------------------------
 path =  "/Users/nfb/"
-setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
+path =  "/home/nina/"
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+setwd(my.directory)
 # ---------------------------------
 
 
@@ -99,6 +101,9 @@ for(i in 1:nrow(master)){
   # if expert range exists then convert to spatial object
   if(nrow(coordinates(expert))>0){expert = SpatialPoints(expert)}else{rm(expert)}
   
+  # convert target to sentence case for plotting
+  target = str_to_sentence(master$SPECIES_SCIENTIFIC[i])
+  
   # plot and save each species as basic map
   # save the map in different folder depending on if this species will be modeled or not
   # that means based on its 10km resolution prevalence score which needs to be >1
@@ -108,7 +113,10 @@ for(i in 1:nrow(master)){
             margin = FALSE,
             colorkey=FALSE,
             col.regions = "white",
-            main = paste(target,"\n ",temp$Species_common),
+            xlab = NULL,
+            ylab=NULL,
+            main = bquote(italic(.(target))~","~.(temp$Species_common)),
+            #main = paste(str_to_sentence((target)),"-",temp$Species_common),
             # add blue line IUCN legend
             panel = function(x,y,...){
               panel.points(x=15.5, y=-27.5, col = "steelblue",fill = "lightblue",lwd = 1, pch = 21)
@@ -120,12 +128,12 @@ for(i in 1:nrow(master)){
     # iucn extent
     if(exists("iucn_extent")){
     latticeExtra::layer(sp.polygons(iucn_extent,col = "steelblue",fill = "lightblue",lwd = 1.5))+
-        # mpa outline
+        # mpa outline
         latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 0.5))+
         # eez
         latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
         # sa coast
-        latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 0.5, fill = "white"))+
+        latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 0.5, fill = "white"))+
         # occurrence points
         latticeExtra::layer(sp.polygons(obs.data,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21))+
         # points for main cities
@@ -143,12 +151,12 @@ for(i in 1:nrow(master)){
               latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Data points = ",temp$abundance),col = "black",pch = 20, pos=2,cex = 1))+
                 latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Presence cells (5x5km) = ",temp$cells," (",temp$rounded,"%)"),pch = 20, pos=2,cex = 1))+
                 latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",temp$rounded_10,"%)"),pch = 20, pos=2,cex = 1))}}else{
-    # mpa outline
+    # mpa outline
     latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 0.5))+
     # eez
     latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
     # sa coast
-    latticeExtra::layer(sp.polygons(sa_coast,col = "black",lwd= 0.5, fill = "white"))+
+    latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 0.5, fill = "white"))+
     # occurrence data
     latticeExtra::layer(sp.polygons(obs.data,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21))+
     # points for main cities
