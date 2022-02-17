@@ -23,6 +23,17 @@ rm(requiredpackages)
 
 
 # ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+my.directory = getwd()
+# set directory
+setwd(my.directory) 
+# ---------------------------------
+
+
+# ---------------------------------
 #  PLOTTING LAYERS
 # this subscript prepares layers required for plotting and sets plotting parameters i.e. colour etc..
 # ---------------------------------
@@ -43,21 +54,21 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 # PLOTTING
 # ---------------------------------
 # plotfolder
-plotfolder = paste0(getwd(),"/wildoceans-scripts/modelling/outputs/prettyplots/")
+plotfolder = paste0(getwd(),"/modelling/outputs/prettyplots/")
 
 for(i in 1:length(sdms_rasters)){
-  target = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][2]
-  model_type = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][3]
+  target = str_split(sdms_rasters[i],"/modelling/outputs/sdms/|_")[[1]][2]
+  model_type = str_split(sdms_rasters[i],"/modelling/outputs/sdms/|_")[[1]][3]
   temp = raster(sdms_rasters[i])
   values(temp) = values(temp)/1000
-  res = str_split(sdms_rasters[i],"/Modelling/Outputs/sdms/|_")[[1]][4]
+  res = str_split(sdms_rasters[i],"/modelling/outputs/sdms/|_")[[1]][4]
   
   # species info
   spp_info = master %>%
     filter(SPECIES_SCIENTIFIC == target)
   
   # convert target to sentence case for plotting
-  target = str_to_sentence(master$SPECIES_SCIENTIFIC[i])
+  target = str_to_sentence(target)
   
   plot = levelplot(temp,
                    main = bquote(italic(.(target))~","~.(spp_info$Species_common)),
@@ -84,7 +95,7 @@ for(i in 1:length(sdms_rasters)){
     latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
   
   # this saves the plot to a folder
-  png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
+  png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"),width=3000, height=2000, res=300)
   print(plot)
   dev.off()
   rm(temp,plot) # remove unnecessary variables
