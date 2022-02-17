@@ -139,12 +139,12 @@ for(i in 1:length(files)){
       arrange(importance)
     colnames(result) = c("MPA_zone","MPA","MPA_type","Irreplaceability")
     result = result %>%
-      mutate(Irreplaceability = round(Irreplaceability,0))%>%
-      arrange(desc(Irreplaceability))
+      mutate(Irreplaceability = round(Irreplaceability,1))%>%
+      arrange(MPA_type,desc(Irreplaceability))
     write.csv(result,paste0("Planning/Outputs/solutions/mpa_rankings/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_zoneimportanceFS.csv"), row.names = FALSE)
     result = result %>%
       group_by(MPA) %>%
-      summarise(Irreplaceability = round(sum(Irreplaceability),0))%>%
+      summarise(Irreplaceability = round(sum(Irreplaceability),1))%>%
       arrange(desc(Irreplaceability))
     write.csv(result,paste0("Planning/Outputs/solutions/mpa_rankings/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_mpaimportanceFS.csv"), row.names = FALSE)
   
@@ -223,12 +223,12 @@ for(i in 1:length(files)){
     arrange(importance)
   colnames(result) = c("MPA_zone","MPA","MPA_type","Irreplaceability")
   result = result %>%
-    mutate(Irreplaceability = round(Irreplaceability,0))%>%
-    arrange(desc(Irreplaceability))
+    mutate(Irreplaceability = round(Irreplaceability,1))%>%
+    arrange(MPA_type,desc(Irreplaceability))
   write.csv(result,paste0("Planning/Outputs/solutions/mpa_rankings/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_zoneimportanceIR.csv"), row.names = FALSE)
   result = result %>%
     group_by(MPA) %>%
-    summarise(Irreplaceability = round(sum(Irreplaceability),0))%>%
+    summarise(Irreplaceability = round(sum(Irreplaceability),1))%>%
     arrange(desc(Irreplaceability))
   write.csv(result,paste0("Planning/Outputs/solutions/mpa_rankings/",str_pad(pnumber,3,pad = "0"),"_",scenario,"scenario","_mpaimportanceIR.csv"), row.names = FALSE)
   
