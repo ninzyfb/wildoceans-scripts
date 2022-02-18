@@ -20,9 +20,11 @@ if(!dir.exists("Outputs")){dir.create("Outputs")}
 if(!dir.exists("Outputs/modelling")){dir.create("Outputs/modelling")}
 if(!dir.exists("Outputs/modelling/evaluations")){dir.create("Outputs/modelling/evaluations")}
 if(!dir.exists("Outputs/modelling/prettyplots")){dir.create("Outputs/modelling/prettyplots")}
+if(!dir.exists("Outputs/modelling/rasters")){dir.create("Outputs/modelling/rasters")}
 
-evalutationfolder = paste0(my.directory,"Outputs/modelling/evaulations")
-plotfolder = paste0(my.directory,"Outputs/modelling/prettyplots")
+evaluationfolder = paste0(my.directory,"/Outputs/modelling/evaluations/")
+plotfolder = paste0(my.directory,"/Outputs/modelling/prettyplots/")
+rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 # ---------------------------------
 
 
@@ -51,7 +53,7 @@ static_models <- BIOMOD_Modeling(
 # get important variables
 variables = as.data.frame(get_variables_importance(static_models))
 # save
-write.csv(variables,paste0(evalutationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
+write.csv(variables,paste0(evaluationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
 
 #rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
 
@@ -85,8 +87,8 @@ static_ensembleprojection = BIOMOD_EnsembleForecasting(
 # get all models evaluation scores
 all_evals = get_evaluations(static_models, as.data.frame = TRUE)
 ensemble_evals = get_evaluations(static_ensemblemodel, as.data.frame = TRUE)
-write.csv(all_evals,paste0(evalutationfolder,model_type,target,"_res",res,"_allevals.csv"))
-write.csv(ensemble_evals,paste0(evalutationfolder,model_type,target,"_res",res,"_ensembleevals.csv"))
+write.csv(all_evals,paste0(evaluationfolder,model_type,target,"_res",res,"_allevals.csv"))
+write.csv(ensemble_evals,paste0(evaluationfolder,model_type,target,"_res",res,"_ensembleevals.csv"))
 
 # Threshold calculation
 # this function calculates the threshold at which a probability can be considered a presence
@@ -99,7 +101,7 @@ thresh = Find.Optim.Stat(Stat='TSS',
                          Nb.thresh.test = 100,
                          Fixed.thresh = NULL)[2]
 thresh = as.data.frame(thresh) # save the output as a dataframe
-write.csv(thresh,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/thresholds/",model_type,target,"_res",res,"_thresh.csv")) # save the dataframe
+write.csv(thresh,paste0(evaluationfolder,model_type,target,"_res",res,"_thresh.csv")) # save the dataframe
 rm(predictions,response) # remove unnecessary variables
 # ---------------------------------
 
@@ -163,7 +165,7 @@ rm(plot) # remove unnecessary variables
 # these are the plots to use in the planning software
 # they are simple rasters with probability values from 0 to 1000
 # both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
-writeRaster(en_preds[[1]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
+writeRaster(en_preds[[1]],paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
 #writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
-writeRaster(temp,paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
+writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
 # ---------------------------------
