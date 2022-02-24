@@ -177,13 +177,16 @@ pre code {
 <div id="scripts" class="section level1">
 <h1>scripts</h1>
 <p>There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts.</p>
-<p><strong>IMPORTANT: how to run scripts on your own data or example data provided</strong>: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and <strong>example.csv</strong> file is provied which allows for the modelling scripts to be run on freely available data from GBIF and OBIS for <em>Acroteriobatus annulatus</em>. Steps to use the example.csv file are as follows:</p>
+<p><strong>IMPORTANT 1: how to run scripts on your own data or example data provided</strong>: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and <strong>example.csv</strong> file is provied which allows for the modelling scripts to be run on freely available data from GBIF and OBIS for <em>Acroteriobatus annulatus</em>. Steps to use the example.csv file are as follows:</p>
 <ol style="list-style-type: decimal">
 <li>open <code>species_data.R</code> in the <strong>scripts_modelling folder</strong>.<br />
 </li>
 <li>Change <em>FILENAME=paste(toupper(target),“.rds”,sep=&quot;&quot;)</em> to <em>FILENAME = “example_data.csv”</em></li>
 <li>Change <em>FILELOCATION=paste0(path,“Dropbox/6-WILDOCEANS/Modelling/speciesdata”)</em> to <em>FILELOCATION=my.directory</em> or to the location where the example_data.csv file is saved. This should be sufficient for the other scripts to run. If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example_data.csv with your filename.</li>
 </ol>
+<p><strong>IMPORTANT 2: installing the mecofun package to run the variable selection procedure</strong>: Currently, all models are run on the same subset of environmental variables detailed in <em>selectedvariables_all.csv</em>. These were chosen by testing for collinearity using the <code>independentvariableselection.R</code>. If you wish to test for collinearity at the actual presence points, you can use <code>variableselection.R</code>. In this case the <code>mecofun</code> package needs to be installed as follows:<br />
+<code>library(devtools)</code><br />
+<code>devtools::install_git(&quot;https://gitup.uni-potsdam.de/macroecology/mecofun.git&quot;)</code></p>
 <div id="scripts_occurencedata" class="section level3">
 <h3>1. scripts_occurencedata</h3>
 <p>This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The raw occurrence data are confidential but the scripts are provided to show how it was cleaned and formatted.<br />

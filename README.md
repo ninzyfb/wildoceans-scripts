@@ -6,12 +6,17 @@ This repository contains all the necessary code used to develop the shark and ra
 # scripts
 There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
 
-**IMPORTANT: how to run scripts on your own data or example data provided**: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and  **example.csv** file is provied which  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  Steps to use the example.csv file are as follows:  
+**IMPORTANT 1: how to run scripts on your own data or example data provided**: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and  **example.csv** file is provied which  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  Steps to use the example.csv file are as follows:  
 
 1. open `species_data.R` in the **scripts_modelling folder**.  
 2. Change *FILENAME=paste(toupper(target),".rds",sep="")* to *FILENAME = "example_data.csv"* 
 3. Change *FILELOCATION=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata")* to *FILELOCATION=my.directory* or to the location where the example_data.csv file is saved.
 This should be sufficient for the other scripts to run. If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example_data.csv with your filename.
+
+**IMPORTANT 2: installing the mecofun package to run the variable selection procedure**: Currently, all models are run on the same subset of environmental variables detailed in *selectedvariables_all.csv*. These were chosen by testing for collinearity using the `independentvariableselection.R`. If you wish to test for collinearity at the actual presence points of your data, you can use `variableselection.R`. In this case the `mecofun` package needs to be installed as follows:  
+`library(devtools)`  
+`devtools::install_git("https://gitup.uni-potsdam.de/macroecology/mecofun.git")`
+
 
 ### 1. scripts_occurencedata
 This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The raw occurrence data are confidential but the scripts are provided to show how it was cleaned and formatted.  
