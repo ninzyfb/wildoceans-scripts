@@ -1,13 +1,17 @@
 # WILDOCEANS SHARK & RAY CONSERVATION PLAN 
 
 ## About
-This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code is not in its final and clean form. It is continuously changing.
+This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code may still change.
 
 # scripts
-There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts.  
-**!!IMPORTANT!!**: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code on example data, use the  **example.csv** file. This  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  
-For the modelling scripts to run on this data, go to `species_data.R` in the **scripts_modelling folder**. Change *FILENAME = paste(toupper(target),".rds",sep="")* to *FILENAME = "example_data.csv"* and set file location to where the example.csv file is saved.
-This will be sufficient for the other scripts to run. If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example.csv with your filename.
+There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
+
+**IMPORTANT: how to run scripts on your own data or example data provided**: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and  **example.csv** file is provied which  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  Steps to use the example.csv file are as follows:  
+
+1. open `species_data.R` in the **scripts_modelling folder**.  
+2. Change *FILENAME=paste(toupper(target),".rds",sep="")* to *FILENAME = "example_data.csv"* 
+3. Change *FILELOCATION=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata")* to *FILELOCATION=my.directory* or to the location where the example_data.csv file is saved.
+This should be sufficient for the other scripts to run. If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example_data.csv with your filename.
 
 ### 1. scripts_occurencedata
 This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The raw occurrence data are confidential but the scripts are provided to show how it was cleaned and formatted.  

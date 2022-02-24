@@ -167,53 +167,52 @@ pre code {
 </div>
 
 
-<div id="wildoceans-scripts" class="section level1">
-<h1>wildoceans-scripts</h1>
-<p>
-This repository contains all the necessary code to build the shark and ray conservation plan developed for WILDOCEANS.
-</p>
-<p>
-There are <strong>three folders containing scripts</strong> in this repository, as well as additional folders which contain data and layers necessary to run the scripts. Below is an outline of the contents of each folder
-</p>
-<p>
-There is also an <strong>example.csv</strong> file in this repository. This allows for the modelling scripts to be run on some example data from GBIF and OBIS for <em>Acroteriobatus annulatus</em>.
-</p>
+<div id="wildoceans-shark-ray-conservation-plan" class="section level1">
+<h1>WILDOCEANS SHARK &amp; RAY CONSERVATION PLAN</h1>
+<div id="about" class="section level2">
+<h2>About</h2>
+<p>This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code may still change.</p>
+</div>
+</div>
+<div id="scripts" class="section level1">
+<h1>scripts</h1>
+<p>There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts.</p>
+<p><strong>IMPORTANT: how to run scripts on your own data or example data provided</strong>: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and <strong>example.csv</strong> file is provied which allows for the modelling scripts to be run on freely available data from GBIF and OBIS for <em>Acroteriobatus annulatus</em>. Steps to use the example.csv file are as follows:</p>
+<ol style="list-style-type: decimal">
+<li>open <code>species_data.R</code> in the <strong>scripts_modelling folder</strong>.<br />
+</li>
+<li>Change <em>FILENAME=paste(toupper(target),“.rds”,sep=&quot;&quot;)</em> to <em>FILENAME = “example_data.csv”</em></li>
+<li>Change <em>FILELOCATION=paste0(path,“Dropbox/6-WILDOCEANS/Modelling/speciesdata”)</em> to <em>FILELOCATION=my.directory</em> or to the location where the example_data.csv file is saved. This should be sufficient for the other scripts to run. If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example_data.csv with your filename.</li>
+</ol>
 <div id="scripts_occurencedata" class="section level3">
 <h3>1. scripts_occurencedata</h3>
-<p>
-This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The occurrence data in itself is confidential but the scripts may be useful to see how it was cleaned and formatted.
-</p>
-<p>
-<em>merging_datasets.R</em> is the script used to combine data from the various different data providers and output one file per species. These output files are used as input in the modelling scripts.
-</p>
+<p>This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The raw occurrence data are confidential but the scripts are provided to show how it was cleaned and formatted.<br />
+<code>merging_datasets.R</code> is the script used to combine data from the various different data providers and output one file per species. These output files are used as input in the modelling scripts.</p>
 </div>
 <div id="scripts_modelling" class="section level3">
 <h3>2. scripts_modelling</h3>
-<p>
-This folder contains scripts that were used to produce and plot the species distribution models (SDMs). This folder itself contains two subfolders.
-</p>
+<p>This folder contains scripts that were used to produce and plot the species distribution models (SDMs). This folder itself contains two subfolders.</p>
 <ul>
-<li><p><strong>scripts_envtvariablprep</strong> Code for the preparation and processing of the environmental variable rasters. The outputs from these scripts were raster files used to build a rasterstack of environmental variables at 5x5km and 10x10km resolution. These prepared raster files are available in the main wildoceans-scripts repository in folders named <em>ALLLAYERS5kmresolution</em> and <em>ALLLAYERS10kmresolution</em>. These are sufficient to run the modelling scripts.</p></li>
-<li><p><strong>scripts_modelling</strong> Code to run all the distribution models. Start with <em>mainscript-modelling.R</em> as this is the parent script through which the other scripts are run. This script has the orders in which to run the scripts and also describes what each one is for.</p></li>
+<li><p><strong>scripts_envtvariablprep</strong> Code for the preparation and processing of the environmental variable rasters. The outputs from these scripts were raster files used to build a rasterstack of environmental variables at 5x5km and 10x10km resolution. These prepared raster files are available in the main WILDOCEANS-scripts repository in folders named <em>ALLLAYERS5kmresolution</em> and <em>ALLLAYERS10kmresolution</em>. These are sufficient to run the modelling scripts.</p></li>
+<li><p><strong>scripts_modelling</strong> Code to run all the distribution models. Start with <code>mainscript-modelling.R</code> as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for.</p></li>
 </ul>
 </div>
 <div id="scripts_planning" class="section level3">
 <h3>3. scripts_planning</h3>
-<p>
-This folder contains the code to run the spatial planning algorithm <em>prioritizr</em>. The <em>prioritizr</em> package has an incredible <a href="https://prioritizr.net/articles/prioritizr.html">online tutorial</a> and <a href="https://github.com/prioritizr/prioritizr">github page</a>, and the authors are very responsive to issues or questions that may come up when you use the package.
-</p>
-<p>
-Similarly to the modelling scripts, start with <em>mainscript-planning.R</em> as this is the parent script through which the other scripts are run.
-</p>
+<p>This folder contains the code to run the spatial planning algorithm <em>prioritizr</em>. The <em>prioritizr</em> package has an <a href="https://prioritizr.net/articles/prioritizr.html">online tutorial</a> and <a href="https://github.com/prioritizr/prioritizr">github page</a>, and the authors are very responsive to issues or questions that may come up when you use the package.<br />
+Similar to the modelling scripts, start with<code>mainscript-planning.R</code> as this is the parent script through which the other scripts are run.</p>
 </div>
 <div id="iucn" class="section level3">
 <h3>4. IUCN</h3>
+<p>Contains range maps for several shark and ray species in South Africa. This script can be used to run the spatial planning scripts instead of using the modelled distributions.</p>
 </div>
 <div id="alllayers-5-10-kmresolution" class="section level3">
 <h3>5. ALLLAYERS 5 &amp; 10 kmresolution</h3>
+<p>This folder contains the environmental rasters to run the distribution models at 5 or 10 km resolution.</p>
 </div>
 <div id="plotting_features" class="section level3">
 <h3>6. plotting_features</h3>
+<p>This folder contains the layers necessary to produce plots with outputs from the modelling and planning scripts. The modelling and planning scripts produce rasters which can be plotted as annotated maps using the features from plotting parameters.</p>
 </div>
 </div>
 
