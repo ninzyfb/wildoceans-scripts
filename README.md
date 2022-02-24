@@ -20,7 +20,7 @@ This folder contains scripts that were used to produce and plot the species dist
 - **scripts_modelling**
   Code to run all the distribution models. Start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for. 
   
-  **IMPORTANT 1: how to run scripts on your own data or example data provided**: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and  **example.csv** file is provied which  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  Steps to use the example.csv file are as follows:  
+**IMPORTANT 1: how to run scripts on your own data or example data provided**: the occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and  **example.csv** file is provied which  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  Steps to use the example.csv file are as follows:  
 
 1. open `species_data.R` in the **scripts_modelling folder**.  
 2. Change *FILENAME=paste(toupper(target),".rds",sep="")* to *FILENAME = "example_data.csv"* 
