@@ -70,7 +70,7 @@ scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scena
 general_solutions = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario.tif",recursive = TRUE, full.names = TRUE)
 
 # list of all ferrier scores in raster format
-ferrier_scores = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario_FS.tif",recursive = TRUE, full.names = TRUE)
+#ferrier_scores = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario_FS.tif",recursive = TRUE, full.names = TRUE)
 
 # list of all irraplaceability scores in raster format
 irraplaceability_scores = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "scenario_IR.tif",recursive = TRUE, full.names = TRUE)
@@ -78,11 +78,11 @@ irraplaceability_scores = list.files(path = paste0(my.directory,"/Planning/Outpu
 # list of all solution information
 performances = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "performance.csv",recursive = TRUE, full.names = TRUE)
 
-# the following loop will plot each raster individually
-for(i in 1:length(files)){
+# the following loop will plot each binary raster individually
+for(i in 1:length(general_solutions)){
   
   # stack of raster files
-  raster_stack = stack(general_solutions[i],ferrier_scores[i],irraplaceability_scores[i]) 
+  raster_stack = stack(general_solutions[i],irraplaceability_scores[i]) 
   # raster name
   name = names(raster_stack[[1]])
   # problem number
@@ -93,7 +93,7 @@ for(i in 1:length(files)){
   # scenario
   scenario = str_split(name,"_")[[1]][3]
   # prop_eez
-  maxvalue = max(values(temp),na.rm=TRUE)
+  maxvalue = max(values(raster_stack[[1]]),na.rm=TRUE)
   prop_eez = round((length(which(values(raster_stack[[1]])==maxvalue))/10809)*100,1)
   # target
   t = as.numeric(scenario_sheet$targets[i])*100
@@ -102,9 +102,10 @@ for(i in 1:length(files)){
   if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
   if(inclusion == "mpa_layer_all"){inclusion = "all MPAs"}
   if(inclusion == "none"){inclusion = "No MPAs"}
+
+  plot_type = names(raster_stack[[1]])
   
   # binary solution plots 
-  plot_type = names(raster_stack[[1]])
   plot=levelplot(raster_stack[[1]],
                  xlab = NULL,
                  ylab = NULL,
@@ -112,73 +113,102 @@ for(i in 1:length(files)){
                  col.regions = cols,
                  margin = FALSE,
                  colorkey=FALSE)+settings
-  png(file=paste0("Planning/Outputs/solutions/maps/",plot_type,".png"),width=3000, height=2000, res=300)
+  png(file=paste0("Planning/Outputs/solutions/binary/",plot_type,".png"),width=3000, height=2000, res=300)
   print(plot)
-  dev.off()
-  
+  dev.off()}
+
+# the following loop will plot each irraplacability plot
+for(i in 1:length(general_solutions)){
+  # stack of raster files
+  raster_stack = stack(general_solutions[i],irraplaceability_scores[i]) 
+  # raster name
+  name = names(raster_stack[[1]])
+  # problem number
+  pnumber = str_split(name,"_")[[1]][1]
+  # stream
+  stream = str_split(name,"_")[[1]][2]
+  if(stream == "streamA"){stream = "no"}else{stream = "yes"}
+  # scenario
+  scenario = str_split(name,"_")[[1]][3]
+  # prop_eez
+  maxvalue = max(values(raster_stack[[1]]),na.rm=TRUE)
+  prop_eez = round((length(which(values(raster_stack[[1]])==maxvalue))/10809)*100,1)
+  # target
+  t = as.numeric(scenario_sheet$targets[i])*100
+  # mpas included
+  inclusion = scenario_sheet$lockedin[i]
+  if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
+  if(inclusion == "mpa_layer_all"){inclusion = "all MPAs"}
+  if(inclusion == "none"){inclusion = "No MPAs"}
   # ferrier and irraplaceability solution plots
-  for(a in 2:3){
+  for(a in 2){
     plot_type = names(raster_stack[[a]]) # plot name
+    if(str_detect(plot_type,"FS")){folder = "ferrier/"}# folder destination
+    if(str_detect(plot_type,"IR")){folder = "irraplaceability/"}# folder destination
+    
     plot = levelplot(raster_stack[[a]],
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="bottom", title = "Irraplaceability "),
                    main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
                    margin = FALSE,
-                   col.regions = rev(heat.colors(32)),at = intervals2)+settings
-    png(file=paste0("Planning/Outputs/solutions/maps/",plot_type,".png"),width=3000, height=2000, res=300)
+                   col.regions = rev(heat.colors(32)),
+                   at = intervals2)+settings
+    png(file=paste0("Planning/Outputs/solutions/",folder,plot_type,".png"),width=3000, height=2000, res=300)
     print(plot)
     dev.off()
+    
+    # province plots
+    for(x in 1:4){
+      subname = names(bboxes)[x]
+      plot=levelplot(crop(raster_stack[[a]],bboxes[[x]]),
+                     xlab = NULL,
+                     ylab = NULL,
+                     colorkey=list(space="bottom", title = "Irraplaceability "),
+                     main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                     col.regions = rev(heat.colors(32)),
+                     at = intervals2,
+                     margin = FALSE)+settings
+      png(file=paste0("Planning/Outputs/solutions/",folder,"provinceplots/",plot_type,"_",subname,".png"),width=3000, height=2000, res=300)
+      print(plot)
+      dev.off()
+    }
 
   # extract values in all MPA zones
   values = extract(raster_stack[[a]],mpas)
-  
   mpas_temp = mpas
-  
   for (b in 1:length(values)){
     sum = sum(values[[b]], na.rm = TRUE)
     mpas_temp$importance[b] = sum}
-  
     result = mpas_temp@data %>%
       arrange(importance)
-    
-    colnames(result) = c("MPA_zone","MPA","MPA_type","Irreplaceability")
-    
+    colnames(result) = c("MPA_zone","MPA","ZONE_type","GIS_AREA","MPA_type","Irreplaceability")
     result = result %>%
       mutate(Irreplaceability = round(Irreplaceability,1))%>%
       arrange(MPA_type,desc(Irreplaceability))
-    
     write.csv(result,paste0("Planning/Outputs/solutions/mpa_rankings/",plot_type,"_zoneimportance.csv"), row.names = FALSE)
     
     result = result %>%
       group_by(MPA) %>%
       summarise(Irreplaceability = round(sum(Irreplaceability),1))%>%
       arrange(desc(Irreplaceability))
-    
     write.csv(result,paste0("Planning/Outputs/solutions/mpa_rankings/",plot_type,"_mpaimportance.csv"), row.names = FALSE)
   
     mpas_temp1 = st_as_sf(mpas_temp) %>%
       group_by(CUR_NME)%>%
       summarise(importance = round(sum(importance),0))
- 
    mpas_temp1 = as(mpas_temp1, Class = "Spatial")
-  
    mpas_temp1$categories = as.numeric(cut(mpas_temp1$importance,5))
   
    # Find unique colors from color ramp,based on 'importance' column 
    color.match = manual.col(length(unique(mpas_temp1$categories)))
-  
    # Sort the values of interest (in this case, 'Prop')
    lookupTable = sort(unique(mpas_temp1$categories))
-  
    # Match colors to sorted unique values in polygon
    # and assign them to a new column in the polygon data
    # so that they plot smallest values as lightest and largest values as darkest
-  
    mpas_temp1$color = color.match[match(mpas_temp1$categories, lookupTable)]
- 
-    # Plot the final product!
-  
+    # Plot the final product
    plot = levelplot(raster_stack[[a]],
                    xlab = NULL,
                    ylab = NULL,
@@ -187,9 +217,25 @@ for(i in 1:length(files)){
                    margin = FALSE,
                    col.regions = rev(heat.colors(32)),at = intervals2)+settings+
     latticeExtra::layer(sp.polygons(mpas_temp1,fill=mpas_temp1$color, lwd = 1))
-  png(file=paste0("Planning/Outputs/solutions/",plot_type,"_mparanks.png"),width=3000, height=2000, res=300)
+  png(file=paste0("Planning/Outputs/solutions/",folder,plot_type,"_mparanks.png"),width=3000, height=2000, res=300)
   print(plot)
-  dev.off()  
+  dev.off() 
+  # province plots
+  for(x in 1:4){
+    subname = names(bboxes)[x]
+    plot=levelplot(crop(raster_stack[[a]],bboxes[[x]]),
+                   xlab = NULL,
+                   ylab = NULL,
+                   colorkey=list(space="bottom"),
+                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   col.regions = rev(heat.colors(32)),
+                   at = intervals2,
+                   margin = FALSE)+settings+
+      latticeExtra::layer(sp.polygons(mpas_temp1,fill=mpas_temp1$color, lwd = 1))
+    png(file=paste0("Planning/Outputs/solutions/",folder,"provinceplots/",plot_type,"_mparanks_",subname,".png"),width=3000, height=2000, res=300)
+    print(plot)
+    dev.off()
+  }
   
   # filter to only use no take zones
   mpas_temp2 = mpas_temp[which(mpas_temp$type == "take"),]
@@ -211,10 +257,77 @@ for(i in 1:length(files)){
                    margin = FALSE,
                    col.regions = rev(heat.colors(32)),at = intervals2)+settings+
     latticeExtra::layer(sp.polygons(mpas_temp2,fill=mpas_temp2$color, lwd = 1))
-  png(file=paste0("Planning/Outputs/solutions/",plot_type,"zoneranks.png"),width=3000, height=2000, res=300)
+  png(file=paste0("Planning/Outputs/solutions/",folder,plot_type,"_zoneranks.png"),width=3000, height=2000, res=300)
   print(plot)
   dev.off()  
+  # province plots
+  for(x in 1:4){
+    subname = names(bboxes)[x]
+    plot=levelplot(crop(raster_stack[[a]],bboxes[[x]]),
+                   xlab = NULL,
+                   ylab = NULL,
+                   colorkey=list(space="bottom"),
+                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   col.regions = rev(heat.colors(32)),
+                   at = intervals2,
+                   margin = FALSE)+settings+
+      latticeExtra::layer(sp.polygons(mpas_temp1,fill=mpas_temp1$color, lwd = 1))
+    png(file=paste0("Planning/Outputs/solutions/",folder,"provinceplots/",plot_type,"_zoneranks_",subname,".png"),width=3000, height=2000, res=300)
+    print(plot)
+    dev.off()
+  }
   rm(mpas_temp,mpas_temp1, mpas_temp2)
-  }}
+  }
+}
+
+# working with result outputs after plotting (if needed)
+results = list.files(pattern = "mpaimportance.csv" ,recursive = TRUE,full.names = TRUE)
+all = data.frame()
+for(i in 1:length(results)){
+  temp = read.csv(results[i])
+  problem = str_split(str_split(results[i],"_")[[1]][2],"rankings/")[[1]][2]
+  type = str_split(results[i],"_")[[1]][6]
+  temp$problem_n = problem
+  temp$calculation = type
+  all = rbind(all,temp)
+}
+all = pivot_wider(data = all,names_from = "calculation",values_from = "Irreplaceability")
+all$FS = NULL
+write.csv(all,paste0("Planning/Outputs/solutions/mpa_rankings/mpaimportance_all.csv"), row.names = FALSE)
+all = all %>%
+  group_by(MPA) %>%
+  filter(problem_n != "p006") %>%
+  filter(problem_n != "p007")%>%
+  summarise(SUM_IR = sum(IR)) %>%
+  arrange(desc(SUM_IR))
+write.csv(all,paste0("Planning/Outputs/solutions/mpa_rankings/mpaimportance_all_summed.csv"), row.names = FALSE)
+
+
+# working with result outputs after plotting (if needed)
+results = list.files(pattern = "zoneimportance.csv" ,recursive = TRUE,full.names = TRUE)
+all = data.frame()
+for(i in 1:length(results)){
+  temp = read.csv(results[i])
+  problem = str_split(str_split(results[i],"_")[[1]][2],"rankings/")[[1]][2]
+  type = str_split(results[i],"_")[[1]][6]
+  temp$problem_n = problem
+  temp$calculation = type
+  all = rbind(all,temp)
+}
+all = pivot_wider(data = all,names_from = "calculation",values_from = "Irreplaceability")
+all$FS = NULL
+write.csv(all,paste0("Planning/Outputs/solutions/mpa_rankings/zoneimportance_all.csv"), row.names = FALSE)
+all = all %>%
+  filter(MPA_type == "take")
+write.csv(all,paste0("Planning/Outputs/solutions/mpa_rankings/zoneimportance_takezones.csv"), row.names = FALSE)
+all = all %>%
+  group_by(MPA_zone,MPA,GIS_AREA) %>%
+  filter(problem_n != "p006") %>%
+  filter(problem_n != "p007")%>%
+  summarise(SUM_IR = sum(IR)) %>%
+  arrange(desc(SUM_IR))
+write.csv(all,paste0("Planning/Outputs/solutions/mpa_rankings/zoneimportance_all_summed.csv"), row.names = FALSE)
+
+
 
 # END OF SCRIPT

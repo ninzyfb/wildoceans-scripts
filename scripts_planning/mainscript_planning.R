@@ -88,7 +88,7 @@ featurenames = left_join(featurenames,targets)
 rm(targets) # remove
 
 # load data summary sheet
-master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE),sheet = 1)
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
 master  = master %>%
   dplyr::select(SPECIES_SCIENTIFIC,target_species)
 featurenames = left_join(featurenames,master)
@@ -96,7 +96,13 @@ featurenames = left_join(featurenames,master)
 # weights, give higher weighting to target species
 # i.e. species with a high endemism, high threat and restricted range
 featurenames = featurenames %>%
-  mutate(SCORE = ifelse(target_species == "yes",SCORE+1,SCORE))
+  mutate(SCORE = ifelse(target_species == "yes",SCORE+1,SCORE)) %>%
+  filter(MODELTYPE == "ASEASONAL")
+
+featurenames_targetsonly = featurenames %>%
+  filter(target_species == "yes")
+feature_stack_aseasonal_targetsonly = dropLayer(feature_stack_aseasonal,which(!(names(feature_stack_aseasonal) %in% featurenames_targetsonly$FEATURENAME)))  # identify Aseasonal layers in stack
+
 # ---------------------------------
 
 
@@ -117,12 +123,12 @@ options(scipen = 100)
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # start counter
-problem_number = 0
+problem_number = 5
 
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
 # the following loop goes through each row of the scenario sheet and outputs a solution
-for(i in 1:nrow(scenario_sheet)){
+for(i in 6:nrow(scenario_sheet)){
   
   # scenario stream (A or B)
   stream = scenario_sheet$stream[i]
@@ -195,39 +201,39 @@ for(i in 1:nrow(scenario_sheet)){
     # create solution frequency raster
     # this sums all the solutions together
     # it outlines the most frequently chosen areas for the given conservation problem
-    #solution_sum= calc(stack(unlist(solution_single)),sum)
+    solution_sum= calc(stack(unlist(solution_single)),sum)
   
     # save solution as raster
-    #writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario.tiff"),overwrite = TRUE)
+    writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario.tiff"),overwrite = TRUE)
   
   # create coverage summary
-  #coverage_summary = data.frame()
-  #for(i in 1:length(solution_single)){
-  #temp = eval_target_coverage_summary(problem_single,solution_single[[i]])
-  #temp = cbind(temp,featurenames_temp)
-  #temp$absolute_shortfall = round(temp$absolute_shortfall, 2)
-  #temp$relative_held = round(temp$relative_held, 2)
-  #temp$relative_shortfall = round(temp$relative_shortfall, 2)
-  #temp$km_shortfall = temp$absolute_shortfall*10
-  #if(nrow(temp)>0){
-  #  temp$solution = i
-  #  temp$feature = NULL
-  #  temp$FEATURENAME_BINARY = NULL
-  #  temp$FEATURENAME = NULL}
-  # save coverage summary
-  #coverage_summary = rbind(coverage_summary,temp)}
+  coverage_summary = data.frame()
+  for(i in 1:length(solution_single)){
+  temp = eval_target_coverage_summary(problem_single,solution_single[[i]])
+  temp = cbind(temp,featurenames_temp)
+  temp$absolute_shortfall = round(temp$absolute_shortfall, 2)
+  temp$relative_held = round(temp$relative_held, 2)
+  temp$relative_shortfall = round(temp$relative_shortfall, 2)
+  temp$km_shortfall = temp$absolute_shortfall*10
+  if(nrow(temp)>0){
+    temp$solution = i
+    temp$feature = NULL
+    temp$FEATURENAME_BINARY = NULL
+    temp$FEATURENAME = NULL}
+   #save coverage summary
+  coverage_summary = rbind(coverage_summary,temp)}
   
-  #if(nrow(coverage_summary)>0){
+  if(nrow(coverage_summary)>0){
   # get some numbers that are easier to interpret
-  #coverage_summary = coverage_summary %>%
-  #  group_by(SPECIES_SCIENTIFIC,target_species,SCORE) %>%
-  #  summarise(km_shortfall_avg = mean(km_shortfall),
-  #            km_shortfall_sd = sd(km_shortfall),
-  #            target = mean(relative_target),
-  #            target_achieved = mean(relative_held))%>%
-  #  arrange(SCORE)
-  #coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
-  #write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
+  coverage_summary = coverage_summary %>%
+    group_by(SPECIES_SCIENTIFIC,target_species,SCORE) %>%
+    summarise(km_shortfall_avg = mean(km_shortfall),
+              km_shortfall_sd = sd(km_shortfall),
+              target = mean(relative_target),
+              target_achieved = mean(relative_held))%>%
+    arrange(SCORE)
+  coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
+  write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
   
   # ferrier score for single problem
   #ferrierscore_sum = stack()

@@ -31,11 +31,7 @@ sa  <- getData("GADM",country="South Africa",level=1)
 places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE)) 
 
 # South African continetnal marine protected areas
-mpas = st_read(list.files(pattern ="SAMPAZ_OR_2020_Q3.shp" ,recursive = TRUE, full.names = TRUE))
-
-# South African continetnal marine protected areas (no takes only)
-mpas_notake = st_read(list.files(pattern ="mpa_layer_protected.shp" ,recursive = TRUE, full.names = TRUE))
-
+mpas = st_read(list.files(pattern ="SAMPAZ_OR_2021_Q3.shp" ,recursive = TRUE, full.names = TRUE))
 # ---------------------------------
 
 
@@ -57,12 +53,10 @@ contours = contours[which(contours$DEPTH=="-250"),]
 # PROVINCE OUTLINE # -----------
 # simplify provinces to reduce the weight of the file
 sa = st_as_sf(sa)
-sa <- st_simplify(sa,dTolerance=100)
+sa <- st_simplify(sa,dTolerance=100, preserveTopology = TRUE)
 sa = sa %>%
   # only keep coastal provinces
-  filter(NAME_1 %in% c("Eastern Cape","KwaZulu-Natal","Northern Cape","Western Cape")) %>%
-  group_by(GID_0) %>%
-  summarise()
+  filter(NAME_1 %in% c("Eastern Cape","KwaZulu-Natal","Northern Cape","Western Cape"))
 sa = as(sa, Class = "Spatial")
 
 # PLACES # -----------
@@ -75,21 +69,21 @@ adjustedcoords[,2] = adjustedcoords[,2]+0.2
 # simplify MPA shapefile
 mpas = mpas %>%
   filter(CUR_NME != "Prince Edward Island Marine Protected Area") %>%
-  group_by(CUR_ZON_NM,CUR_NME) %>%
+  group_by(CUR_ZON_NM,CUR_NME,CUR_ZON_TY,GIS_AREA) %>%
   summarise()
+# simplify mpas
 mpas = st_simplify(mpas,dTolerance = 100)
+# extract notake mpas
+mpas_notake = 
+  mpas %>%
+  filter(CUR_ZON_TY %in% c("Restricted","Sanctuary","Wilderness"))
+# convert to spatial
 mpas = as(mpas, Class = "Spatial")
-
-# simplify MPA no take shapefile
-mpas_notake = st_simplify(mpas_notake,dTolerance = 100)
 mpas_notake = as(mpas_notake, Class = "Spatial")
 
 # add take and no-take specification to mpas dataframe
 mpas@data = mpas@data %>%
   mutate(type = ifelse(CUR_ZON_NM %in% mpas_notake$CUR_ZON_NM,"no-take","take"))
-
-# get all "take" mpas
-mpas_take = mpas - mpas_notake
 
 # mpa labels
 mpa_labels = st_as_sf(mpas)
@@ -140,3 +134,28 @@ coordinates(legend) <- ~V1+V2
 
 # color palette
 manual.col = colorRampPalette(c("#f7f6fd","#4635d0"))
+
+# list of bounding boxes
+bboxes = list()
+# kzn
+bbox_temp = bbox(sa[2,])
+bbox_temp[1,] = c(30,36)
+bbox_temp[2,] = c(-26,-32)
+bboxes[[1]] = bbox_temp
+# eastern cape
+bbox_temp = bbox(sa[1,])
+bbox_temp[1,] = c(23,31)
+bbox_temp[2,] =c(-31,-38)
+bboxes[[2]] = bbox_temp
+# western cape
+bbox_temp = bbox(sa[4,])
+bbox_temp[1,] = c(14,23.5)
+bbox_temp[2,] = c(-33,-38)
+bboxes[[3]] = bbox_temp
+# northern cape
+bbox_temp = bbox(sa[3,])
+bbox_temp[1,] = c(14,19)
+bbox_temp[2,] = c(-28,-33)
+
+bboxes[[4]] = bbox_temp
+names(bboxes) = c("KZN","EC","WC","NC")
