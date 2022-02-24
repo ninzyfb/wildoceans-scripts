@@ -1,7 +1,8 @@
 # WILDOCEANS SHARK & RAY CONSERVATION PLAN 
 
 ## About
-This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code may still change.
+This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code may still change.  
+A report of this project is available to download from X or by contacting ninab@wildtrust.co.za. A paper is being written for publication and will be referenced here when applicable. The report contains a list of all data collaborators. 
 
 # scripts
 There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
