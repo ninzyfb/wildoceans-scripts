@@ -2,7 +2,7 @@
 
 ## About
 This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code may still change.  
-A report of this project is available to download from X or by contacting ninab@wildtrust.co.za. A paper is being written for publication and will be referenced here when applicable. The report contains a list of all data collaborators. 
+A report of this project is available to download from X or by contacting ninab@wildtrust.co.za OR jennifero@wildtrust.co.za. A paper is being written for publication and will be referenced here when applicable. The report contains a list of all data collaborators. 
 
 # scripts
 There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
@@ -18,6 +18,7 @@ This should be sufficient for the other scripts to run. If you wish to run the c
 `library(devtools)`  
 `devtools::install_git("https://gitup.uni-potsdam.de/macroecology/mecofun.git")`
 
+**IMPORTANT 3: installing java may be required**: To run the modelling scripts as is, java is required to run MaxEnt as one of the modelling algorithms. If you do not wish to install java, then it may be that maxent will not be able to run.
 
 ### 1. scripts_occurencedata
 This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The raw occurrence data are confidential but the scripts are provided to show how it was cleaned and formatted.  
@@ -33,14 +34,14 @@ This folder contains scripts that were used to produce and plot the species dist
   Code to run all the distribution models. Start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for. 
 
 ### 3. scripts_planning
-This folder contains the code to run the spatial planning algorithm *prioritizr*. The *prioritizr* package has an [online tutorial](https://prioritizr.net/articles/prioritizr.html) and [github page](https://github.com/prioritizr/prioritizr), and the authors are very responsive to issues or questions that may come up when you use the package.  
+This folder contains the code to run the spatial planning algorithm *prioritizr*. The *prioritizr* package has an [online tutorial](https://prioritizr.net/articles/prioritizr.html) and [github page](https://github.com/prioritizr/prioritizr).  
 Similar to the modelling scripts, start with`mainscript-planning.R` as this is the parent script through which the other scripts are run.
 
 ### 4. IUCN
 Contains range maps for several shark and ray species in South Africa. This script can be used to run the spatial planning scripts instead of using the modelled distributions.
 
 ### 5. ALLLAYERS 5 & 10 kmresolution
-This folder contains the environmental rasters to run the distribution models at 5 or 10 km resolution.
+This folder contains the environmental rasters to run the distribution models at 5 or 10 km resolution. A reference to these data is available in the project report.
 
 ### 6. plotting_features
 This folder contains the layers necessary to produce plots with outputs from the modelling and planning scripts. The modelling and planning scripts produce rasters which can be plotted as annotated maps using the features from plotting parameters.
