@@ -41,8 +41,10 @@ rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
   VarImport = 5,
-  models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms 
+  #models = c('GLM'), # one model for demonstration purposes
+   models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
   models.options = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
+  #NbRunEval = 1, # 1-fold cross validation for demonstration purposes
   NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
   DataSplit = 75, # 75% of data used for calibration, 25% for testing
   models.eval.meth = c('TSS'), # evaluation method, TSS is True Statistics Skill
@@ -129,7 +131,7 @@ plot = levelplot(temp,
   # 250m isobath
   latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
   # sa coast
-  latticeExtra::layer(sp.polygons(sa_coast,col = "black",fill = "white",lwd= 1))+
+  latticeExtra::layer(sp.polygons(sa,col = "black",fill = "white",lwd= 1))+
   # points for main cities
   latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
   # coordinates and city names

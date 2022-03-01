@@ -3,7 +3,7 @@
 # ---------------------------------
 
 # species distribution file names (continuous)
-files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
+files = list.files(path = paste0(getwd(),"/wildoceans-scripts/"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
 feature_stack = stack()
 for(i in 1:length(files)){
   temp = raster(files[i])
@@ -13,14 +13,14 @@ for(i in 1:length(files)){
 rm(i,files,temp) # remove unnecessary variables
 
 # species distribution file names (binary)
-files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs"),pattern = "ensemblemeanthreshold.tif", recursive = TRUE,full.names = TRUE)
-feature_stack_binary = stack()
-for(i in 1:length(files)){
-  temp = raster(files[i])
-  temp = projectRaster(temp,pu)
-  feature_stack_binary = addLayer(feature_stack_binary,temp)
-}
-rm(i,files,temp) # remove unnecessary variables
+#files = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs"),pattern = "ensemblemeanthreshold.tif", recursive = TRUE,full.names = TRUE)
+#feature_stack_binary = stack()
+#for(i in 1:length(files)){
+#  temp = raster(files[i])
+#  temp = projectRaster(temp,pu)
+#  feature_stack_binary = addLayer(feature_stack_binary,temp)
+#}
+#rm(i,files,temp) # remove unnecessary variables
 
 # ---------------------------------
 # FORMATTING
@@ -28,17 +28,17 @@ rm(i,files,temp) # remove unnecessary variables
 
 # turn all NA values to 0
 values(feature_stack)[is.na(values(feature_stack))] = 0
-values(feature_stack_binary)[is.na(values(feature_stack_binary))] = 0
+#values(feature_stack_binary)[is.na(values(feature_stack_binary))] = 0
 
 # mask with pu
 feature_stack = stack(mask(feature_stack,pu))
-feature_stack_binary = stack(mask(feature_stack_binary,pu))
+#feature_stack_binary = stack(mask(feature_stack_binary,pu))
 
 # extract scientific name from stack of distributions
 featurenames = as.data.frame(names(feature_stack))
-featurenamesbinary = as.data.frame(names(feature_stack_binary))
+#featurenamesbinary = as.data.frame(names(feature_stack_binary))
 colnames(featurenames) = "featurename"
-colnames(featurenamesbinary) = "featurename_binary"
+#colnames(featurenamesbinary) = "featurename_binary"
 for(i in 1:nrow(featurenames)){
   # extract model type
   featurenames$modeltype[i] = strsplit(featurenames$featurename,"_")[[i]][3]
@@ -55,8 +55,8 @@ featurenames$species_scientific = toupper(featurenames$species_scientific)
 colnames(featurenames) = toupper(colnames(featurenames))
 
 # add binary stack names
-featurenames = cbind(featurenames,featurenamesbinary)
-rm(featurenamesbinary)
+#featurenames = cbind(featurenames,featurenamesbinary)
+#rm(featurenamesbinary)
 
 # turn season type to upper case
 featurenames$MODELTYPE = toupper(featurenames$MODELTYPE)
@@ -140,6 +140,3 @@ rm(idx,keep) # remove
 #  thresholds_df = rbind(thresholds_df,thresh)
 #  }
 #rm(name,model,genus,species,thresh,thresholds)
-
-
-rm(temp,i,files) # remove

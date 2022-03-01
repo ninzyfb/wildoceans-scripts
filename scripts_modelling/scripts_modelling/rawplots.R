@@ -40,7 +40,7 @@ setwd(my.directory)
 # DATA
 # ---------------------------------
 # list of species
-master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2])
 # Occurrence file names
 files = list.files(pattern = ".rds", recursive = TRUE, path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/"),full.names = TRUE)
 # ---------------------------------

@@ -27,7 +27,7 @@ files = list.files(path = "wildoceans-scripts/IUCN/Sharks_rays_SA_raw",pattern =
 names = toupper(files)
 names = str_split(names,toupper("wildoceans-scripts/IUCN/Sharks_rays_SA_raw/"), simplify = TRUE)[,2]
 names = str_split(names,".GPKG", simplify = TRUE)[,1]
-
+names = names[-21]
 # all iucn maps
 iucn_stack_all = stack()
 for(i in 1:length(files)){
@@ -35,15 +35,9 @@ for(i in 1:length(files)){
   temp = fasterize(temp,pu)
   iucn_stack_all = addLayer(iucn_stack_all,temp)
 }
+iucn_stack_all = dropLayer(iucn_stack_all,21)
 # add names to rasterstack
 names(iucn_stack_all) = names
-# save all species for which we have an IUCN layer
-names = as.data.frame(names)
-names$iucn = "yes"
-colnames(names)[1] = "SPECIES_SCIENTIFIC"
-# join to master database
-# master = full_join(master,names)
-#write.xlsx(master,"data_summary_master.xlsx")
 
 # extract scientific name from file name
 names = toupper(files)

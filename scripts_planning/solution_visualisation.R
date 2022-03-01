@@ -14,7 +14,7 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("gridExtra","rgeos","sf","dplyr","tidyr","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+requiredpackages = c("colorspace","gridExtra","rgeos","sf","dplyr","tidyr","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
 rm(requiredpackages)
@@ -27,6 +27,7 @@ rm(requiredpackages)
 # set directory to same parent folder where sub-scripts are found
 # the subs-scripts can be in folders within this directory as the code will look through all the folders
 path =  "/Users/nfb/" # path for mac
+path =  "/home/nina/" # path for pc
 my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
 # set directory
 setwd(my.directory) 
@@ -40,9 +41,9 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # plotting settings
 settings = latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
   # mpa no-take fill
-  latticeExtra::layer(sp.polygons(mpas_notake, fill = "purple",alpha = 0.1))+
+  #latticeExtra::layer(sp.polygons(mpas_notake, fill = "purple",alpha = 0.1))+
   # mpa no-take outline
-  latticeExtra::layer(sp.polygons(mpas_notake,col = "black",lwd = 0.7))+
+  latticeExtra::layer(sp.polygons(mpas_notake,col = "red",lwd = 0.7))+
   # eez
   latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
   # sa coast
@@ -81,20 +82,18 @@ performances = list.files(path = paste0(my.directory,"/Planning/Outputs/"),patte
 # the following loop will plot each binary raster individually
 for(i in 1:length(general_solutions)){
   
-  # stack of raster files
-  raster_stack = stack(general_solutions[i],irraplaceability_scores[i]) 
+  # raster file
+  temp = raster(general_solutions[i]) 
   # raster name
-  name = names(raster_stack[[1]])
+  name = names(temp)
   # problem number
   pnumber = str_split(name,"_")[[1]][1]
-  # stream
-  stream = str_split(name,"_")[[1]][2]
-  if(stream == "streamA"){stream = "no"}else{stream = "yes"}
   # scenario
-  scenario = str_split(name,"_")[[1]][3]
+  scenario = str_split(name,"_")[[1]][2]
   # prop_eez
-  maxvalue = max(values(raster_stack[[1]]),na.rm=TRUE)
-  prop_eez = round((length(which(values(raster_stack[[1]])==maxvalue))/10809)*100,1)
+  temp2 = raster(irraplaceability_scores[i])
+  prop_eez = round((length(which(values(temp2)!=0))/10809)*100,1)
+  rm(temp2)
   # target
   t = as.numeric(scenario_sheet$targets[i])*100
   # mpas included
@@ -102,37 +101,37 @@ for(i in 1:length(general_solutions)){
   if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
   if(inclusion == "mpa_layer_all"){inclusion = "all MPAs"}
   if(inclusion == "none"){inclusion = "No MPAs"}
-
-  plot_type = names(raster_stack[[1]])
+  # features included
+  features = scenario_sheet$features[i]
+  if(features == "feature_stack_aseasonal"){features = "all species (n = 53)"}
+  if(features == "feature_stack_aseasonal_targetsonly"){features = "target species (n = 18)"}
+  
+  plot_type = names(temp)
   
   # binary solution plots 
-  plot=levelplot(raster_stack[[1]],
+  plot=levelplot(temp,
                  xlab = NULL,
                  ylab = NULL,
-                 main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                 main = paste0(scenario," scenario | Species protection: ",t,"% | ",features),
                  col.regions = cols,
                  margin = FALSE,
                  colorkey=FALSE)+settings
   png(file=paste0("Planning/Outputs/solutions/binary/",plot_type,".png"),width=3000, height=2000, res=300)
-  print(plot)
+  print(plot) 
   dev.off()}
 
 # the following loop will plot each irraplacability plot
-for(i in 1:length(general_solutions)){
+for(i in 1:length(irraplaceability_scores)){
   # stack of raster files
-  raster_stack = stack(general_solutions[i],irraplaceability_scores[i]) 
+  temp = raster(irraplaceability_scores[i]) 
   # raster name
-  name = names(raster_stack[[1]])
+  name = names(temp)
   # problem number
   pnumber = str_split(name,"_")[[1]][1]
-  # stream
-  stream = str_split(name,"_")[[1]][2]
-  if(stream == "streamA"){stream = "no"}else{stream = "yes"}
   # scenario
-  scenario = str_split(name,"_")[[1]][3]
+  scenario = str_split(name,"_")[[1]][2]
   # prop_eez
-  maxvalue = max(values(raster_stack[[1]]),na.rm=TRUE)
-  prop_eez = round((length(which(values(raster_stack[[1]])==maxvalue))/10809)*100,1)
+  prop_eez = round((length(which(values(temp)!=0))/10809)*100,1)
   # target
   t = as.numeric(scenario_sheet$targets[i])*100
   # mpas included
@@ -140,42 +139,45 @@ for(i in 1:length(general_solutions)){
   if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
   if(inclusion == "mpa_layer_all"){inclusion = "all MPAs"}
   if(inclusion == "none"){inclusion = "No MPAs"}
-  # ferrier and irraplaceability solution plots
-  for(a in 2){
-    plot_type = names(raster_stack[[a]]) # plot name
-    if(str_detect(plot_type,"FS")){folder = "ferrier/"}# folder destination
-    if(str_detect(plot_type,"IR")){folder = "irraplaceability/"}# folder destination
-    
-    plot = levelplot(raster_stack[[a]],
+  # features included
+  features = scenario_sheet$features[i]
+  if(features == "feature_stack_aseasonal"){features = "all species (n = 53)"}
+  if(features == "feature_stack_aseasonal_targetsonly"){features = "target species (n = 18)"}
+  # irraplaceability solution plots
+  plot_type = names(temp) # plot name
+  folder = "irraplaceability/"# folder destination
+  values(temp)[values(temp) == 0] = NA
+  plot = levelplot(temp,
                    xlab = NULL,
                    ylab = NULL,
-                   colorkey=list(space="bottom", title = "Irraplaceability "),
-                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   colorkey=list(space="right"),
+                   main = paste0(scenario," scenario | Species protection: ",t,"% | ",features),
                    margin = FALSE,
-                   col.regions = rev(heat.colors(32)),
+                   col.regions = rev(sequential_hcl(n=5)),
                    at = intervals2)+settings
     png(file=paste0("Planning/Outputs/solutions/",folder,plot_type,".png"),width=3000, height=2000, res=300)
     print(plot)
     dev.off()
-    
     # province plots
     for(x in 1:4){
       subname = names(bboxes)[x]
-      plot=levelplot(crop(raster_stack[[a]],bboxes[[x]]),
+      plot=levelplot(crop(temp,bboxes[[x]]),
                      xlab = NULL,
                      ylab = NULL,
-                     colorkey=list(space="bottom", title = "Irraplaceability "),
-                     main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
-                     col.regions = rev(heat.colors(32)),
+                     colorkey=list(space="right"),
+                     main = paste0(scenario," scenario | Species protection: ",t,"%"),
+                     col.regions = rev(sequential_hcl(n=5)),
                      at = intervals2,
                      margin = FALSE)+settings
       png(file=paste0("Planning/Outputs/solutions/",folder,"provinceplots/",plot_type,"_",subname,".png"),width=3000, height=2000, res=300)
       print(plot)
       dev.off()
-    }
+    }}
+
+
 
   # extract values in all MPA zones
-  values = extract(raster_stack[[a]],mpas)
+  values = extract(raster_stack[[2]],mpas)
   mpas_temp = mpas
   for (b in 1:length(values)){
     sum = sum(values[[b]], na.rm = TRUE)
@@ -209,11 +211,11 @@ for(i in 1:length(general_solutions)){
    # so that they plot smallest values as lightest and largest values as darkest
    mpas_temp1$color = color.match[match(mpas_temp1$categories, lookupTable)]
     # Plot the final product
-   plot = levelplot(raster_stack[[a]],
+   plot = levelplot(raster_stack[[2]],
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="bottom"),
-                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   main = paste0(scenario," scenario | Species protection: ",t,"%"),
                    margin = FALSE,
                    col.regions = rev(heat.colors(32)),at = intervals2)+settings+
     latticeExtra::layer(sp.polygons(mpas_temp1,fill=mpas_temp1$color, lwd = 1))
@@ -223,11 +225,11 @@ for(i in 1:length(general_solutions)){
   # province plots
   for(x in 1:4){
     subname = names(bboxes)[x]
-    plot=levelplot(crop(raster_stack[[a]],bboxes[[x]]),
+    plot=levelplot(crop(raster_stack[[2]],bboxes[[x]]),
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="bottom"),
-                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   main = paste0(scenario," scenario | Species protection: ",t,"%"),
                    col.regions = rev(heat.colors(32)),
                    at = intervals2,
                    margin = FALSE)+settings+
@@ -249,11 +251,11 @@ for(i in 1:length(general_solutions)){
   # so that they plot smallest values as lightest and largest values as darkest
   mpas_temp2$color = color.match[match(mpas_temp2$categories, lookupTable)]
   # Plot the final product!
-  plot = levelplot(raster_stack[[a]],
+  plot = levelplot(raster_stack[[2]],
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="bottom"),
-                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   main = paste0(scenario," scenario | Species protection: ",t,"%"),
                    margin = FALSE,
                    col.regions = rev(heat.colors(32)),at = intervals2)+settings+
     latticeExtra::layer(sp.polygons(mpas_temp2,fill=mpas_temp2$color, lwd = 1))
@@ -267,7 +269,7 @@ for(i in 1:length(general_solutions)){
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="bottom"),
-                   main = paste0(scenario," scenario","\nWeighted: ",stream," | Species protection: ",t,"%"),
+                   main = paste0(scenario," scenario | Species protection: ",t,"%"),
                    col.regions = rev(heat.colors(32)),
                    at = intervals2,
                    margin = FALSE)+settings+
@@ -278,7 +280,6 @@ for(i in 1:length(general_solutions)){
   }
   rm(mpas_temp,mpas_temp1, mpas_temp2)
   }
-}
 
 # working with result outputs after plotting (if needed)
 results = list.files(pattern = "mpaimportance.csv" ,recursive = TRUE,full.names = TRUE)

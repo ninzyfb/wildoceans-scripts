@@ -99,10 +99,8 @@ featurenames = featurenames %>%
   mutate(SCORE = ifelse(target_species == "yes",SCORE+1,SCORE)) %>%
   filter(MODELTYPE == "ASEASONAL")
 
-featurenames_targetsonly = featurenames %>%
-  filter(target_species == "yes")
-feature_stack_aseasonal_targetsonly = dropLayer(feature_stack_aseasonal,which(!(names(feature_stack_aseasonal) %in% featurenames_targetsonly$FEATURENAME)))  # identify Aseasonal layers in stack
-
+# drop i. oxyrhinchus and c. carcharias
+feature_stack_aseasonal_targetsonly = dropLayer(feature_stack_aseasonal_targetsonly,c(5,9))  # identify Aseasonal layers in stack
 # ---------------------------------
 
 
@@ -125,13 +123,16 @@ scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scena
 # start counter
 problem_number = 5
 
+iucn_names$SPECIES_SCIENTIFIC = gsub(".", " ", iucn_names$SPECIES_SCIENTIFIC, fixed=TRUE)
+iucn_names = as.data.frame(iucn_names)
+colnames(iucn_names) = "SPECIES_SCIENTIFIC"
+iucn_names = left_join(iucn_names,featurenames)
+iucn_names$target_species = NULL
+iucn_names = left_join(iucn_names,master)
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
 # the following loop goes through each row of the scenario sheet and outputs a solution
 for(i in 6:nrow(scenario_sheet)){
-  
-  # scenario stream (A or B)
-  stream = scenario_sheet$stream[i]
   
   # scenario name (Control, MPA, Fishing)
   scenario = scenario_sheet$scenario[i]
@@ -141,9 +142,7 @@ for(i in 6:nrow(scenario_sheet)){
   
   # season
   season = toupper(scenario_sheet$season[i])
-  featurenames_temp = featurenames %>%
-    filter(MODELTYPE == season)
-  featurenames_temp = featurenames_temp[featurenames_temp$FEATURENAME %in% names(features),]
+  featurenames_temp = featurenames[featurenames$FEATURENAME %in% names(features),]
   
   # weights
   weights = scenario_sheet$weights[i]
@@ -204,7 +203,7 @@ for(i in 6:nrow(scenario_sheet)){
     solution_sum= calc(stack(unlist(solution_single)),sum)
   
     # save solution as raster
-    writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario.tiff"),overwrite = TRUE)
+    writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario.tiff"),overwrite = TRUE)
   
   # create coverage summary
   coverage_summary = data.frame()
@@ -227,7 +226,10 @@ for(i in 6:nrow(scenario_sheet)){
   # get some numbers that are easier to interpret
   coverage_summary = coverage_summary %>%
     group_by(SPECIES_SCIENTIFIC,target_species,SCORE) %>%
-    summarise(km_shortfall_avg = mean(km_shortfall),
+    summarise(total_amount = mean(total_amount),
+              absolute_held_avg = mean(absolute_held),
+              absolute_target_avg = mean(absolute_target),
+              km_shortfall_avg = mean(km_shortfall),
               km_shortfall_sd = sd(km_shortfall),
               target = mean(relative_target),
               target_achieved = mean(relative_held))%>%
@@ -235,23 +237,10 @@ for(i in 6:nrow(scenario_sheet)){
   coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
   write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
   
-  # ferrier score for single problem
-  #ferrierscore_sum = stack()
-  #for(i in 1:length(solution_single)){
-  #ferrierscore_single = eval_ferrier_importance(problem_single, solution_single[[i]])[["total"]]
-  #ferrierscore_single = rescale(ferrierscore_single)
-  #ferrierscore_sum = addLayer(ferrierscore_sum,ferrierscore_single)}
-  # calculate sum
-  #ferrierscore_sum= calc(ferrierscore_sum,sum)
-  #ferrierscore_sum= rescale(ferrierscore_sum)
-  
-  # save as raw raster file
-  #writeRaster(ferrierscore_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario_FS.tiff"), overwrite = TRUE)
-  
   # irraplaceability score for single problem
   ir <- eval_replacement_importance(problem_single, solution_single[[1]])
   # save as raw raster file
-  writeRaster(ir,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_stream",stream,"_",scenario,"_scenario_IR.tiff"), overwrite = TRUE)
+  writeRaster(ir,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario_IR.tiff"), overwrite = TRUE)
   
   rm(problem_single,solution_single,solution_sum,ferrierscore_single,ferrierscore_sum,t)
   rm(boundary_penalty,scenario,locked_in,costs,features,performances,objective,temp)

@@ -44,7 +44,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # ---------------------------------
 # DATA FILES
 # ---------------------------------
-sdms_rasters = list.files(pattern = "Aseasonal_res10_ensemblemean.tif", recursive = TRUE, full.names =TRUE)
+sdms_rasters = list.files(path = "wildoceans-scripts/Outputs/modelling/rasters/",pattern = "Aseasonal_res10_ensemblemean.tif", recursive = TRUE, full.names =TRUE)
 # list of species
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
 # ---------------------------------
@@ -54,18 +54,29 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 # PLOTTING
 # ---------------------------------
 # plotfolder
-plotfolder = paste0(getwd(),"/modelling/outputs/prettyplots/")
+plotfolder = paste0(getwd(),"/wildoceans-scripts/Outputs/modelling/prettyplots/")
 
-for(i in 1:length(sdms_rasters)){
-  target = str_split(sdms_rasters[i],"/modelling/outputs/sdms/|_")[[1]][2]
-  model_type = str_split(sdms_rasters[i],"/modelling/outputs/sdms/|_")[[1]][3]
+for(i in 19:length(sdms_rasters)){
+  target = str_split(sdms_rasters[i],"/")[[1]][6]
+  target = str_split(target,"_")[[1]][1]
+  model_type = str_split(sdms_rasters[i],"_")[[1]][2]
   temp = raster(sdms_rasters[i])
   values(temp) = values(temp)/1000
-  res = str_split(sdms_rasters[i],"/modelling/outputs/sdms/|_")[[1]][4]
+  res = str_split(sdms_rasters[i],"_")[[1]][3]
+  
+  # turn values of 0 to NA
+  values(temp)[values(temp)==0] = NA
   
   # species info
   spp_info = master %>%
     filter(SPECIES_SCIENTIFIC == target)
+  
+  # IUCN data
+  exists3 = file.info(list.files(pattern = paste(target,".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE))
+  if(nrow(exists3 !=0)){
+    iucn_extent = st_read(list.files(pattern = paste(target,".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE))
+    iucn_extent = as(iucn_extent, Class = "Spatial")}else{rm(iucn_extent)}
+  rm(exists3)
   
   # convert target to sentence case for plotting
   target = str_to_sentence(target)
@@ -92,8 +103,10 @@ for(i in 1:length(sdms_rasters)){
     # done in three lines as a "pretty" position varies based on their place on the map
     latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
     latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-    latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
-  
+    latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+    # iucn extent
+    if(exists("iucn_extent")){latticeExtra::layer(sp.polygons(iucn_extent,col = "red",lwd = 1.5))}
+    
   # this saves the plot to a folder
   png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"),width=3000, height=2000, res=300)
   print(plot)

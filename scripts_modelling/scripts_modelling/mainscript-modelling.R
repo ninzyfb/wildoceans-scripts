@@ -15,6 +15,8 @@
 # and further descriptions can otherwise be found within each script
 
 # IMPORTANT: Even when you know each script works, i suggest running each script one at a time as running the whole parent script at once seems to cause some issues
+
+# IMPORTANT: increasing number of parameters
 # ---------------------------------
 
 
@@ -102,7 +104,8 @@ for(i in 1:nrow(master_keep)){
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
+  seasonal = "no"
+  #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
