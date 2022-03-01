@@ -1,0 +1,13 @@
+"","Model.name","Eval.metric","Testing.data","Evaluating.data","Cutoff","Sensitivity","Specificity"
+"1","EMmeanByTSS_mergedAlgo_RUN1_PA1","KAPPA",0.863,NA,396,96.078,90.196
+"2","EMmeanByTSS_mergedAlgo_RUN1_PA1","TSS",0.863,NA,396,96.078,90.196
+"3","EMmeanByTSS_mergedAlgo_RUN1_PA1","ROC",0.955,NA,393.5,96.078,90.196
+"4","EMmeanByTSS_mergedAlgo_Full_PA1","KAPPA",0.883,NA,409,97.403,90.909
+"5","EMmeanByTSS_mergedAlgo_Full_PA1","TSS",0.883,NA,409,97.403,90.909
+"6","EMmeanByTSS_mergedAlgo_Full_PA1","ROC",0.986,NA,402.5,97.662,90.649
+"7","EMmeanByTSS_mergedAlgo_RUN1_PA2","KAPPA",0.834,NA,375,99,84.615
+"8","EMmeanByTSS_mergedAlgo_RUN1_PA2","TSS",0.836,NA,375,99,84.615
+"9","EMmeanByTSS_mergedAlgo_RUN1_PA2","ROC",0.952,NA,374,99,84.615
+"10","EMmeanByTSS_mergedAlgo_Full_PA2","KAPPA",0.883,NA,369,97.143,91.169
+"11","EMmeanByTSS_mergedAlgo_Full_PA2","TSS",0.883,NA,369,97.143,91.169
+"12","EMmeanByTSS_mergedAlgo_Full_PA2","ROC",0.987,NA,373.5,97.143,91.429

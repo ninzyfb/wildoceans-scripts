@@ -114,11 +114,11 @@ rm(predictions,response) # remove unnecessary variables
 
 # isolate ensemble prediction raster
 en_preds = get_predictions(static_ensembleprojection) 
-
+en_preds = calc(en_preds,mean,na.rm = TRUE)
 
 # PLOT 1 - CONTINUOUS DISTRIBUTION VALUES (pretty plots)
 # this is the plot to use in any reports or papers
-temp = en_preds[[1]] # temporary layer to turn 0 values to NA
+temp = en_preds # temporary layer to turn 0 values to NA
 temp[values(temp) == 0] = NA # turn 0 values to NA
 plot = levelplot(temp,
           main = paste0(target,"\n",model_type),
@@ -146,8 +146,11 @@ print(plot)
 dev.off()
 rm(temp,plot) # remove unnecessary variables
 
+# save raster
+writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
+
 # PLOT 2 - BINARY DISTRIBUTION VALUES
-temp = en_preds[[1]] # temporary layer to turn values below the threshold to NA
+temp = en_preds # temporary layer to turn values below the threshold to NA
 values(temp)[values(temp)<thresh$thresh]=NA # turn values below threshold to NA
 values(temp)[values(temp)>=thresh$thresh]=1 # turn values below threshold to NA
 plot = levelplot(temp,
@@ -167,7 +170,6 @@ rm(plot) # remove unnecessary variables
 # these are the plots to use in the planning software
 # they are simple rasters with probability values from 0 to 1000
 # both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
-writeRaster(en_preds[[1]],paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
 #writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
 writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
 # ---------------------------------
