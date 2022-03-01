@@ -56,12 +56,8 @@ exp =  pts_env[,-c(1:3)]
 # and we run each model with 2 sets of background points (specified by PA.nb.rep = 2)
 pseudoabsences = length(which(pa==1))
 
-exp = exp[,which(colnames(exp) %in% all)]
 # make sure substrate is a factor
 exp$substrate_simplified = as.factor(exp$substrate_simplified)
-
-# also reduce stack_subset
-stack_subset = subset(stack_subset,all)
 
 # keep or remove substrate layer
 if(!is.na(substrate) & substrate == "no"){
