@@ -31,7 +31,7 @@ if("biomod2" %in% (.packages())){detach("package:biomod2", unload=TRUE) }
 # the example_data.csv on github has data from GBIF on ACROTERIOBATUS ANNULATUS and can be used to try the code
 FILENAME = paste(toupper(target),".rds",sep="")
 path = "/home/nina/"
-path = "/Users/nfb/"
+#path = "/Users/nfb/"
 FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
 # identifies location of occurrence file on computer
 file = list.files(path = FILELOCATION, pattern = FILENAME, recursive = TRUE, full.names = TRUE)

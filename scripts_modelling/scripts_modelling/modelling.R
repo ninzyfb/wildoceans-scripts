@@ -40,17 +40,18 @@ rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 # 3 * 10 * 2 = 60
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
-  VarImport = 5,
+  var.import = 5,
   #models = c('GLM'), # one model for demonstration purposes
-   models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
-  models.options = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
+  models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
+  bm.options  = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
   #NbRunEval = 1, # 1-fold cross validation for demonstration purposes
-  NbRunEval = 10, # 10-fold cross validation (number of evaluations to run)
-  DataSplit = 75, # 75% of data used for calibration, 25% for testing
-  models.eval.meth = c('TSS'), # evaluation method, TSS is True Statistics Skill
-  SaveObj = TRUE, # keep all results on hard drive 
-  rescal.all.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
-  modeling.id = target) # name of model = species name (target)
+  nb.rep = 1, # 10-fold cross validation (number of evaluations to run)
+  data.split.perc = 75, # 75% of data used for calibration, 25% for testing
+  metric.eval  = c('TSS'), # evaluation method, TSS is True Statistics Skill
+  save.output  = TRUE, # keep all results on hard drive 
+  scale.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
+  modeling.id = target,
+  nb.cpu = 8) # name of model = species name (target)
 
 # get important variables
 variables = as.data.frame(get_variables_importance(static_models))
@@ -61,29 +62,29 @@ write.csv(variables,paste0(evaluationfolder,model_type,target,"_res",res,"_varia
 
 # Build ensemble model
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
-  modeling.output = static_models, # all model projections
-  chosen.models = 'all', # use all your models
+  bm.mod  = static_models, # all model projections
+  models.chosen = 'all', # use all your models
   em.by='PA_dataset+repet', # the way the models will be combined to build the ensemble models.
-  eval.metric = 'TSS', # which metric to use to keep models for the ensemble (requires the threshold below)
-  eval.metric.quality.threshold = c(0.7), # only keep models with a TSS score >0.7
+  metric.select  = 'TSS', # which metric to use to keep models for the ensemble (requires the threshold below)
+  metric.select.thresh  = c(0.7), # only keep models with a TSS score >0.7
   prob.mean = T, #  Estimate the mean probabilities across predictions
-  #prob.cv = T, # Estimate the coefficient of variation across predictions
+  prob.cv = T, # Estimate the coefficient of variation across predictions
 )
 
 # Individual model projections over current environmental variables
 static_modelprojections =
   BIOMOD_Projection(
     proj.name = paste0(target,model_type), # new folder will be created with this name
-    modeling.output = static_models, # your modelling output object
+    bm.mod  = static_models, # your modelling output object
     new.env = stack_model, # same environmental variables on which model will be projected
-    selected.models = "all", # which models to project, in this case only the full ones
-    binary.meth = 'TSS', # model evaluation method
+    models.chosen  = "all", # which models to project, in this case only the full ones
     compress = 'xy', # to do with how r stores the file
-    build.clamping.mask = FALSE)
+    build.clamping.mask = FALSE,
+    nb.cpu=8)
 
 # Ensemble model projection 
 static_ensembleprojection = BIOMOD_EnsembleForecasting(
-  EM.output = static_ensemblemodel,
+  bm.em = static_ensemblemodel,
   projection.output = static_modelprojections)
 
 # get all models evaluation scores

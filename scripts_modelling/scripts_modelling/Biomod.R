@@ -26,7 +26,7 @@ library(biomod2)
 # ---------------------------------
 
 # this allows you to see the default model parameters used by biomod
-Print_Default_ModelingOptions() # these are the default parameters used for each model
+bm_DefaultModelingOptions() # these are the default parameters used for each model
 
 # default parameters can be altered using BIOMOD_ModelingOptions()
 # in our case we will be using MAXENT so i need to specify the path to my downloaded MAXENT file
