@@ -45,13 +45,13 @@ static_models <- BIOMOD_Modeling(
   models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
   bm.options  = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
   #NbRunEval = 1, # 1-fold cross validation for demonstration purposes
-  nb.rep = 1, # 10-fold cross validation (number of evaluations to run)
+  nb.rep = 10, # 10-fold cross validation (number of evaluations to run)
   data.split.perc = 75, # 75% of data used for calibration, 25% for testing
   metric.eval  = c('TSS'), # evaluation method, TSS is True Statistics Skill
   save.output  = TRUE, # keep all results on hard drive 
   scale.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
-  modeling.id = target,
-  nb.cpu = 8) # name of model = species name (target)
+  modeling.id = target, # name of model = species name (target)
+  nb.cpu = 8) 
 
 # get important variables
 variables = as.data.frame(get_variables_importance(static_models))
@@ -59,12 +59,13 @@ variables = as.data.frame(get_variables_importance(static_models))
 write.csv(variables,paste0(evaluationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
 
 #rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
+bm_PlotEvalBoxplot(bm.out = static_models, group.by = c('algo', 'run'))
 
 # Build ensemble model
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
   bm.mod  = static_models, # all model projections
   models.chosen = 'all', # use all your models
-  em.by='PA_dataset+repet', # the way the models will be combined to build the ensemble models.
+  em.by='all', # the way the models will be combined to build the ensemble models.
   metric.select  = 'TSS', # which metric to use to keep models for the ensemble (requires the threshold below)
   metric.select.thresh  = c(0.7), # only keep models with a TSS score >0.7
   prob.mean = T, #  Estimate the mean probabilities across predictions
@@ -78,6 +79,7 @@ static_modelprojections =
     bm.mod  = static_models, # your modelling output object
     new.env = stack_model, # same environmental variables on which model will be projected
     models.chosen  = "all", # which models to project, in this case only the full ones
+    metric.binary = "TSS",
     compress = 'xy', # to do with how r stores the file
     build.clamping.mask = FALSE,
     nb.cpu=8)
@@ -85,7 +87,7 @@ static_modelprojections =
 # Ensemble model projection 
 static_ensembleprojection = BIOMOD_EnsembleForecasting(
   bm.em = static_ensemblemodel,
-  projection.output = static_modelprojections)
+  bm.proj = static_modelprojections)
 
 # get all models evaluation scores
 all_evals = get_evaluations(static_models, as.data.frame = TRUE)
@@ -98,11 +100,10 @@ write.csv(ensemble_evals,paste0(evaluationfolder,model_type,target,"_res",res,"_
 predictions = get_predictions(static_ensemblemodel)[,1] # predicted variables
 response = get_formal_data(static_models,"resp.var") # response variable 
 response[which(is.na(response))] = 0 # change NA to 0
-thresh = Find.Optim.Stat(Stat='TSS',
-                         Fit = predictions,
-                         Obs = response,
-                         Nb.thresh.test = 100,
-                         Fixed.thresh = NULL)[2]
+thresh = bm_FindOptimStat(metric.eval='TSS',
+                         fit = predictions,
+                         obs = response,
+                         nb.thresh = 100)[2]
 thresh = as.data.frame(thresh) # save the output as a dataframe
 write.csv(thresh,paste0(evaluationfolder,model_type,target,"_res",res,"_thresh.csv")) # save the dataframe
 rm(predictions,response) # remove unnecessary variables
@@ -115,11 +116,10 @@ rm(predictions,response) # remove unnecessary variables
 
 # isolate ensemble prediction raster
 en_preds = get_predictions(static_ensembleprojection) 
-en_preds = calc(en_preds,mean,na.rm = TRUE)
 
 # PLOT 1 - CONTINUOUS DISTRIBUTION VALUES (pretty plots)
 # this is the plot to use in any reports or papers
-temp = en_preds # temporary layer to turn 0 values to NA
+temp = en_preds[[1]] # temporary layer to turn 0 values to NA
 temp[values(temp) == 0] = NA # turn 0 values to NA
 plot = levelplot(temp,
           main = paste0(target,"\n",model_type),
@@ -151,9 +151,9 @@ rm(plot) # remove unnecessary variables
 writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
 
 # PLOT 2 - BINARY DISTRIBUTION VALUES
-temp = en_preds # temporary layer to turn values below the threshold to NA
-values(temp)[values(temp)<thresh$thresh]=NA # turn values below threshold to NA
-values(temp)[values(temp)>=thresh$thresh]=1 # turn values below threshold to NA
+temp = en_preds[[1]] # temporary layer to turn values below the threshold to NA
+values(temp)[values(temp)<thresh]=NA # turn values below threshold to NA
+values(temp)[values(temp)>=thresh]=1 # turn values below threshold to NA
 plot = levelplot(temp,
                  main = paste0(target,"\n",model_type,"\n","Binary presence absence map"),
                  names.attr=c("Ensemble model"),
@@ -171,6 +171,6 @@ rm(plot) # remove unnecessary variables
 # these are the plots to use in the planning software
 # they are simple rasters with probability values from 0 to 1000
 # both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
-#writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
+writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
 writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
 # ---------------------------------

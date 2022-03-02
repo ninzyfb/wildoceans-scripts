@@ -34,9 +34,14 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","mecofun","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","mecofun","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+# check which packages you need to install
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
+# install packages
+install.packages(requiredpackages)
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
+devtools::install_github("biomodhub/biomod2", dependencies = TRUE)
 rm(requiredpackages)
 # ---------------------------------
 
@@ -95,15 +100,14 @@ if(res ==10){
 
 # IMPORTANT: to simply run the loop with the example data
 # go to the species_data.R subscript and follow the instructions in the subscript
-# also remember to manually change the following to:
-# target = "ACROTERIOBATUS ANNULATUS
-# substrate = "yes"
-# seasonal = "yes" or "no" (your choice on if you want to run seasonal models as well)
-for(i in 1:nrow(master_keep)){
+master_keep_reduced = master_keep %>%
+  filter(cells_10>100)
+
+for(i in 1:nrow(master_keep_reduced)){
   
   # MODEL PARAMATERS
-  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
-  substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
+  target = master_keep_reduced$SPECIES_SCIENTIFIC[i] # species name
+  substrate = master_keep_reduced$Substrate[i] # specifies if substrate layer is to be included
   seasonal = "no"
   #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
