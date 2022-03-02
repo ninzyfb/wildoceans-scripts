@@ -144,7 +144,7 @@ plot = levelplot(temp,
 png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
 print(plot)
 dev.off()
-rm(temp,plot) # remove unnecessary variables
+rm(plot) # remove unnecessary variables
 
 # save raster
 writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
