@@ -34,7 +34,7 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","mecofun","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # check which packages you need to install
 requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
 # install packages
@@ -91,6 +91,14 @@ if(res ==10){
   master_keep = master %>%
     filter(rounded_10 >=1)}
 # ---------------------------------
+
+
+variables = read.csv(list.files(pattern = "selectedvariables_all.csv", recursive = TRUE, full.names = TRUE))
+variableimportance = list.files(pattern = "variableimportance.csv", recursive = TRUE, full.names = TRUE)
+for(i in 1:kength(variableimportance)){
+  temp = read.csv(variableimportance[i])
+
+  }
 
 # ---------------------------------
 #  RUNNING THE MODELS
