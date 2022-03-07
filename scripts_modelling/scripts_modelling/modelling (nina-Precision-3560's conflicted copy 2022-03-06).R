@@ -1,0 +1,176 @@
+# ---------------------------------------------------------------------------------
+# AUTHOR: Nina Faure Beaulieu (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
+# ---------------------------------------------------------------------------------
+
+
+# ---------------------------------
+# SCRIPT DESCRIPTION
+# ---------------------------------
+# This script runs and projects the models
+# ---------------------------------
+
+
+# ---------------------------------
+# OUTPUT FOLDER DESTINATION
+# ---------------------------------
+# create output folders if they do not already exists
+# this is where the outputs will be saved to
+if(!dir.exists("Outputs")){dir.create("Outputs")}
+if(!dir.exists("Outputs/modelling")){dir.create("Outputs/modelling")}
+if(!dir.exists("Outputs/modelling/evaluations")){dir.create("Outputs/modelling/evaluations")}
+if(!dir.exists("Outputs/modelling/prettyplots")){dir.create("Outputs/modelling/prettyplots")}
+if(!dir.exists("Outputs/modelling/rasters")){dir.create("Outputs/modelling/rasters")}
+
+evaluationfolder = paste0(my.directory,"/Outputs/modelling/evaluations/")
+plotfolder = paste0(my.directory,"/Outputs/modelling/prettyplots/")
+rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
+# ---------------------------------
+
+
+# ---------------------------------
+# MODELLING
+# ---------------------------------
+
+# Build individual aseasonal models
+# this static models object will contain 60 model projections
+# this is because we are running 3 model algorithms (GLM, MAXENT, GAM)
+# each model algorithm is being run 10 times as a cross-validation approach
+# and these 10 runs are being run on two different set sof backgorund points
+# 3 * 10 * 2 = 60
+static_models <- BIOMOD_Modeling(
+  data, # your biomod object
+  var.import = 5,
+  #models = c('GLM'), # one model for demonstration purposes
+  models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
+  bm.options  = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
+  #NbRunEval = 1, # 1-fold cross validation for demonstration purposes
+  nb.rep = 10, # 10-fold cross validation (number of evaluations to run)
+  data.split.perc = 75, # 75% of data used for calibration, 25% for testing
+  metric.eval  = c('TSS'), # evaluation method, TSS is True Statistics Skill
+  save.output  = TRUE, # keep all results on hard drive 
+  scale.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
+  modeling.id = target, # name of model = species name (target)
+  nb.cpu = 8) 
+
+# get important variables
+variables = as.data.frame(get_variables_importance(static_models))
+# save
+write.csv(variables,paste0(evaluationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
+
+#rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
+bm_PlotEvalBoxplot(bm.out = static_models, group.by = c('algo', 'run'))
+
+# Build ensemble model
+static_ensemblemodel  <- BIOMOD_EnsembleModeling(
+  bm.mod  = static_models, # all model projections
+  models.chosen = 'all', # use all your models
+  em.by='all', # the way the models will be combined to build the ensemble models.
+  metric.select  = 'TSS', # which metric to use to keep models for the ensemble (requires the threshold below)
+  metric.select.thresh  = c(0.7), # only keep models with a TSS score >0.7
+  prob.mean = T, #  Estimate the mean probabilities across predictions
+  prob.cv = T, # Estimate the coefficient of variation across predictions
+)
+
+# Individual model projections over current environmental variables
+static_modelprojections =
+  BIOMOD_Projection(
+    proj.name = paste0(target,model_type), # new folder will be created with this name
+    bm.mod  = static_models, # your modelling output object
+    new.env = stack_model, # same environmental variables on which model will be projected
+    models.chosen  = "all", # which models to project, in this case only the full ones
+    metric.binary = "TSS",
+    compress = 'xy', # to do with how r stores the file
+    build.clamping.mask = FALSE,
+    nb.cpu=8)
+
+# Ensemble model projection 
+static_ensembleprojection = BIOMOD_EnsembleForecasting(
+  bm.em = static_ensemblemodel,
+  bm.proj = static_modelprojections)
+
+# get all models evaluation scores
+all_evals = get_evaluations(static_models, as.data.frame = TRUE)
+ensemble_evals = get_evaluations(static_ensemblemodel, as.data.frame = TRUE)
+write.csv(all_evals,paste0(evaluationfolder,model_type,target,"_res",res,"_allevals.csv"))
+write.csv(ensemble_evals,paste0(evaluationfolder,model_type,target,"_res",res,"_ensembleevals.csv"))
+
+# Threshold calculation
+# this function calculates the threshold at which a probability can be considered a presence
+predictions = get_predictions(static_ensemblemodel)[,1] # predicted variables
+response = get_formal_data(static_models,"resp.var") # response variable 
+response[which(is.na(response))] = 0 # change NA to 0
+thresh = bm_FindOptimStat(metric.eval='TSS',
+                         fit = predictions,
+                         obs = response,
+                         nb.thresh = 100)[2]
+thresh = as.data.frame(thresh) # save the output as a dataframe
+write.csv(thresh,paste0(evaluationfolder,model_type,target,"_res",res,"_thresh.csv")) # save the dataframe
+rm(predictions,response) # remove unnecessary variables
+# ---------------------------------
+
+
+# ---------------------------------
+# PLOTTING
+# ---------------------------------
+
+# isolate ensemble prediction raster
+en_preds = get_predictions(static_ensembleprojection) 
+
+# PLOT 1 - CONTINUOUS DISTRIBUTION VALUES (pretty plots)
+# this is the plot to use in any reports or papers
+temp = en_preds[[1]] # temporary layer to turn 0 values to NA
+temp[values(temp) == 0] = NA # turn 0 values to NA
+plot = levelplot(temp,
+          main = paste0(target,"\n",model_type),
+          names.attr = c("Ensemble model"),
+          par.settings = rasterTheme(viridis_pal(option="D")(10)),
+          at = intervals,
+          margin = FALSE)+
+  # eez
+  latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+  # 250m isobath
+  latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
+  # sa coast
+  latticeExtra::layer(sp.polygons(sa,col = "black",fill = "white",lwd= 1))+
+  # points for main cities
+  latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+  # coordinates and city names
+  # done in three lines as a "pretty" position varies based on their place on the map
+  latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+  latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+  latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
+
+# this saves the plot to a folder
+png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
+print(plot)
+dev.off()
+rm(plot) # remove unnecessary variables
+
+# save raster
+writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
+
+# PLOT 2 - BINARY DISTRIBUTION VALUES
+temp = en_preds[[1]] # temporary layer to turn values below the threshold to NA
+values(temp)[values(temp)<thresh]=NA # turn values below threshold to NA
+values(temp)[values(temp)>=thresh]=1 # turn values below threshold to NA
+plot = levelplot(temp,
+                 main = paste0(target,"\n",model_type,"\n","Binary presence absence map"),
+                 names.attr=c("Ensemble model"),
+                 margin = FALSE,
+                 colorkey=FALSE)+
+  latticeExtra::layer(sp.polygons(eez,col = "black"))
+
+# this saves the plot to a folder
+png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_binary_ensemble.png"), width=3000, height=3000, res=300)
+print(plot)
+dev.off()
+rm(plot) # remove unnecessary variables
+
+# PLOT 3, 4 and 5 - PLANNING SOFTWARE PLOTS
+# these are the plots to use in the planning software
+# they are simple rasters with probability values from 0 to 1000
+# both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
+writeRaster(en_preds[[2]],paste0(rasterfolder,target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
+writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
+# ---------------------------------

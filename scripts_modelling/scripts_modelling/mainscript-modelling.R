@@ -15,8 +15,6 @@
 # and further descriptions can otherwise be found within each script
 
 # IMPORTANT: Even when you know each script works, i suggest running each script one at a time as running the whole parent script at once seems to cause some issues
-
-# IMPORTANT: increasing number of parameters
 # ---------------------------------
 
 
@@ -34,13 +32,16 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","mecofun","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # check which packages you need to install
 requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
 # install packages
 install.packages(requiredpackages)
+# list of required packages
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
+# installs the most updated verison of biomod2 on which the code is based
 devtools::install_github("biomodhub/biomod2", dependencies = TRUE)
 rm(requiredpackages)
 # ---------------------------------
@@ -69,7 +70,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 #  - ENVIRONMENTAL VARIABLES 
 # ---------------------------------
 # specify model resolution
-# we chose between a grid of 5 x 5 km (res = 5) or 10 x 10 km (res = 10)  
+# we chose between a grid of 10 x 10 km (res = 10)  
 res = 10
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
@@ -84,12 +85,8 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 # filter master sheet to keep species with a minimum prevalence of 1
 # the prevalence value indicates how much data there is for this species relative to entire modeling surface
 # i.e. it is the percentage of cells with data out of total cells, so the lower your resolution, the higher the prevalence
-if(res == 5){
-  master_keep = master %>%
-    filter(rounded >=1)}
-if(res ==10){
-  master_keep = master %>%
-    filter(rounded_10 >=1)}
+master_keep = master %>%
+    filter(rounded_10 >=1)
 # ---------------------------------
 
 # ---------------------------------
@@ -100,16 +97,12 @@ if(res ==10){
 
 # IMPORTANT: to simply run the loop with the example data
 # go to the species_data.R subscript and follow the instructions in the subscript
-master_keep_reduced = master_keep %>%
-  filter(cells_10>100)
-
-for(i in 1:nrow(master_keep_reduced)){
+for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
-  target = master_keep_reduced$SPECIES_SCIENTIFIC[i] # species name
-  substrate = master_keep_reduced$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = "no"
-  #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
+  target = master_keep$SPECIES_SCIENTIFIC[i] # species name
+  substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
+  seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 

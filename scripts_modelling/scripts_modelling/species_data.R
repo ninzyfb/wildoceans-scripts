@@ -26,15 +26,23 @@ if("biomod2" %in% (.packages())){detach("package:biomod2", unload=TRUE) }
 # DATA INPUT
 # ---------------------------------
 # read in occurrences of target species
+
+# TO RUN CODE ON EXAMPLE DATA
 # assign FILENAME to the name of your occurrence data csv file
-# assign FILELOCATION to the location to your occurrence data csv file
 # the example_data.csv on github has data from GBIF on ACROTERIOBATUS ANNULATUS and can be used to try the code
-FILENAME = paste(toupper(target),".rds",sep="")
-#path = "/home/nina/"
+FILENAME = "example_data.csv"
+# identifies location of occurrence file on computer
+file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
+###########
+
+
+###########
+path = "/home/nina/"
 path = "/Users/nfb/"
+FILENAME = paste(toupper(target),".rds",sep="")
 FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
 # identifies location of occurrence file on computer
-file = list.files(path = FILELOCATION, pattern = FILENAME, recursive = TRUE, full.names = TRUE)
+file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -105,4 +113,6 @@ obs.data = obs.data %>%
 coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
 }else{length(files) = 0}}
 
+# this prevents the loop running through on multiple species name with the same example file
+if(unique(obs.data$SPECIES_SCIENTIFIC) != target){print("SPECIES NAME IN MASTER SHEET AND IN DATA DO NOT MATCH")}
 # ---------------------------------

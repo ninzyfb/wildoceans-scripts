@@ -32,6 +32,11 @@ rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 # MODELLING
 # ---------------------------------
 
+# if you can work in parallel this will speed up things quite a lot
+library(doParallel)
+cl <- makeCluster(8)
+doParallel::registerDoParallel(cl) 
+
 # Build individual aseasonal models
 # this static models object will contain 60 model projections
 # this is because we are running 3 model algorithms (GLM, MAXENT, GAM)
