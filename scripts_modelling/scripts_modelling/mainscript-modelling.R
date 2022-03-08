@@ -15,6 +15,8 @@
 # and further descriptions can otherwise be found within each script
 
 # IMPORTANT: Even when you know each script works, i suggest running each script one at a time as running the whole parent script at once seems to cause some issues
+
+# IMPORTANT: increasing number of parameters
 # ---------------------------------
 
 
@@ -41,7 +43,6 @@ install.packages(requiredpackages)
 requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
-# installs the most updated verison of biomod2 on which the code is based
 devtools::install_github("biomodhub/biomod2", dependencies = TRUE)
 rm(requiredpackages)
 # ---------------------------------
@@ -70,7 +71,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 #  - ENVIRONMENTAL VARIABLES 
 # ---------------------------------
 # specify model resolution
-# we chose between a grid of 10 x 10 km (res = 10)  
+# we chose between a grid of 5 x 5 km (res = 5) or 10 x 10 km (res = 10)  
 res = 10
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
@@ -85,24 +86,60 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 # filter master sheet to keep species with a minimum prevalence of 1
 # the prevalence value indicates how much data there is for this species relative to entire modeling surface
 # i.e. it is the percentage of cells with data out of total cells, so the lower your resolution, the higher the prevalence
-master_keep = master %>%
-    filter(rounded_10 >=1)
+if(res == 5){
+  master_keep = master %>%
+    filter(rounded >=1)}
+if(res ==10){
+  master_keep = master %>%
+    filter(rounded_10 >=1)}
 # ---------------------------------
 
+
+variables = read.csv(list.files(pattern = "selectedvariables_all.csv", recursive = TRUE, full.names = TRUE))
+variables = variables[-18,]
+variableimportance = list.files(pattern = "variableimportance.csv", recursive = TRUE, full.names = TRUE)
+all = list()
+for(i in 1:length(variableimportance)){
+  temp = read.csv(variableimportance[i])
+  if(nrow(temp)>10){
+  if(nrow(temp)>17){temp = temp[-18,]}
+  temp = cbind(temp,variables)
+  temp = temp %>%
+    pivot_longer(!variables,names_to = "test",values_to = "value")%>%
+    group_by(variables)%>%
+    summarise(sum = mean(value),
+              std = sd(value))%>%
+    arrange(desc(sum))
+  all[[i]]= temp
+  }}
+
+all = do.call("rbind",all)
+all$variables = as.factor(all$variables)
+boxplot(all$sum~all$variables)
+all_summed = all %>%
+  group_by(variables)%>%
+  summarise(avg = mean(sum))%>%
+  arrange(desc(avg))
+# drop to only keep top 9 variables
+removedvariables = all_summed[c(10:17),]$variables
+idx = which(names(stack_subset) %in% removedvariables)
+stack_subset = dropLayer(stack_subset,idx)
 # ---------------------------------
 #  RUNNING THE MODELS
 # ---------------------------------
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
-
+master_keep = master_keep %>%
+  filter(cells_10<100)
 # IMPORTANT: to simply run the loop with the example data
 # go to the species_data.R subscript and follow the instructions in the subscript
-for(i in 1:nrow(master_keep)){
+for(i in 12:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
+  seasonal = "no"
+  #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
