@@ -32,17 +32,24 @@ rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 # ---------------------------------
 
 # Build individual aseasonal models
+
 # this static models object will contain 60 model projections
 # this is because we are running 3 model algorithms (GLM, MAXENT, GAM)
 # each model algorithm is being run 10 times as a cross-validation approach
 # and these 10 runs are being run on two different set of background points
 # 3 * 10 * 2 = 60
-# this can be VERY time consuming (1-3h) depending on your machine
+# this can be VERY time consuming (<1h) depending on your machine
+
 # if you want to reduce the computing time, reduce
 # 1 - the number of model algorithms
 # 2- nb.rep to 5 or less
-# as an example, it takes ~45 min to run 3 algorithms on nb.rep = 1
+
+# it takes ~60 min to run 3 algorithms on nb.rep = 1
 # on a mac with 2.4 GHz Dual-Core Intel Core i5 and Memory of 8 GB 1600 MHz DDR3
+
+# it takes ~ 24 min to run 3 algorithms on nb.rep = 1
+# on a pc with 11th Gen Intel® Core™ i7-1165G7 @ 2.80GHz × 8 and Memory of 15.4 GB
+
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
   var.import = 5,
