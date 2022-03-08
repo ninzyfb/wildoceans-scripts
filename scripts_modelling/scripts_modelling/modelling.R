@@ -64,7 +64,7 @@ variables = as.data.frame(get_variables_importance(static_models))
 write.csv(variables,paste0(evaluationfolder,model_type,target,"_res",res,"_variableimportance.csv"), row.names = FALSE)
 
 #rm(i,pa_xy,exp,pa,temp,pts_env,pts_env_seasons)
-bm_PlotEvalBoxplot(bm.out = static_models, group.by = c('algo', 'run'))
+#bm_PlotEvalBoxplot(bm.out = static_models, group.by = c('algo', 'run'))
 
 # Build ensemble model
 static_ensemblemodel  <- BIOMOD_EnsembleModeling(
@@ -176,6 +176,6 @@ rm(plot) # remove unnecessary variables
 # these are the plots to use in the planning software
 # they are simple rasters with probability values from 0 to 1000
 # both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
-writeRaster(en_preds[[2]],paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/sdms/",target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
+writeRaster(en_preds[[2]],paste0(rasterfolder,target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
 writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
 # ---------------------------------

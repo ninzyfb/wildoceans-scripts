@@ -23,7 +23,6 @@ if(!dir.exists("Outputs/modelling/prettyplots")){dir.create("Outputs/modelling/p
 if(!dir.exists("Outputs/modelling/rasters")){dir.create("Outputs/modelling/rasters")}
 
 evaluationfolder = paste0(my.directory,"/Outputs/modelling/evaluations/")
-plotfolder = paste0(my.directory,"/Outputs/modelling/prettyplots/")
 rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 # ---------------------------------
 
@@ -111,66 +110,12 @@ rm(predictions,response) # remove unnecessary variables
 
 
 # ---------------------------------
-# PLOTTING
+# OUTPUTS
 # ---------------------------------
-
 # isolate ensemble prediction raster
 en_preds = get_predictions(static_ensembleprojection) 
-
-# PLOT 1 - CONTINUOUS DISTRIBUTION VALUES (pretty plots)
-# this is the plot to use in any reports or papers
-temp = en_preds[[1]] # temporary layer to turn 0 values to NA
-temp[values(temp) == 0] = NA # turn 0 values to NA
-plot = levelplot(temp,
-          main = paste0(target,"\n",model_type),
-          names.attr = c("Ensemble model"),
-          par.settings = rasterTheme(viridis_pal(option="D")(10)),
-          at = intervals,
-          margin = FALSE)+
-  # eez
-  latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-  # 250m isobath
-  latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
-  # sa coast
-  latticeExtra::layer(sp.polygons(sa,col = "black",fill = "white",lwd= 1))+
-  # points for main cities
-  latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
-  # coordinates and city names
-  # done in three lines as a "pretty" position varies based on their place on the map
-  latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
-  latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
-  latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))
-
-# this saves the plot to a folder
-png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"), width=3000, height=3000, res=300)
-print(plot)
-dev.off()
-rm(plot) # remove unnecessary variables
-
-# save raster
-writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
-
-# PLOT 2 - BINARY DISTRIBUTION VALUES
-temp = en_preds[[1]] # temporary layer to turn values below the threshold to NA
-values(temp)[values(temp)<thresh]=NA # turn values below threshold to NA
-values(temp)[values(temp)>=thresh]=1 # turn values below threshold to NA
-plot = levelplot(temp,
-                 main = paste0(target,"\n",model_type,"\n","Binary presence absence map"),
-                 names.attr=c("Ensemble model"),
-                 margin = FALSE,
-                 colorkey=FALSE)+
-  latticeExtra::layer(sp.polygons(eez,col = "black"))
-
-# this saves the plot to a folder
-png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_binary_ensemble.png"), width=3000, height=3000, res=300)
-print(plot)
-dev.off()
-rm(plot) # remove unnecessary variables
-
-# PLOT 3, 4 and 5 - PLANNING SOFTWARE PLOTS
-# these are the plots to use in the planning software
-# they are simple rasters with probability values from 0 to 1000
-# both plots (ensemble mean and ensemble coefficient of variation) are saved directly to a folder
+# ensemble projection
+writeRaster(en_preds[[1]],paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemean.tiff"), overwrite = TRUE)
+# coefficient of variation
 writeRaster(en_preds[[2]],paste0(rasterfolder,target,"_",model_type,"ensemblecv.tiff"),  overwrite = TRUE)
-writeRaster(temp,paste0(rasterfolder,target,"_",model_type,"_res",res,"_ensemblemeanthreshold.tiff"),  overwrite = TRUE)
 # ---------------------------------

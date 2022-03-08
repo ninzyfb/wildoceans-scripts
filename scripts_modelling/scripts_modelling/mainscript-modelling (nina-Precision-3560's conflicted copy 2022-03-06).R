@@ -39,6 +39,8 @@ requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo"
 requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
 # install packages
 install.packages(requiredpackages)
+# list of required packages
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
 devtools::install_github("biomodhub/biomod2", dependencies = TRUE)
@@ -94,21 +96,44 @@ if(res ==10){
 
 
 variables = read.csv(list.files(pattern = "selectedvariables_all.csv", recursive = TRUE, full.names = TRUE))
+variables = variables[-18,]
 variableimportance = list.files(pattern = "variableimportance.csv", recursive = TRUE, full.names = TRUE)
-for(i in 1:kength(variableimportance)){
+all = list()
+for(i in 1:length(variableimportance)){
   temp = read.csv(variableimportance[i])
+  if(nrow(temp)>10){
+  if(nrow(temp)>17){temp = temp[-18,]}
+  temp = cbind(temp,variables)
+  temp = temp %>%
+    pivot_longer(!variables,names_to = "test",values_to = "value")%>%
+    group_by(variables)%>%
+    summarise(sum = mean(value),
+              std = sd(value))%>%
+    arrange(desc(sum))
+  all[[i]]= temp
+  }}
 
-  }
-
+all = do.call("rbind",all)
+all$variables = as.factor(all$variables)
+boxplot(all$sum~all$variables)
+all_summed = all %>%
+  group_by(variables)%>%
+  summarise(avg = mean(sum))%>%
+  arrange(desc(avg))
+# drop to only keep top 9 variables
+removedvariables = all_summed[c(10:17),]$variables
+idx = which(names(stack_subset) %in% removedvariables)
+stack_subset = dropLayer(stack_subset,idx)
 # ---------------------------------
 #  RUNNING THE MODELS
 # ---------------------------------
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
-
+master_keep = master_keep %>%
+  filter(cells_10<100)
 # IMPORTANT: to simply run the loop with the example data
 # go to the species_data.R subscript and follow the instructions in the subscript
-for(i in 1:nrow(master_keep)){
+for(i in 12:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name

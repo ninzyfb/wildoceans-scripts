@@ -17,6 +17,11 @@
 # ---------------------------------
 # list of required packages
 requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+# check which packages you need to install
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
+# install packages
+install.packages(requiredpackages)
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
 rm(requiredpackages)

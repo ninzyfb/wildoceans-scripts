@@ -15,7 +15,7 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("rgeos","viridis","rasterVis","ggplot2","raster","stringr", "raster", "sp", "dplyr", "lubridate")
+requiredpackages = c("rgeos","viridis","rasterVis","ggplot2","raster","stringr", "raster", "sf","sp", "dplyr", "lubridate","readxl","stringr")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
 rm(requiredpackages)
@@ -30,6 +30,9 @@ rm(requiredpackages)
 my.directory = getwd()
 # set directory
 setwd(my.directory) 
+# plot folder
+if(!dir.exists("Outputs/modelling/prettyplots")){dir.create("Outputs/modelling/prettyplots")}
+plotfolder = paste0(my.directory,"/Outputs/modelling/prettyplots/")
 # ---------------------------------
 
 
@@ -53,11 +56,9 @@ master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = 
 # ---------------------------------
 # PLOTTING
 # ---------------------------------
-# plotfolder
-plotfolder = paste0(getwd(),"/wildoceans-scripts/Outputs/modelling/prettyplots/")
-
-for(i in 19:length(sdms_rasters)){
-  target = str_split(sdms_rasters[i],"/")[[1]][6]
+# plots
+for(i in 1:length(sdms_rasters)){
+  target = str_split(sdms_rasters[i],"/")[[1]][5]
   target = str_split(target,"_")[[1]][1]
   model_type = str_split(sdms_rasters[i],"_")[[1]][2]
   temp = raster(sdms_rasters[i])
@@ -114,7 +115,4 @@ for(i in 19:length(sdms_rasters)){
   rm(temp,plot) # remove unnecessary variables
   }
 
-# ---------------------------------
-
-
-
+# END OF SCRIPT ---------------------------------
