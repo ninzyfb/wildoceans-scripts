@@ -35,22 +35,27 @@ rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 # this static models object will contain 60 model projections
 # this is because we are running 3 model algorithms (GLM, MAXENT, GAM)
 # each model algorithm is being run 10 times as a cross-validation approach
-# and these 10 runs are being run on two different set sof backgorund points
+# and these 10 runs are being run on two different set of background points
 # 3 * 10 * 2 = 60
+# this can be VERY time consuming (1-3h) depending on your machine
+# if you want to reduce the computing time, reduce
+# 1 - the number of model algorithms
+# 2- nb.rep to 5 or less
+# as an example, it takes ~45 min to run 3 algorithms on nb.rep = 1
+# on a mac with 2.4 GHz Dual-Core Intel Core i5 and Memory of 8 GB 1600 MHz DDR3
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
   var.import = 5,
-  #models = c('GLM'), # one model for demonstration purposes
   models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
   bm.options  = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
-  #NbRunEval = 1, # 1-fold cross validation for demonstration purposes
   nb.rep = 10, # 10-fold cross validation (number of evaluations to run)
   data.split.perc = 75, # 75% of data used for calibration, 25% for testing
   metric.eval  = c('TSS'), # evaluation method, TSS is True Statistics Skill
   save.output  = TRUE, # keep all results on hard drive 
   scale.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
   modeling.id = target, # name of model = species name (target)
-  nb.cpu = 8) 
+  nb.cpu = 8
+  ) 
 
 # get important variables
 variables = as.data.frame(get_variables_importance(static_models))

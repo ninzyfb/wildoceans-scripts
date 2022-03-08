@@ -28,21 +28,22 @@ if("biomod2" %in% (.packages())){detach("package:biomod2", unload=TRUE) }
 # read in occurrences of target species
 
 # TO RUN CODE ON EXAMPLE DATA
+# the example_data.csv has data from GBIF on ACROTERIOBATUS ANNULATUS and can be used to try the code
+
 # assign FILENAME to the name of your occurrence data csv file
-# the example_data.csv on github has data from GBIF on ACROTERIOBATUS ANNULATUS and can be used to try the code
-#FILENAME = "example_data.csv"
-# identifies location of occurrence file on computer
-#file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
+# assign file to location of example file
+#--># FILENAME = "example_data.csv"
+#--># file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
 ###########
 
 
 ###########
-path = "/home/nina/"
+#path = "/home/nina/"
 #path = "/Users/nfb/"
-FILENAME = paste(toupper(target),".rds",sep="")
-FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
+#FILENAME = paste(toupper(target),".rds",sep="")
+#FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
 # identifies location of occurrence file on computer
-file = list.files(pattern = FILENAME,path = FILELOCATION, recursive = TRUE, full.names = TRUE)
+#file = list.files(pattern = FILENAME,path = FILELOCATION, recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 # ---------------------------------

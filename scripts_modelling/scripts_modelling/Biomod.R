@@ -31,8 +31,10 @@ bm_DefaultModelingOptions() # these are the default parameters used for each mod
 # default parameters can be altered using BIOMOD_ModelingOptions()
 # in our case we will be using MAXENT so i need to specify the path to my downloaded MAXENT file
 # i also want to specify the use of a polynomial GLM
-mxtPh = BIOMOD_ModelingOptions(MAXENT = list(path_to_maxent.jar = paste0(my.directory,"/maxent")),
-                               GLM = list(type = 'polynomial'))
+mxtPh = BIOMOD_ModelingOptions(MAXENT = list(path_to_maxent.jar = paste0(my.directory,"/maxent"),
+                                             maximumiterations = 400),
+                               GLM = list(type = 'polynomial'),
+                               GAM = list(control = list(nlm = list(iterlim = 400))))
 
 # remove NAs
 pts_env = na.omit(pts_env)

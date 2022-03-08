@@ -60,14 +60,6 @@ setwd(my.directory)
 
 
 # ---------------------------------
-#  PLOTTING LAYERS
-# this subscript prepares layers required for plotting and sets plotting parameters i.e. colour etc..
-# ---------------------------------
-source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
-# ---------------------------------
-
-
-# ---------------------------------
 #  - ENVIRONMENTAL VARIABLES 
 # ---------------------------------
 # specify model resolution
@@ -95,51 +87,22 @@ if(res ==10){
 # ---------------------------------
 
 
-variables = read.csv(list.files(pattern = "selectedvariables_all.csv", recursive = TRUE, full.names = TRUE))
-variables = variables[-18,]
-variableimportance = list.files(pattern = "variableimportance.csv", recursive = TRUE, full.names = TRUE)
-all = list()
-for(i in 1:length(variableimportance)){
-  temp = read.csv(variableimportance[i])
-  if(nrow(temp)>10){
-  if(nrow(temp)>17){temp = temp[-18,]}
-  temp = cbind(temp,variables)
-  temp = temp %>%
-    pivot_longer(!variables,names_to = "test",values_to = "value")%>%
-    group_by(variables)%>%
-    summarise(sum = mean(value),
-              std = sd(value))%>%
-    arrange(desc(sum))
-  all[[i]]= temp
-  }}
-
-all = do.call("rbind",all)
-all$variables = as.factor(all$variables)
-boxplot(all$sum~all$variables)
-all_summed = all %>%
-  group_by(variables)%>%
-  summarise(avg = mean(sum))%>%
-  arrange(desc(avg))
-# drop to only keep top 9 variables
-removedvariables = all_summed[c(10:17),]$variables
-idx = which(names(stack_subset) %in% removedvariables)
-stack_subset = dropLayer(stack_subset,idx)
 # ---------------------------------
 #  RUNNING THE MODELS
 # ---------------------------------
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
-master_keep = master_keep %>%
-  filter(cells_10<100)
+
 # IMPORTANT: to simply run the loop with the example data
 # go to the species_data.R subscript and follow the instructions in the subscript
-for(i in 12:nrow(master_keep)){
+# then come back and run each line in the loop one by one
+# make sure to enter i = 1 before doing so
+for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = "no"
-  #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
+  seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
@@ -156,19 +119,19 @@ for(i in 12:nrow(master_keep)){
   # ASEASONAL MODEL RUNS AND PROJECTIONS
   model_type = "Aseasonal" # specify model_type
   data = biomod_obj # specify which biomod_obj
-  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
+  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
 
   # SEASONAL MODEL RUNS AND PROJECTIONS
   if(seasonal == "yes"){
     model_type = "summer"
     season = 1
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])
+    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
 
     model_type = "winter"
     season = 2
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE)[3])}
+    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))}
   rm(stack_new)}
 # ---------------------------------
 
