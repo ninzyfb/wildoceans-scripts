@@ -1,3 +1,4 @@
+library(tidyr)
 variables = read.csv(list.files(pattern = "selectedvariables_all.csv", recursive = TRUE, full.names = TRUE))
 variables = variables[-18,]
 variableimportance = list.files(pattern = "variableimportance.csv", recursive = TRUE, full.names = TRUE)

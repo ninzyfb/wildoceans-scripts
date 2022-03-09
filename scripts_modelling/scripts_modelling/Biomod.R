@@ -66,6 +66,13 @@ if(!is.na(substrate) & substrate == "no"){
   stack_model = dropLayer(stack_subset,"substrate_simplified")
   exp$substrate_simplified = NULL}else{stack_model = stack_subset}
 
+# reduce number of environmental variables if prevalence is less than 100 grid cells
+if(length(which(pa==1))<100){
+  reducedvar = read.csv(list.files(pattern = "reducedvariables.csv", recursive=TRUE, full.names = TRUE))
+  stack_model = dropLayer(stack_model,reducedvar$x)
+  exp = exp[,which(!(colnames(exp) %in% reducedvar$x))]}
+
+
 # biomod object
 biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
                                                 expl.var = exp, # environmental variables

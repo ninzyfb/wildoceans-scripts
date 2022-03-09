@@ -43,6 +43,7 @@ install.packages(requiredpackages)
 requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
+# intsall latest version of biomod2
 devtools::install_github("biomodhub/biomod2", dependencies = TRUE)
 rm(requiredpackages)
 # ---------------------------------
@@ -93,10 +94,9 @@ if(res ==10){
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
 
-# IMPORTANT: to simply run the loop with the example data
-# go to the species_data.R subscript and follow the instructions in the subscript
-# then come back and run each line in the loop one by one
-# make sure to enter i = 1 before doing so
+# IMPORTANT: to simply run the loop with the example data make sure exampledata = "yes"
+exampledata = "no"
+
 for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
