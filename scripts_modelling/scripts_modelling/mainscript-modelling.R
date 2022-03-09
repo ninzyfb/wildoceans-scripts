@@ -118,19 +118,19 @@ for(i in 1:nrow(master_keep)){
   # ASEASONAL MODEL RUNS AND PROJECTIONS
   model_type = "Aseasonal" # specify model_type
   data = biomod_obj # specify which biomod_obj
-  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+  source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))
 
   # SEASONAL MODEL RUNS AND PROJECTIONS
   if(seasonal == "yes"){
     model_type = "summer"
     season = 1
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+    source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))
 
     model_type = "winter"
     season = 2
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))}
+    source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))}
   rm(stack_new)}
 # ---------------------------------
 
