@@ -37,7 +37,6 @@ file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
 }
 
 if(exampledata == "no"){
-  path = "/home/nina/"
   FILENAME = paste(toupper(target),".rds",sep="")
   FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
   # identifies location of occurrence file on computer
