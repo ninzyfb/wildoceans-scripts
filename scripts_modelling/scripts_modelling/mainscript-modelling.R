@@ -15,8 +15,6 @@
 # and further descriptions can otherwise be found within each script
 
 # IMPORTANT: Even when you know each script works, i suggest running each script one at a time as running the whole parent script at once seems to cause some issues
-
-# IMPORTANT: increasing number of parameters
 # ---------------------------------
 
 
@@ -94,7 +92,7 @@ if(res ==10){
 # the following loop runs the models for each species and creates plots
 # this loop is based around the master_keep sheet which is a data frame of species names
 
-# IMPORTANT: to simply run the loop with the example data make sure exampledata = "yes"
+# IMPORTANT: to run the loop with the example data make sure exampledata = "yes"
 exampledata = "no"
 
 for(i in 1:nrow(master_keep)){
@@ -102,7 +100,8 @@ for(i in 1:nrow(master_keep)){
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
   substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
+  seasonal = "no"
+  #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
 
   # OCCURRENCE DATA
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
@@ -119,19 +118,19 @@ for(i in 1:nrow(master_keep)){
   # ASEASONAL MODEL RUNS AND PROJECTIONS
   model_type = "Aseasonal" # specify model_type
   data = biomod_obj # specify which biomod_obj
-  source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+  source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))
 
   # SEASONAL MODEL RUNS AND PROJECTIONS
   if(seasonal == "yes"){
     model_type = "summer"
     season = 1
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))
+    source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))
 
     model_type = "winter"
     season = 2
     data = biomod_obj_seasons[[season]]
-    source(list.files(pattern = "modelling.R", recursive = TRUE, full.names = TRUE))}
+    source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))}
   rm(stack_new)}
 # ---------------------------------
 
