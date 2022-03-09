@@ -70,7 +70,8 @@ if(!is.na(substrate) & substrate == "no"){
 if(length(which(pa==1))<100){
   reducedvar = read.csv(list.files(pattern = "reducedvariables.csv", recursive=TRUE, full.names = TRUE))
   stack_model = dropLayer(stack_model,reducedvar$x)
-  exp = exp[,which(!(colnames(exp) %in% reducedvar$x))]}
+  exp = exp[,which(!(colnames(exp) %in% reducedvar$x))]
+  rm(reducedvar)}
 
 
 # biomod object

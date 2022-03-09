@@ -26,5 +26,7 @@ all_summed = all %>%
   arrange(desc(avg))
 # drop to only keep top 9 variables
 removedvariables = all_summed[c(10:17),]$variables
+# write results
+write.csv(removedvariables,"reducedvariables.csv", row.names = FALSE)
 idx = which(names(stack_subset) %in% removedvariables)
 stack_subset = dropLayer(stack_subset,idx)
