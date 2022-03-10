@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------
-# AUTHOR: Nina Faure Beaulieu (2021)
+# AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
 # PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
-# CONTACT: ninab@wildtrust.co.za 
+# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 

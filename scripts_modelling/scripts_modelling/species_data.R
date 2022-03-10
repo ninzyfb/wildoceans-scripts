@@ -1,6 +1,7 @@
 # ---------------------------------------------------------------------------------
-#AUTHOR: Nina Faure Beaulieu (2021)
-#PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
+# AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
+# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 
@@ -37,6 +38,7 @@ file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
 }
 
 if(exampledata == "no"){
+  path = str_split(getwd(),"Dropbox/6-WILDOCEANS/wildoceans-scripts")[[1]][1]
   FILENAME = paste(toupper(target),".rds",sep="")
   FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
   # identifies location of occurrence file on computer
