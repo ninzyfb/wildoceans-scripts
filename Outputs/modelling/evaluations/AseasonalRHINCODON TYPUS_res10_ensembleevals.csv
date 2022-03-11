@@ -2,6 +2,6 @@
 "1","EMcvByTSS_mergedAlgo_mergedRun_mergedData","EMcvByTSS","mergedAlgo","mergedRun","mergedData","KAPPA",NA,NA,NA,NA
 "2","EMcvByTSS_mergedAlgo_mergedRun_mergedData","EMcvByTSS","mergedAlgo","mergedRun","mergedData","ROC",NA,NA,NA,NA
 "3","EMcvByTSS_mergedAlgo_mergedRun_mergedData","EMcvByTSS","mergedAlgo","mergedRun","mergedData","TSS",NA,NA,NA,NA
-"4","EMmeanByTSS_mergedAlgo_mergedRun_mergedData","EMmeanByTSS","mergedAlgo","mergedRun","mergedData","KAPPA",0.599,850,64.583,97.958
-"5","EMmeanByTSS_mergedAlgo_mergedRun_mergedData","EMmeanByTSS","mergedAlgo","mergedRun","mergedData","ROC",0.978,552.5,96.875,93.411
-"6","EMmeanByTSS_mergedAlgo_mergedRun_mergedData","EMmeanByTSS","mergedAlgo","mergedRun","mergedData","TSS",0.902,545,96.875,93.318
+"4","EMmeanByTSS_mergedAlgo_mergedRun_mergedData","EMmeanByTSS","mergedAlgo","mergedRun","mergedData","KAPPA",0.627,812,70.833,97.729
+"5","EMmeanByTSS_mergedAlgo_mergedRun_mergedData","EMmeanByTSS","mergedAlgo","mergedRun","mergedData","ROC",0.98,526,98.958,91.937
+"6","EMmeanByTSS_mergedAlgo_mergedRun_mergedData","EMmeanByTSS","mergedAlgo","mergedRun","mergedData","TSS",0.909,526,98.958,91.937

@@ -95,7 +95,7 @@ if(res ==10){
 # IMPORTANT: to run the loop with the example data make sure exampledata = "yes"
 exampledata = "no"
 
-for(i in 1:nrow(master_keep)){
+for(i in 37:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
