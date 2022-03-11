@@ -47,7 +47,7 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 # ---------------------------------
 # DATA FILES
 # ---------------------------------
-sdms_rasters = list.files(pattern = "Aseasonal_res10_ensemblemean.tif", recursive = TRUE, full.names =TRUE)
+sdms_rasters = list.files(pattern = "Aseasonal_res10_ensemblemean.tiff", recursive = TRUE, full.names =TRUE)
 # list of species
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
 # ---------------------------------
