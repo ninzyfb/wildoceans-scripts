@@ -50,6 +50,10 @@ source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names
 sdms_rasters = list.files(pattern = "Aseasonal_res10_ensemblemean.tiff", recursive = TRUE, full.names =TRUE)
 # list of species
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
+# thresholds
+threshs = list.files(pattern = "thresh.csv", recursive = TRUE, full.names = TRUE)
+# evaluations
+evals = list.files(pattern = "allevals.csv", recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -64,6 +68,28 @@ for(i in 1:length(sdms_rasters)){
   temp = raster(sdms_rasters[i])
   values(temp) = values(temp)/1000
   res = str_split(sdms_rasters[i],"_")[[1]][3]
+  thresh_value = read.csv(threshs[i])
+  thresh_value = (thresh_value$thresh)/1000
+  eval_value = read.csv(evals[i])
+  
+  # get average cutoff from evaluations
+  eval_value = eval_value %>%
+    filter(Testing.data>=0.7)%>%
+    summarise(mean = mean(Cutoff),
+              std = sd(Cutoff))
+  eval_value = (eval_value$mean)/1000
+  
+  # filter data at evaluations cutoff
+  temp_evalcut = temp
+  values(temp_evalcut)[which(values(temp_evalcut)<eval_value)] = NA
+  temp_evalcut = rasterToPolygons(temp_evalcut)
+  temp_evalcut = st_as_sf(temp_evalcut)
+  temp_evalcut <- st_simplify(temp_evalcut,dTolerance=100, preserveTopology = TRUE)
+  
+  # filter data at threshold cutoff
+  temp_threshcut = temp
+  values(temp_threshcut)[which(values(temp_threshcut)<thresh_value)] = NA
+  temp_threshcut = rasterToPolygons(temp_threshcut)
   
   # turn values of 0 to NA
   values(temp)[values(temp)==0] = NA
@@ -82,6 +108,7 @@ for(i in 1:length(sdms_rasters)){
   # convert target to sentence case for plotting
   target = str_to_sentence(target)
   
+  # plot
   plot = levelplot(temp,
                    main = bquote(italic(.(target))~","~.(spp_info$Species_common)),
                    names.attr = c("Ensemble model"),

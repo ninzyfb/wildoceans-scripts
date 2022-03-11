@@ -74,8 +74,13 @@ for(i in 1:nrow(master)){
   # folder with occurrence data files (all stored as R object)
   folder = "speciesdata/"
   # run script to load species data
+  exampledata = "no"
   source(list.files(pattern = "species_data.R", recursive = TRUE)) 
   rm(folder)
+  temp_raster = blank_template
+  values(temp_raster)[extract(temp_raster,obs.data,cell=TRUE)[,1]] = 1
+  values(temp_raster)[values(temp_raster)==0]= NA
+  temp_polygon = rasterToPolygons(temp_raster)
   
   # only continue with loop if there is data for species
   if(nrow(obs.data)>0){
@@ -109,10 +114,10 @@ for(i in 1:nrow(master)){
   # that means based on its 10km resolution prevalence score which needs to be >1
   if(temp$rounded_10>0){png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw/",target,".png",sep=""),width=3000, height=2000, res=300)}else{png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw_unmodelled/",target,".png",sep=""),width=3000, height=2000, res=300)}
   plot.new() 
-  plot = levelplot(blank_template,
+  plot = levelplot(temp_raster,
             margin = FALSE,
             colorkey=FALSE,
-            col.regions = "white",
+            #col.regions = "white",
             xlab = NULL,
             ylab=NULL,
             main = bquote(italic(.(target))~","~.(temp$Species_common)),
@@ -127,15 +132,16 @@ for(i in 1:nrow(master)){
     latticeExtra::layer(sp.text(c(14.5,-28.1),paste0("Data"),cex = 0.6))+
     # iucn extent
     if(exists("iucn_extent")){
-    latticeExtra::layer(sp.polygons(iucn_extent,col = "steelblue",fill = "lightblue",lwd = 1.5))+
+        # IUCN range
+        latticeExtra::layer(sp.polygons(iucn_extent,col = "steelblue",fill = "lightblue",lwd = 1))+
+        # occurrence points
+        latticeExtra::layer(sp.polygons(temp_polygon,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21,lwd = 1.5))+
         # mpa outline
         latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 0.5))+
         # eez
         latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
         # sa coast
         latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 0.5, fill = "white"))+
-        # occurrence points
-        latticeExtra::layer(sp.polygons(obs.data,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21))+
         # points for main cities
         latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
         # coordinates and city names
@@ -151,15 +157,15 @@ for(i in 1:nrow(master)){
               latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Data points = ",temp$abundance),col = "black",pch = 20, pos=2,cex = 1))+
                 latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Presence cells (5x5km) = ",temp$cells," (",temp$rounded,"%)"),pch = 20, pos=2,cex = 1))+
                 latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",temp$rounded_10,"%)"),pch = 20, pos=2,cex = 1))}}else{
-    # mpa outline
-    latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 0.5))+
-    # eez
-    latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
-    # sa coast
-    latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 0.5, fill = "white"))+
-    # occurrence data
-    latticeExtra::layer(sp.polygons(obs.data,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21))+
-    # points for main cities
+                  # occurrence data
+                  latticeExtra::layer(sp.polygons(temp_polygon,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21))+
+                    # mpa outline
+                    latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 0.5))+
+                    # eez
+                    latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+                    # sa coast
+                    latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 0.5, fill = "white"))+
+                    # points for main cities
     latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
     # coordinates and city names
     # done in three lines as a "pretty" position varies based on their place on the map

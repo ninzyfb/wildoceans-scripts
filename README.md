@@ -2,7 +2,7 @@
 
 ## About
 This repository contains all the necessary code used to develop the shark and ray conservation plan developed for WILDOCEANS. This is currently a LIVE project, so the code may still change.  
-A report of this project is available to download from X or by contacting ninab@wildtrust.co.za OR jennifero@wildtrust.co.za. A paper is being written for publication and will be referenced here when applicable. The report contains a list of all data collaborators. 
+A report of this project will be available to download in the coming weeks or by contacting ninab@wildtrust.co.za OR jennifero@wildtrust.co.za. A paper is being written for publication and will be referenced here when applicable. The report contains a list of all data collaborators. 
 
 # scripts
 There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
@@ -24,9 +24,8 @@ This folder contains scripts that were used to produce and plot the species dist
 **IMPORTANT 1: how to run scripts on your own data or example data provided**:  
 The occurrence data used to run the conservation plan is confidential and not available for download. If you wish to run the code and  **example.csv** file is provied which  allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*.  Steps to use the example.csv file are as follows:  
 
-1. open `species_data.R` in the **scripts_modelling folder**.  
-2. Change *FILENAME=paste(toupper(target),".rds",sep="")* to *FILENAME = "example_data.csv"* 
-3. Change *FILELOCATION=paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata")* to *FILELOCATION=my.directory* or to the location where the example_data.csv file is saved.
+1. make sure exampledata = "yes" - this should ensure the `species_data.R` in the **scripts_modelling folder** runs on the example data
+2. make sure that if you dont run the loop you set i = 1 manually so that target = master_keep$SPECIES_SCIENTIFIC[i] and substrate = master_keep$Substrate[i] are filled
 This should be sufficient for the other scripts to run. If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example_data.csv with your filename.
 
 **IMPORTANT 2: installing the mecofun package to run the variable selection procedure**:  

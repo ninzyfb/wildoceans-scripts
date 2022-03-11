@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------
-# AUTHOR: Nina Faure Beaulieu (2021)
+# AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
 # PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
-# CONTACT: ninab@wildtrust.co.za 
+# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 
@@ -132,6 +132,12 @@ for(i in 37:nrow(master_keep)){
     data = biomod_obj_seasons[[season]]
     source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))}
   rm(stack_new)}
+# ---------------------------------
+
+# ---------------------------------
+#  PLOTTING
+# ---------------------------------
+source(list.files(pattern = "datavisualisation.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
 
 # END OF SCRIPT
