@@ -15,7 +15,7 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("rgeos","viridis","rasterVis","ggplot2","raster","stringr", "raster", "sf","sp", "dplyr", "lubridate","readxl","stringr")
+requiredpackages = c("colorspace","rgeos","viridis","rasterVis","ggplot2","raster","stringr", "raster", "sf","sp", "dplyr", "lubridate","readxl","stringr")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
 rm(requiredpackages)
@@ -70,26 +70,33 @@ for(i in 1:length(sdms_rasters)){
   res = str_split(sdms_rasters[i],"_")[[1]][3]
   thresh_value = read.csv(threshs[i])
   thresh_value = (thresh_value$thresh)/1000
-  eval_value = read.csv(evals[i])
+  #eval_value = read.csv(evals[i])
   
   # get average cutoff from evaluations
-  eval_value = eval_value %>%
-    filter(Testing.data>=0.7)%>%
-    summarise(mean = mean(Cutoff),
-              std = sd(Cutoff))
-  eval_value = (eval_value$mean)/1000
+  #eval_value = eval_value %>%
+  #  filter(Testing.data>=0.7)%>%
+  #  filter(Specificity>90)%>%
+  #  filter(Sensitivity>90)%>%
+  #  summarise(mean = mean(Cutoff),
+  #            std = sd(Cutoff))
+  #eval_value = (eval_value$mean)/1000
   
   # filter data at evaluations cutoff
-  temp_evalcut = temp
-  values(temp_evalcut)[which(values(temp_evalcut)<eval_value)] = NA
-  temp_evalcut = rasterToPolygons(temp_evalcut)
-  temp_evalcut = st_as_sf(temp_evalcut)
-  temp_evalcut <- st_simplify(temp_evalcut,dTolerance=100, preserveTopology = TRUE)
+  #temp_evalcut = temp
+  #values(temp_evalcut)[which(values(temp_evalcut)<eval_value)] = NA
+  #temp_evalcut = rasterToPolygons(temp_evalcut)
+  #temp_evalcut = st_as_sf(temp_evalcut)
+  #temp_evalcut <- st_simplify(temp_evalcut,dTolerance=100, preserveTopology = TRUE)
+  #temp_evalcut = st_union(temp_evalcut)
   
   # filter data at threshold cutoff
   temp_threshcut = temp
   values(temp_threshcut)[which(values(temp_threshcut)<thresh_value)] = NA
   temp_threshcut = rasterToPolygons(temp_threshcut)
+  temp_threshcut = st_as_sf(temp_threshcut)
+  temp_threshcut <- st_simplify(temp_threshcut,dTolerance=100, preserveTopology = TRUE)
+  temp_threshcut= st_union(temp_threshcut)
+  temp_threshcut = as(temp_threshcut, Class = "Spatial")
   
   # turn values of 0 to NA
   values(temp)[values(temp)==0] = NA
@@ -112,17 +119,22 @@ for(i in 1:length(sdms_rasters)){
   plot = levelplot(temp,
                    main = bquote(italic(.(target))~","~.(spp_info$Species_common)),
                    names.attr = c("Ensemble model"),
-                   par.settings = rasterTheme(viridis_pal(option="D")(10)),
+                   # blue color scale bar
+                   col.regions = rev(sequential_hcl(n=10)),
+                   # purple to yellow colour scale bar
+                   #par.settings = rasterTheme(viridis_pal(option="D")(10)),
                    at = intervals/1000,
                    margin = FALSE,
                    xlab = NULL,
                    ylab=NULL)+
     # model type
     latticeExtra::layer(sp.text(c(16,-27.5),paste0(model_type," model"),cex = 1.5))+
+    # threshold outline in yellow
+    latticeExtra::layer(sp.polygons(temp_threshcut, col = "yellow",lwd=1.5))+
     # eez
     latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
     # 250m isobath
-    latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 1))+
+    latticeExtra::layer(sp.polygons(contours, col = "black", lwd = 0.5))+
     # sa coast
     latticeExtra::layer(sp.polygons(sa,col = "black",fill = "white",lwd= 1))+
     # points for main cities
@@ -134,12 +146,13 @@ for(i in 1:length(sdms_rasters)){
     latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
     # iucn extent
     if(exists("iucn_extent")){latticeExtra::layer(sp.polygons(iucn_extent,col = "red",lwd = 1.5))}
+  
     
   # this saves the plot to a folder
   png(file=paste0(plotfolder,target,"_",model_type,"_res",res,"_continuous_ensemble.png"),width=3000, height=2000, res=300)
   print(plot)
   dev.off()
-  rm(temp,plot) # remove unnecessary variables
+  rm(temp,plot,iucn_extent) # remove unnecessary variables
   }
 
 # END OF SCRIPT ---------------------------------
