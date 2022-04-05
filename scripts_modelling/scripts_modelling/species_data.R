@@ -38,11 +38,11 @@ file = list.files(pattern = FILENAME, recursive = TRUE, full.names = TRUE)
 }
 
 if(exampledata == "no"){
-  path = str_split(getwd(),"Dropbox/6-WILDOCEANS/wildoceans-scripts")[[1]][1]
+  # file name
   FILENAME = paste(toupper(target),".rds",sep="")
-  FILELOCATION = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/")
   # identifies location of occurrence file on computer
-  file = list.files(pattern = FILENAME,path = FILELOCATION, recursive = TRUE, full.names = TRUE)}
+  file = list.files(pattern = FILENAME,recursive = TRUE, full.names = TRUE)
+  }
 # ---------------------------------
 
 # ---------------------------------
@@ -110,8 +110,9 @@ obs.data = obs.data %>%
 
 # convert data to spatial points data frame
 coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
-}else{length(files) = 0}}
 
 # this prevents the loop running through on multiple species name with the same example file
 if(unique(obs.data$SPECIES_SCIENTIFIC) != target){print("SPECIES NAME IN MASTER SHEET AND IN DATA DO NOT MATCH")}
+
+}else{length(file) = 0}}
 # ---------------------------------
