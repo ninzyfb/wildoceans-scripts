@@ -1,6 +1,7 @@
 # ---------------------------------------------------------------------------------
-# AUTHOR: Nina Faure Beaulieu (2021)
-# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST 
+# AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
+# PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
+# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 
@@ -50,6 +51,14 @@ pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive
 
 
 # ---------------------------------
+# SPECIES INFO
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE),sheet = 1)
+# ---------------------------------
+
+
+# ---------------------------------
 # CONSERVATION FEATURES
 # ---------------------------------
 source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE)) 
@@ -78,34 +87,26 @@ source(list.files(pattern = "Lockedin.R", recursive = TRUE))
 
 
 # ---------------------------------
-# CONSERVATION TARGETS
+# TARGETS
 # ---------------------------------
-# load in spreadsheet with species and their targets
-targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
-# only keep species names and targets
+targets = read_xlsx(list.files(pattern = "perc_targets", recursive = TRUE,full.names = TRUE))
 targets = targets %>%
-  dplyr::select(SPECIES_SCIENTIFIC,Score)
-# turn colnames to upper case
-colnames(targets) = toupper(colnames(targets))
-# join these targets to featurenames dataframe
-colnames(featurenames) = toupper(colnames(featurenames))
+  pivot_longer(!STATUS,names_to = "ENDEMIC.STATUS",values_to = "target")
+
 featurenames = left_join(featurenames,targets)
-rm(targets) # remove
 
-# load data summary sheet
-master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
-master  = master %>%
-  dplyr::select(SPECIES_SCIENTIFIC,target_species)
-featurenames = left_join(featurenames,master)
+# extract target species
+# that means endangered, critical and endemics (SA)
+special_species_1 = featurenames %>%
+  filter(ENDEMIC.STATUS %in% c("1") | STATUS %in% c("CR","EN"))
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_1$FEATURENAME)
+feature_stack_specialspp1 = subset(feature_stack_aseasonal_thresholds,idx)
 
-# weights, give higher weighting to target species
-# i.e. species with a high endemism, high threat and restricted range
-featurenames = featurenames %>%
-  mutate(SCORE = ifelse(target_species == "yes",SCORE+1,SCORE)) %>%
-  filter(MODELTYPE == "ASEASONAL")
-
-# drop i. oxyrhinchus and c. carcharias
-feature_stack_aseasonal_targetsonly = dropLayer(feature_stack_aseasonal_targetsonly,c(5,9))  # identify Aseasonal layers in stack
+# that means endangered, critical, vulnerable and endemics (SA and Southern Africa)
+special_species_2 = featurenames %>%
+  filter(ENDEMIC.STATUS %in% c("1","2") | STATUS %in% c("CR","EN","VU"))
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_2$FEATURENAME)
+feature_stack_specialspp2 = subset(feature_stack_aseasonal_thresholds,idx)
 # ---------------------------------
 
 
@@ -126,18 +127,12 @@ options(scipen = 100)
 scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
 
 # start counter
-problem_number = 5
+problem_number = 4
 
-iucn_names$SPECIES_SCIENTIFIC = gsub(".", " ", iucn_names$SPECIES_SCIENTIFIC, fixed=TRUE)
-iucn_names = as.data.frame(iucn_names)
-colnames(iucn_names) = "SPECIES_SCIENTIFIC"
-iucn_names = left_join(iucn_names,featurenames)
-iucn_names$target_species = NULL
-iucn_names = left_join(iucn_names,master)
 # Building and solving conservation problems
 # these are all outlined in the scenario sheet
 # the following loop goes through each row of the scenario sheet and outputs a solution
-for(i in 6:nrow(scenario_sheet)){
+for(i in 5:nrow(scenario_sheet)){
   
   # scenario name (Control, MPA, Fishing)
   scenario = scenario_sheet$scenario[i]
@@ -166,7 +161,7 @@ for(i in 6:nrow(scenario_sheet)){
   boundary_penalty = as.numeric(scenario_sheet$boundary_penalty[i]) 
   
   # target
-  t = as.numeric(scenario_sheet$targets[i])
+  if(scenario_sheet$targets[i] == "t"){t = featurenames_temp$target}else{t = as.numeric(scenario_sheet$targets[i])}
 
     # problem number
     problem_number=problem_number+1
@@ -201,26 +196,29 @@ for(i in 6:nrow(scenario_sheet)){
   
     # solve problem
     solution_single = solve(problem_single)
-
+    
+    # create raster stack from solutions
+    solution_single = stack(unlist(solution_single))
+  
     # create solution frequency raster
     # this sums all the solutions together
     # it outlines the most frequently chosen areas for the given conservation problem
-    solution_sum= calc(stack(unlist(solution_single)),sum)
+    solution_sum= calc(solution_single,sum)
   
     # save solution as raster
     writeRaster(solution_sum,paste0(solutionsfolder,"p",str_pad(problem_number,3,pad = "0"),"_",scenario,"_scenario.tiff"),overwrite = TRUE)
   
   # create coverage summary
   coverage_summary = data.frame()
-  for(i in 1:length(solution_single)){
-  temp = eval_target_coverage_summary(problem_single,solution_single[[i]])
+  for(a in 1:nlayers(solution_single)){
+  temp = eval_target_coverage_summary(problem_single,solution_single[[a]])
   temp = cbind(temp,featurenames_temp)
   temp$absolute_shortfall = round(temp$absolute_shortfall, 2)
   temp$relative_held = round(temp$relative_held, 2)
   temp$relative_shortfall = round(temp$relative_shortfall, 2)
   temp$km_shortfall = temp$absolute_shortfall*10
   if(nrow(temp)>0){
-    temp$solution = i
+    temp$solution = a
     temp$feature = NULL
     temp$FEATURENAME_BINARY = NULL
     temp$FEATURENAME = NULL}
@@ -230,7 +228,7 @@ for(i in 6:nrow(scenario_sheet)){
   if(nrow(coverage_summary)>0){
   # get some numbers that are easier to interpret
   coverage_summary = coverage_summary %>%
-    group_by(SPECIES_SCIENTIFIC,target_species,SCORE) %>%
+    group_by(SPECIES_SCIENTIFIC,STATUS) %>%
     summarise(total_amount = mean(total_amount),
               absolute_held_avg = mean(absolute_held),
               absolute_target_avg = mean(absolute_target),
@@ -238,7 +236,7 @@ for(i in 6:nrow(scenario_sheet)){
               km_shortfall_sd = sd(km_shortfall),
               target = mean(relative_target),
               target_achieved = mean(relative_held))%>%
-    arrange(SCORE)
+    arrange(STATUS)
   coverage_summary$target = as.numeric(paste0(round(coverage_summary$target , 3), "0"))
   write.csv(coverage_summary,paste0(performancefolder,"p",str_pad(problem_number,3,pad = "0"),scenario,"_scenario_performance.csv"), row.names = FALSE)}
   
