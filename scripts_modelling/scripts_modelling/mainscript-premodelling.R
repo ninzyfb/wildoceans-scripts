@@ -9,7 +9,7 @@
 # ---------------------------------
 # This script aims to calculate prevalence values for each species
 # this will help in reducing the number of models to run
-# as a species requires a minimum amount of data for a model to run succesfully
+# as a species requires a minimum amount of data for a model to run successfully
 # ---------------------------------
 
 
@@ -29,9 +29,8 @@ rm(requiredpackages)
 # ---------------------------------
 # set directory to same parent folder where sub-scripts are found
 # the subs-scripts can however be in folder within parent folder
-path = "/home/nina/Documents/" #path for linux
 path =  "/Users/nfb/" # path for mac
-setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory
+setwd(paste0(path,"Dropbox/6-WILDOCEANS/")) # set directory
 # ---------------------------------
 
 
@@ -42,13 +41,13 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS")) # set directory
 # read master file with species-specific modelling parameters
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
 # read in file names for which there is actually data for
-alldata = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = ".csv",recursive = TRUE,full.names = TRUE, ignore.case = TRUE)
+alldata = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata"),pattern = "_rawdata.csv",recursive = TRUE,full.names = TRUE, ignore.case = TRUE)
 # extract species name from file name
 alldata = str_split(alldata, "/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/", simplify = TRUE)[,2]
-alldata = str_split(alldata, ".csv", simplify = TRUE)[,1]
+alldata = str_split(alldata, "_rawdata.csv", simplify = TRUE)[,1]
 
 # find species with data but that are not in master sheet
-excl = which(alldata %in% master$SPECIES_SCIENTIFIC == FALSE)
+excl = which((!alldata %in% master$SPECIES_SCIENTIFIC))
 excl = as.data.frame(alldata[excl])
 colnames(excl) = "SPECIES_SCIENTIFIC"
 # add these species to master sheet
@@ -59,10 +58,14 @@ rm(excl)
 master = master %>%
   filter((SPECIES_SCIENTIFIC %in% alldata))
 
-# find any species with only genus
-names = as.data.frame(str_split(master$SPECIES_SCIENTIFIC, " ", simplify = TRUE))
-# filter master sheet
-master = master[which(names$V2 != ""),]
+# add endemic status
+# load species info sheet
+info = read.csv(list.files(pattern = "species_info.csv", recursive = TRUE, full.names = TRUE))
+# remove common names as they can clash
+info$COMMON.NAME = NULL
+# add to master sheet (mainly for endemism information)
+master = left_join(master,info)
+rm(info)
 
 # ---------------------------------
 #  PRE-MODELING RUN: computes data prevalence per species at 5 and 10 km resolution
@@ -75,17 +78,14 @@ master = master[which(names$V2 != ""),]
 # this helps narrow down which species have enough data to model
 
 count = 1 # count to fill lists during iterations
-list_prevalence = list() # list of prevalence values 5km res
 list_prevalence_10 = list() # list of prevalence values 10km res
 list_abundance = list() # list of abundance values
-list_cells = list() # list of cells values 5km res
 list_cells_10 = list() # list of cells values 10km res
 
 # each iteration looks at one species from the master sheet
-for(i in 157:nrow(master)){
+for(i in 1:nrow(master)){
 
-  # template grids (5 and 10km resolution)
-  template = raster(list.files(pattern = "template_5km.tif", recursive = TRUE, full.names = TRUE))
+  # template grids (10km resolution)
   template_10 = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
   # species name
   target = master$SPECIES_SCIENTIFIC[i]
@@ -93,27 +93,22 @@ for(i in 157:nrow(master)){
   folder = "speciesdata/" 
 
   # SPECIES DATA: formats occurrence points
+  exampledata = "no"
   source(list.files(pattern = "species_data.R", recursive = TRUE,full.names = TRUE)) # finds script in directory
   rm(folder)
   
   # proceed only if data was available for that species
-  if(length(files)>0){
+  if(length(file)>0){
   # PREVALENCE: calculate prevalence score for species data
   source(list.files(pattern = "Prevalence.R", recursive = TRUE,full.names = TRUE))}
   
   # fill empty lists with prevalence and abundance values
   # if absent i.e. no data for species, then fill with 0 (prevents mismatches later on)
-  if(exists("perc")){  
-    list_prevalence[[count]] = perc}else{
-      list_prevalence[[count]] = 0}
   if(exists("perc_10")){  
     list_prevalence_10[[count]] = perc_10}else{
       list_prevalence_10[[count]] = 0}
   if(exists("abundance")){
     list_abundance[[count]] = abundance}else{list_abundance[[count]] = 0}
-  if(exists("obscells")){
-    list_cells[[count]] = obscells}else{
-      list_cells[[count]] = 0}
   if(exists("obscells_10")){
     list_cells_10[[count]] = obscells_10}else{
       list_cells_10[[count]] = 0}
@@ -128,46 +123,30 @@ for(i in 157:nrow(master)){
 # ---------------------------------
 
 # remove
-rm(allcells,allcells_10,count,substrate,target,i,files,obs.data,obscells_10,perc_10)
+rm(allcells_10,count,substrate,target,i,obs.data,obscells_10,perc_10)
 
 # format number of occurrence points, cells with data and prevalence scores to a data frame
 abundance = as.data.frame(unlist(list_abundance))
-
-cells = as.data.frame(unlist(list_cells))
 cells_10 = as.data.frame(unlist(list_cells_10))
-
-prevalence = as.data.frame(unlist(list_prevalence))
 prevalence_10 = as.data.frame(unlist(list_prevalence_10))
 
-rm(list_abundance,list_prevalence, list_prevalence_10,list_cells,list_cells_10) # remove
+rm(list_abundance,list_prevalence_10,list_cells_10) # remove
 
 # add species name to prevalence sheet
-prevalence$SPECIES_SCIENTIFIC = master$SPECIES_SCIENTIFIC
+prevalence_10$SPECIES_SCIENTIFIC = master$SPECIES_SCIENTIFIC
 # add abundance values to prevalence sheet
-prevalence = cbind(prevalence,prevalence_10)
-prevalence = cbind(prevalence,abundance)
-prevalence = cbind(prevalence,cells)
+prevalence = cbind(prevalence_10,abundance)
 prevalence = cbind(prevalence,cells_10)
 
-rm(abundance,cells,cells_10,prevalence_10) # remove
+rm(abundance,cells_10,prevalence_10) # remove
 
 # rename headers
-names(prevalence)[1] = "prevalence"
-names(prevalence)[3] = "prevalence_10"
-names(prevalence)[4] = "abundance"
-names(prevalence)[5] = "cells"
-names(prevalence)[6] = "cells_10"
-
-# round prevalence value to 1 integer
-prevalence$rounded = round(prevalence$prevalence, digits = 0)
-prevalence$rounded_10 = round(prevalence$prevalence_10, digits = 0)
+names(prevalence)[1] = "prevalence_10"
+names(prevalence)[3] = "abundance"
+names(prevalence)[4] = "cells_10"
 
 # add prevalence and abundance data to master sheet
-master$cells = NULL
 master$cells_10 = NULL
-master$rounded = NULL
-master$rounded_10 = NULL
-master$prevalence = NULL
 master$prevalence_10 = NULL
 master$abundance = NULL
 master = left_join(master,prevalence)
