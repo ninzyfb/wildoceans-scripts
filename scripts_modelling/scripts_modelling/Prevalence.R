@@ -13,30 +13,27 @@
 # ---------------------------------
 
 # set CRS of observations
-crs(obs.data) = crs(template)
+crs(obs.data) = crs(template_10)
 
 # crop to template
-obs.data = crop(obs.data, template)
+obs.data = crop(obs.data, template_10)
 
 # if there is still observation data after cropping
 # get prevalence value
 # otherwise percentage will be set to 0
 if(length(obs.data)>0){
-# find number of unique cells with data
-obscells = unique(cellFromXY(template, obs.data))
-obscells_10 = unique(cellFromXY(template_10, obs.data))
 
-# find number of cells in eez
-allcells = length(values(template)[!is.na(values(template))])
-allcells_10 = length(values(template_10)[!is.na(values(template_10))])
+  # find number of unique cells with data
+  obscells_10 = unique(cellFromXY(template_10, obs.data))
 
-# get percentage of cells with data
-perc = (length(obscells)/allcells)*100
-perc_10 = (length(obscells_10)/allcells_10)*100
+  # find number of cells in eez
+  allcells_10 = length(values(template_10)[!is.na(values(template_10))])
 
-obscells = length(obscells)
-obscells_10 = length(obscells_10)
+  # get fraction of cells with data
+  perc_10 = (length(obscells_10)/allcells_10)
+
+  # number of obs cells
+  obscells_10 = length(obscells_10)
 
 }else{
-  perc = 0
   perc_10 = 0}
