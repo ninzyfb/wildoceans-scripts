@@ -80,7 +80,7 @@ irraplaceability_scores = list.files(path = paste0(my.directory,"/Planning/Outpu
 performances = list.files(path = paste0(my.directory,"/Planning/Outputs/"),pattern = "performance.csv",recursive = TRUE, full.names = TRUE)
 
 # the following loop will plot each binary raster individually
-for(i in 1:length(general_solutions)){
+for(i in 1:24){
   
   # raster file
   temp = raster(general_solutions[i]) 
@@ -95,7 +95,8 @@ for(i in 1:length(general_solutions)){
   prop_eez = round((length(which(values(temp2)!=0))/10809)*100,1)
   rm(temp2)
   # target
-  t = as.numeric(scenario_sheet$targets[i])*100
+  t = scenario_sheet$targets[i]
+  if(t == "t"){t = "tailored targets"}
   # mpas included
   inclusion = scenario_sheet$lockedin[i]
   if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
@@ -103,8 +104,10 @@ for(i in 1:length(general_solutions)){
   if(inclusion == "none"){inclusion = "No MPAs"}
   # features included
   features = scenario_sheet$features[i]
-  if(features == "feature_stack_aseasonal"){features = "all species (n = 53)"}
-  if(features == "feature_stack_aseasonal_targetsonly"){features = "target species (n = 18)"}
+  if(features == "feature_stack_aseasonal"){features = "Raw distribution maps (n=82)"}
+  if(features == "feature_stack_aseasonal_thresholds"){features = "Filtered distribution maps (n=82)"}
+  if(features == "feature_stack_specialspp1"){features = "Filtered distribution maps, only IUCN (CR,EN) & South Africa endemics (n=27)"}
+  if(features == "feature_stack_specialspp2"){features = "Filtered distribution maps, only IUCN (CR,EN,VU) & Southern Africa endemics (n=59)"}
   
   plot_type = names(temp)
   
@@ -112,7 +115,7 @@ for(i in 1:length(general_solutions)){
   plot=levelplot(temp,
                  xlab = NULL,
                  ylab = NULL,
-                 main = paste0(scenario," scenario | Species protection: ",t,"% | ",features),
+                 main = paste0(pnumber," | ",scenario," scenario | Protection targets: ",t,"\n",features),
                  col.regions = cols,
                  margin = FALSE,
                  colorkey=FALSE)+settings
@@ -121,7 +124,7 @@ for(i in 1:length(general_solutions)){
   dev.off()}
 
 # the following loop will plot each irraplacability plot
-for(i in 1:length(irraplaceability_scores)){
+for(i in 1:24){
   # stack of raster files
   temp = raster(irraplaceability_scores[i]) 
   # raster name
@@ -133,7 +136,9 @@ for(i in 1:length(irraplaceability_scores)){
   # prop_eez
   prop_eez = round((length(which(values(temp)!=0))/10809)*100,1)
   # target
-  t = as.numeric(scenario_sheet$targets[i])*100
+  t = scenario_sheet$targets[i]
+  if(t == "t"){t = "tailored targets"}
+  
   # mpas included
   inclusion = scenario_sheet$lockedin[i]
   if(inclusion == "mpa_layer_fullyprotected"){inclusion = "no-take zones"}
@@ -141,8 +146,11 @@ for(i in 1:length(irraplaceability_scores)){
   if(inclusion == "none"){inclusion = "No MPAs"}
   # features included
   features = scenario_sheet$features[i]
-  if(features == "feature_stack_aseasonal"){features = "all species (n = 53)"}
-  if(features == "feature_stack_aseasonal_targetsonly"){features = "target species (n = 18)"}
+  if(features == "feature_stack_aseasonal"){features = "Raw distribution maps (n=82)"}
+  if(features == "feature_stack_aseasonal_thresholds"){features = "Filtered distribution maps (n=82)"}
+  if(features == "feature_stack_specialspp1"){features = "Filtered distribution maps, only IUCN (CR,EN) & South Africa endemics (n=27)"}
+  if(features == "feature_stack_specialspp2"){features = "Filtered distribution maps, only IUCN (CR,EN,VU) & Southern Africa endemics (n=59)"}
+  
   # irraplaceability solution plots
   plot_type = names(temp) # plot name
   folder = "irraplaceability/"# folder destination
@@ -151,7 +159,7 @@ for(i in 1:length(irraplaceability_scores)){
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="right"),
-                   main = paste0(scenario," scenario | Species protection: ",t,"% | ",features),
+                   main = paste0(pnumber," | ",scenario," scenario | Protection targets: ",t,"\n",features),
                    margin = FALSE,
                    col.regions = rev(sequential_hcl(n=5)),
                    at = intervals2)+settings
@@ -165,7 +173,7 @@ for(i in 1:length(irraplaceability_scores)){
                      xlab = NULL,
                      ylab = NULL,
                      colorkey=list(space="right"),
-                     main = paste0(scenario," scenario | Species protection: ",t,"%"),
+                     main = paste0(pnumber," | ",scenario," scenario | Protection targets: ",t,"\n",features),
                      col.regions = rev(sequential_hcl(n=5)),
                      at = intervals2,
                      margin = FALSE)+settings
@@ -229,7 +237,7 @@ for(i in 1:length(irraplaceability_scores)){
                    xlab = NULL,
                    ylab = NULL,
                    colorkey=list(space="bottom"),
-                   main = paste0(scenario," scenario | Species protection: ",t,"%"),
+                   main = paste0(pnumber," | ", scenario," scenario | Species protection: ",t,"%"),
                    col.regions = rev(heat.colors(32)),
                    at = intervals2,
                    margin = FALSE)+settings+
