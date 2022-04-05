@@ -1,0 +1,512 @@
+plot(temp_threshcut)
+eval_value = read.csv(evals[i])
+# get average cutoff from evaluations
+eval_value = eval_value %>%
+filter(Testing.data>=0.7)%>%
+summarise(mean = mean(Cutoff),
+std = sd(Cutoff))
+eval_value
+eval_value = read.csv(evals[i])
+# get average cutoff from evaluations
+eval_value = eval_value %>%
+filter(Testing.data>=0.7)%>%
+summarise(mean = mean(Cutoff),
+std = sd(Cutoff),
+highcutoff = mean+std)
+eval_value
+eval_value_high = (eval_value$highcutoff)/1000
+eval_value_high
+# filter data at evaluations cutoff
+temp_evalcut = temp
+values(temp_evalcut)[which(values(temp_evalcut)<eval_value_high)] = NA
+plot(temp_evalcut)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+my.directory = getwd()
+getwd()
+# set directory
+setwd(my.directory)
+# ---------------------------------
+#  SPECIES SPECIFIC MODEL PARAMETERS
+# ---------------------------------
+# read master file with species-specific modelling parameters
+# this sheet contains a list of all species with some additional data details
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
+View(master)
+res=10
+if(res ==10){
+master_keep = master %>%
+filter(rounded_10 >=1)}
+View(master_keep)
+i=20
+# MODEL PARAMATERS
+target = master_keep$SPECIES_SCIENTIFIC[i] # species name
+substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
+seasonal = "no"
+# IMPORTANT: to run the loop with the example data make sure exampledata = "yes"
+exampledata = "no"
+# OCCURRENCE DATA
+source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE))
+View(obs.data)
+shapefile(obs.data,"cuvier.shp")
+# coefficient of variation maps
+cv_rasters = list.files(pattern = "Aseasonal_res10_ensemblecv.tif", recursive = TRUE, full.names =TRUE)
+# coefficient of variation maps
+cv_rasters = list.files(pattern = "ensemblecv.tif", recursive = TRUE, full.names =TRUE)
+temp_cv = raster(cv_rasters[i])
+plot(temp_cv)
+getwd()
+# set directory to dropbox folder (where model folders are kept)
+setwd("/Users/nfb/Dropbox/6-WILDOCEANS/")
+# all files
+models_all = list.files(pattern = "models.out", full.names = TRUE, recursive = TRUE)
+# all files
+models_all = list.files(pattern = "models.out", full.names = TRUE, recursive = TRUE)
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+# list of required packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+# check which packages you need to install
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
+# load packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# install packages
+install.packages(requiredpackages)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# ---------------------------------
+# CONSERVATION FEATURES
+# ---------------------------------
+source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE))
+# ---------------------------------
+# COSTS
+# ---------------------------------
+source(list.files(pattern = "costs_2018NBA.R", recursive = TRUE))
+# ---------------------------------
+# LOCKED IN AREAS
+# ---------------------------------
+source(list.files(pattern = "Lockedin.R", recursive = TRUE))
+# ---------------------------------
+# CONSERVATION TARGETS
+# ---------------------------------
+# load in spreadsheet with species and their targets
+targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
+targets
+View(targets)
+View(featurenames)
+View(targets)
+# keep species names, endemism, IUCN rating and targets
+targets = targets %>%
+dplyr::select(SPECIES_SCIENTIFIC,Score, Endemism,IUCN)
+# turn colnames to upper case
+colnames(targets) = toupper(colnames(targets))
+# join these targets to featurenames dataframe
+colnames(featurenames) = toupper(colnames(featurenames))
+featurenames = left_join(featurenames,targets)
+rm(targets) # remove
+View(featurenames)
+featurenames %>%
+filter(IUCN %in% c("EN","VU","CR"))
+IUCN_threatened = featurenames %>%
+filter(IUCN %in% c("EN","VU","CR"))
+IUCN_threatened
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+master  = master %>%
+dplyr::select(SPECIES_SCIENTIFIC,target_species)
+featurenames = left_join(featurenames,master)
+IUCN_threatened = featurenames %>%
+filter(IUCN %in% c("EN","VU","CR"))
+View(IUCN_threatened)
+View(IUCN_threatened)
+which(names(feature_stack_aseasonal) %in% IUCN_threatened$FEATURENAME)
+idx = which(names(feature_stack_aseasonal) %in% IUCN_threatened$FEATURENAME)
+idx = which(!(names(feature_stack_aseasonal) %in% IUCN_threatened$FEATURENAME))
+idx
+# remove non threatened species from rasterstack
+feature_stack_aseasonal_targetsonly = dropLayer(feature_stack_aseasonal_targetsonly,idx)
+# remove non threatened species from rasterstack
+feature_stack_aseasonal_targetsonly = dropLayer(feature_stack_aseasonal,idx)
+plot(feature_stack_aseasonal_targetsonly)
+# ---------------------------------
+# DATA
+# ---------------------------------
+# species distribution file names (continuous)
+files = list.files(path = paste0(getwd(),"/wildoceans-scripts/"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
+# ---------------------------------
+# DATA
+# ---------------------------------
+# species distribution file names (continuous)
+files = list.files(path = paste0(getwd(),"/wildoceans-scripts/"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
+# create raster stack
+feature_stack = stack()
+for(i in 1:length(files)){
+temp = raster(files[i])
+temp = projectRaster(temp,pu)
+feature_stack = addLayer(feature_stack,temp)
+}
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# create raster stack
+feature_stack = stack()
+for(i in 1:length(files)){
+temp = raster(files[i])
+temp = projectRaster(temp,pu)
+feature_stack = addLayer(feature_stack,temp)
+}
+rm(i,files,temp) # remove unnecessary variables
+# thresholds
+threshs = list.files(pattern = "thresh.csv", recursive = TRUE, full.names = TRUE)
+threshs
+getwd()
+# thresholds
+threshs = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/wildoceans-scripts/"),pattern = "thresh.csv", recursive = TRUE, full.names = TRUE)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# thresholds
+threshs = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/wildoceans-scripts/"),pattern = "thresh.csv", recursive = TRUE, full.names = TRUE)
+plot(feature_stack)
+# ---------------------------------
+# FORMATTING
+# ---------------------------------
+# turn all NA values to 0
+values(feature_stack)[is.na(values(feature_stack))] = 0
+# mask with pu
+feature_stack = stack(mask(feature_stack,pu))
+# extract scientific name from stack of distributions
+featurenames = as.data.frame(names(feature_stack))
+colnames(featurenames) = "featurename"
+for(i in 1:nrow(featurenames)){
+# extract model type
+featurenames$modeltype[i] = strsplit(featurenames$featurename,"_")[[i]][3]
+featurenames$modeltype[i] = strsplit(featurenames$modeltype,"ensemblemean")[[i]][1]
+# extract scientific name by pasting genus and species name from file name
+featurenames$species_scientific[i] = paste(strsplit(featurenames$featurename,"_")[[i]][1] ,strsplit(featurenames$featurename,"_")[[i]][2])}
+rm(i) # remove unnecessary variables
+# turn species names to upper case
+featurenames$species_scientific = toupper(featurenames$species_scientific)
+# turn headers to capital
+colnames(featurenames) = toupper(colnames(featurenames))
+# turn season type to upper case
+featurenames$MODELTYPE = toupper(featurenames$MODELTYPE)
+# divide all values by 1000 to get actual probability values between 0 and 1
+# only divide non NA values by 1000
+for(i in 1:nlayers(feature_stack)){
+values(feature_stack[[i]])[!is.na(values(feature_stack[[i]]))] = values(feature_stack[[i]])[!is.na(values(feature_stack[[i]]))]/1000
+}
+# turn any negative values to 0
+for(i in 1:nlayers(feature_stack)){
+feature_stack[[i]][values(feature_stack[[i]])<0] = 0
+}
+# clamp values to turn extremely small values to 0
+feature_stack = raster::clamp(feature_stack, lower = 1e-6, useValues = TRUE)
+feature_stack = stack(feature_stack)
+rm(i) # remove unnecessary variables
+plot(feature_stack)
+# filter to only keep aseasonal features
+keep = str_detect(names(feature_stack),"Aseasonal")  # identify Aseasonal layers in stack
+idx = which(keep == FALSE) # find out layer number with feature to omit
+feature_stack_aseasonal = dropLayer(feature_stack,idx)
+rm(idx,keep) # remove
+1:nlayers(feature_stack)
+i=1
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = thresh_value$thresh
+plot(temp)
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+plot(temp)
+# create feature stack where threshold values are used to filter low probability portion of occurences
+feature_stack_thresholds = stack()
+for(i in 1:nlayers(feature_stack)){
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+feature_stack_thresholds[[i]] = temp
+}
+# create feature stack where threshold values are used to filter low probability portion of occurences
+feature_stack_thresholds = stack()
+for(i in 1:nlayers(feature_stack)){
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+feature_stack_thresholds[[i]] = temp
+}
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+feature_stack_thresholds[[i]] = temp
+# create feature stack where threshold values are used to filter low probability portion of occurences
+feature_stack_thresholds = stack()
+for(i in 1:nlayers(feature_stack)){
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+feature_stack_thresholds[[i]] = addLayer(feature_stack_thresholds,temp)
+}
+# create feature stack where threshold values are used to filter low probability portion of occurences
+feature_stack_thresholds = stack()
+for(i in 1:nlayers(feature_stack)){
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+feature_stack_thresholds = addLayer(feature_stack_thresholds,temp)
+}
+plot(feature_stack_thresholds)
+# add names
+names(feature_stack_thresholds)
+# filter to only keep aseasonal features of threshold stack
+keep = str_detect(names(feature_stack_thresholds),"Aseasonal")  # identify Aseasonal layers in stack
+idx = which(keep == FALSE) # find out layer number with feature to omit
+feature_stack_aseasonal_thresholds = dropLayer(feature_stack_thresholds,idx)
+rm(idx,keep) # remove
+nmaes(feature_stack_aseasonal_thresholds)
+names(feature_stack_aseasonal_thresholds)
+rm(feature_stack,feature_stack_thresholds)
+# ---------------------------------
+# CONSERVATION TARGETS
+# ---------------------------------
+# load in spreadsheet with species and their targets
+targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
+# ---------------------------------
+# TARGETS and SUMMARY sheet
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+View(master)
+# turn colnames to upper case
+colnames(targets) = toupper(colnames(targets))
+# add targets to master sheet
+master = left_join(master,targets)
+rm(targets)
+rm(temp)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# ---------------------------------
+# TARGETS and SUMMARY sheet
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+# load in spreadsheet with species and their targets
+targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
+# turn colnames to upper case
+colnames(targets) = toupper(colnames(targets))
+# turn master colnames to upper case
+colnames(master) = toupper(colnames(master))
+# add targets to master sheet
+master = left_join(master,targets)
+rm(targets)
+View(master)
+# ---------------------------------
+# TARGETS and SUMMARY sheet
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+# load in spreadsheet with species and their targets
+targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+# load in spreadsheet with species and their targets
+targets = read_xlsx(list.files(pattern = "species_targets.xlsx",recursive = TRUE), sheet = 1)
+master_new = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[1],sheet = 1)
+master_new %>%
+dplyr::select(SPECIES_SCIENTIFIC,IUCN,Endemism)
+master_new = master_new %>%
+dplyr::select(SPECIES_SCIENTIFIC,IUCN,Endemism)
+master = left_join(master, master_new)
+View(master)
+install.packages("letsR")
+library(letsR)
+lets.iucn("Pongo pygmaeus")
+detach("package:letsR", unload = TRUE)
+install.packages("rredlist")
+library(rredlist)
+rl_common_names('Loxodonta africana')
+rl_common_names_('Loxodonta africana')
+iucn_status(iac)
+install.packages("taxize")
+library(taxize)
+iucn_status(iac)
+iucn_summary(x="Ara chloropterus", distr_detail = TRUE)
+iucn_summary(c("Panthera uncia", "Lynx lynx"))
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+# list of required packages
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+# check which packages you need to install
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
+# install packages
+install.packages(requiredpackages)
+# list of required packages
+requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+# load packages
+lapply(requiredpackages,require, character.only = TRUE)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+my.directory = getwd()
+# set directory
+setwd(my.directory)
+# ---------------------------------
+#  - ENVIRONMENTAL VARIABLES
+# ---------------------------------
+# specify model resolution
+# we chose between a grid of 5 x 5 km (res = 5) or 10 x 10 km (res = 10)
+res = 10
+source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
+# ---------------------------------
+#  SPECIES SPECIFIC MODEL PARAMETERS
+# ---------------------------------
+# read master file with species-specific modelling parameters
+# this sheet contains a list of all species with some additional data details
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
+View(master)
+i=42
+# MODEL PARAMATERS
+target = master$SPECIES_SCIENTIFIC[i] # species name
+# OCCURRENCE DATA
+source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE))
+# IMPORTANT: to run the loop with the example data make sure exampledata = "yes"
+exampledata = "no"
+# OCCURRENCE DATA
+source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE))
+plot(obs.data)
+library(rredlist)
+rl_common_names('Loxodonta africana')
+rl_common_names('Loxodonta africana', key = 4c618e337143344b3f1e441cef269dd652f32fe3bd34850523a6d5a4d7868a98)
+rl_common_names('Loxodonta africana', key = "4c618e337143344b3f1e441cef269dd652f32fe3bd34850523a6d5a4d7868a98")
+?iucn_summary
+?iucn_status()
+??iucn_status()
+library(taxize)
+?iucn_status()
+ia <- iucn_summary(c("Panthera uncia", "Lynx lynx"))
+ia <- iucn_summary('Loxodonta africana')
+iucn_status(ia)
+ia <- iucn_summary('Loxodonta africana',key = "4c618e337143344b3f1e441cef269dd652f32fe3bd34850523a6d5a4d7868a98")
+iucn_status(ia)
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+library(readxl)
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2],sheet = 1)
+master_new = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[1],sheet = 1)
+View(master_new)
+master_new$SPECIES_SCIENTIFIC
+species_all = master_new$SPECIES_SCIENTIFIC
+ia <- iucn_summary(species_all,key = "4c618e337143344b3f1e441cef269dd652f32fe3bd34850523a6d5a4d7868a98")
+ia <- iucn_summary(species_all,key = "4c618e337143344b3f1e441cef269dd652f32fe3bd34850523a6d5a4d7868a98")
+View(ia)
+unlist(ia)
+View(ia)
+1:length(ia)
+i=1
+ia[[i]][1]
+ia[[i]][1]$status
+i=2
+ia[[i]][1]$status
+STATUS = vector()
+STATUS
+for(i in 1:length(ia)){
+temp = ia[[i]][1]$status
+STATUS = c(STATUS,temp)}
+i=1
+ia[[i]]
+ia
+names(ia)
+cbind(names(ia),STATUS)
+iucn_stauses = cbind(names(ia),STATUS)
+iucn_statuses = cbind(names(ia),STATUS)
+iucn_statuses = as.data.frame(cbind(names(ia),STATUS))
+View(iucn_statuses)
+write.csv(iucn_statuses,"iucn_statuses.csv")
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+# list of required packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+# check which packages you need to install
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
+# install packages
+install.packages(requiredpackages)
+# load packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# South African continetnal marine protected areas
+mpas = st_read(list.files(pattern ="SAMPAZ_OR_2021_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+View(mpas)
+mpas$geometry = NULL
+mpas %>%
+group_by(CUR_NME)%>%
+summarise(sum(GIS_AREA))
+View(mpas)
+2.888741e+04
