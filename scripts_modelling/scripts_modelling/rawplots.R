@@ -30,7 +30,6 @@ rm(requiredpackages)
 # DIRECTORY
 # ---------------------------------
 path =  "/Users/nfb/"
-path =  "/home/nina/"
 my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
 setwd(my.directory)
 # ---------------------------------
@@ -40,7 +39,7 @@ setwd(my.directory)
 # DATA
 # ---------------------------------
 # list of species
-master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE)[2])
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
 # Occurrence file names
 files = list.files(pattern = ".rds", recursive = TRUE, path = paste0(path,"Dropbox/6-WILDOCEANS/Modelling/speciesdata/"),full.names = TRUE)
 # ---------------------------------
@@ -78,13 +77,13 @@ for(i in 1:nrow(master)){
   source(list.files(pattern = "species_data.R", recursive = TRUE)) 
   rm(folder)
   temp_raster = blank_template
-  values(temp_raster)[extract(temp_raster,obs.data,cell=TRUE)[,1]] = 1
-  values(temp_raster)[values(temp_raster)==0]= NA
-  temp_polygon = rasterToPolygons(temp_raster)
-  
+   
   # only continue with loop if there is data for species
   if(nrow(obs.data)>0){
-  
+    values(temp_raster)[extract(temp_raster,obs.data,cell=TRUE)[,1]] = 1
+    values(temp_raster)[values(temp_raster)==0]= NA
+    temp_polygon = rasterToPolygons(temp_raster)
+    
   # IUCN data
   exists3 = file.info(list.files(pattern = paste(target,".gpkg",sep=""), recursive = TRUE, ignore.case = TRUE))
   if(nrow(exists3 !=0)){
@@ -106,13 +105,22 @@ for(i in 1:nrow(master)){
   # if expert range exists then convert to spatial object
   if(nrow(coordinates(expert))>0){expert = SpatialPoints(expert)}else{rm(expert)}
   
+  # species info
+  spp_info = master %>%
+    filter(SPECIES_SCIENTIFIC == target)
+  
   # convert target to sentence case for plotting
   target = str_to_sentence(master$SPECIES_SCIENTIFIC[i])
+  
+  # get endemic status
+  if(spp_info$ENDEMIC.STATUS == 1){endemism = "South Africa endemic"}
+  if(spp_info$ENDEMIC.STATUS == 0){endemism = "Not endemic"}
+  if(spp_info$ENDEMIC.STATUS == 2){endemism = "Southern Africa endemic"}
   
   # plot and save each species as basic map
   # save the map in different folder depending on if this species will be modeled or not
   # that means based on its 10km resolution prevalence score which needs to be >1
-  if(temp$rounded_10>0){png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw/",target,".png",sep=""),width=3000, height=2000, res=300)}else{png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw_unmodelled/",target,".png",sep=""),width=3000, height=2000, res=300)}
+  png(paste0(path,"Dropbox/6-WILDOCEANS/Modelling/Outputs/maps_raw/",target,".png",sep=""),width=3000, height=2000, res=300)
   plot.new() 
   plot = levelplot(temp_raster,
             margin = FALSE,
@@ -120,7 +128,7 @@ for(i in 1:nrow(master)){
             #col.regions = "white",
             xlab = NULL,
             ylab=NULL,
-            main = bquote(italic(.(target))~","~.(temp$Species_common)),
+            main = bquote(italic(.(target))~","~.(spp_info$Species_common)~" - ["~.(spp_info$STATUS)~"] - ["~.(endemism)~"]"),
             #main = paste(str_to_sentence((target)),"-",temp$Species_common),
             # add blue line IUCN legend
             panel = function(x,y,...){
@@ -152,11 +160,9 @@ for(i in 1:nrow(master)){
         # expert range (only plot if it exists) or else just carry on with rest of plot
         if(exists("expert")){latticeExtra::layer(sp.points(expert,col = "green",cex = 1, pch = 4,lwd = 2))+
             latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Data points = ",temp$abundance),col = "black",pch = 20, pos=2,cex = 1))+
-            latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Presence cells (5x5km) = ",temp$cells," (",temp$rounded,"%)"),pch = 20, pos=2,cex = 1))+
-            latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",temp$rounded_10,"%)"),pch = 20, pos=2,cex = 1))}else{
+            latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",round(temp$prevalence_10*100,2),"%)"),pch = 20, pos=2,cex = 1))}else{
               latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Data points = ",temp$abundance),col = "black",pch = 20, pos=2,cex = 1))+
-                latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Presence cells (5x5km) = ",temp$cells," (",temp$rounded,"%)"),pch = 20, pos=2,cex = 1))+
-                latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",temp$rounded_10,"%)"),pch = 20, pos=2,cex = 1))}}else{
+                latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",round(temp$prevalence_10*100,2),"%)"),pch = 20, pos=2,cex = 1))}}else{
                   # occurrence data
                   latticeExtra::layer(sp.polygons(temp_polygon,col = "indianred",fill = "indianred1",cex = 0.4, pch = 21))+
                     # mpa outline
@@ -175,18 +181,11 @@ for(i in 1:nrow(master)){
     # expert range (only plot if it exists) or else just carry on with rest of plot
     if(exists("expert")){latticeExtra::layer(sp.points(expert,col = "green",lwd = 2,cex=1,pch = 4))+
         latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Data points = ",temp$abundance),col = "black",pch = 20, pos=2,cex = 1))+
-        latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Presence cells (5x5km) = ",temp$cells," (",temp$rounded,"%)"),pch = 20, pos=2,cex = 1))+
-        latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",temp$rounded_10,"%)"),pch = 20, pos=2,cex = 1))}else{
+        latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",round(temp$prevalence_10*100,2),"%)"),pch = 20, pos=2,cex = 1))}else{
     latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Data points = ",temp$abundance),col = "black",pch = 20, pos=2,cex = 1))+
-    latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Presence cells (5x5km) = ",temp$cells," (",temp$rounded,"%)"),pch = 20, pos=2,cex = 1))+
-    latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",temp$rounded_10,"%)"),pch = 20, pos=2,cex = 1))}}
+    latticeExtra::layer(sp.text(coordinates(legend)[3,],paste0("Presence cells (10x10km) = ",temp$cells_10," (",round(temp$prevalence_10*100,2),"%)"),pch = 20, pos=2,cex = 1))}}
   print(plot)
   dev.off()
-  rm(species,obs.data,expert,iucn_extent,pts)}}
+  rm(species,obs.data,expert,iucn_extent,pts)}
+  }
 # ---------------------------------
-
-# ---------------------------------
-# PLOTTING (COMBINATION PLOTS)
-# ---------------------------------
-# this loop will now aim to produce pdf of multiple plots in one
-
