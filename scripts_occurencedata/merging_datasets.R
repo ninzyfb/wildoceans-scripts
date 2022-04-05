@@ -28,7 +28,6 @@ library(readxl)
 # DIRECTORY
 # ---------------------------------
 # define your path
-path = "/home/nina/Documents/" # path for linux
 path =  "/Users/nfb/" # path for mac
 setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 # ---------------------------------
@@ -73,8 +72,9 @@ summary2 = summary2 %>%
   filter(!is.na(SPECIES_SCIENTIFIC))
 
 # check how many sightings do not have a date
-# for some datasets this is normal i.e. ATAP/ORI
+# for some datasets this is normal i.e. ATAP/ORI/POLYGONS
 nodate = summary2[is.na(summary2$DATE),]
+unique(nodate$DATASET)
 rm(nodate)# remove unnecessary variable
 
 # format all dates and specify different formats
@@ -82,7 +82,7 @@ rm(nodate)# remove unnecessary variable
 # this may be beacuse all the formats have not been specified
 summary2$DATE2 = parse_date_time(summary2$DATE,
                                 orders = c("dmy","dmY","Ymd","Y"))
-# if no dates failed to parse inly keep one date column
+# if no dates failed to parse only keep one date column
 summary2$DATE = NULL
 colnames(summary2)[6] = "DATE"
 
@@ -135,41 +135,27 @@ rm(synonym_sheet,i)
 
 # remove duplicates
 summary3 = unique(summary2)
+rm(summary2)
 
 # summarise number of counts by species name
 observation_counts = summary3 %>%
   group_by(SPECIES_SCIENTIFIC)%>%
   summarise(count = n())
 
-# extract species that are lumped together in a group
-spp = str_detect(observation_counts$SPECIES_SCIENTIFIC," SPP")
-groups = observation_counts[spp,]
-observation_counts = observation_counts[!spp,]
-# extract species that are lumped together in a group
-sp = str_detect(observation_counts$SPECIES_SCIENTIFIC,"SP\\.")
-groups2 = observation_counts[sp,]
-observation_counts = observation_counts[!sp,]
-# combine removed species
-groups = rbind(groups,groups2)
-rm(groups2)
-
-# remove observations of less than 5
-observation_counts = observation_counts %>%
-  filter(SPECIES_SCIENTIFIC != "0") %>%
-  filter(SPECIES_SCIENTIFIC != "UNKNOWN") %>%
-  filter(SPECIES_SCIENTIFIC != "DASYATIDAE")%>%
-  filter(SPECIES_SCIENTIFIC != "HIMANTURA")
-
-# load target species
-targets = readxl::read_xlsx("/Users/nfb/Dropbox/6-WILDOCEANS/wildoceans_specieslist.xlsx")
-colnames(targets)[colnames(targets) == "Scientific name"] = "SPECIES_SCIENTIFIC"
-targets$SPECIES_SCIENTIFIC = toupper(targets$SPECIES_SCIENTIFIC )
-
-# join both datasets
-observation_counts = left_join(observation_counts,targets)
+# find any species with only genus
+names = as.data.frame(str_split(observation_counts$SPECIES_SCIENTIFIC, " ", simplify = TRUE))
+observation_counts = cbind(observation_counts,names)
+groups = observation_counts[which(observation_counts$V2 %in% c("","SP.","SPP","SPP.")),]
+rm(names)
 
 # write sheet to use for keeping track of species groups not included
 write.csv(groups, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary_excludedspeciesgroups.csv",row.names = FALSE)
+rm(groups)
+
+# filter observation counts to only keep full species
+observation_counts = observation_counts[which(!(observation_counts$V2 %in% c("","SP.","SPP","SPP."))),]
+observation_counts$V1 = NULL
+observation_counts$V2 = NULL
 # ---------------------------------
 
 
@@ -220,17 +206,17 @@ dev.off()
 # filter to only keep data points after 1950
 # this only filters GBIF data in any case
 gbif_obis = summary3 %>%
-  filter(DATASET == "gbif_obis") %>%
+  filter(DATASET == "GBIF and OBIS") %>%
   filter(DATE >= as.Date("1950-01-01"))
 
 # remove gbif dataset from main dataset
 summary3 = summary3 %>%
-  filter(DATASET != "gbif_obis")
+  filter(DATASET != "GBIF and OBIS")
 
 # add filtered gbif dataset back into main dataset
 summary3 = full_join(summary3,gbif_obis)
 
-# check date range again
+# check date range again (shouldbe from 1958 onwards)
 range(summary3$DATE, na.rm = TRUE)
 ##############
 
@@ -245,6 +231,8 @@ for(i in sp){
     filter(!is.na(as.numeric(LATITUDE)))
   # save as R object to be used in modeling
   saveRDS(temp,file = paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i, ".rds", sep=""))
+  # save as csv file for that species
+  write.csv(temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,"_rawdata.csv",sep=""), row.names = FALSE)
   # also save important information on that species
   summary_temp = temp %>%
     group_by(DATASET)%>%
