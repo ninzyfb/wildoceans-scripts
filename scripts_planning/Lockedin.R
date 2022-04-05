@@ -49,7 +49,7 @@ names(aggregations) = "aggregations"
 aggregations = projectRaster(aggregations,pu)
 
 # mpas (all of them)
-mpa_layer_all = st_read(list.files(pattern = "SAMPAZ_OR_2020_Q3.shp",recursive=TRUE,full.names = TRUE))
+mpa_layer_all = st_read(list.files(pattern = "SAMPAZ_OR_2021_Q3.shp",recursive=TRUE,full.names = TRUE))
 # mpas (no-takes only)
 mpa_layer_fullyprotected = st_read(list.files(pattern = "mpa_layer_protected.shp",recursive=TRUE,full.names = TRUE))
 
