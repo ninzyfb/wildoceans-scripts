@@ -159,3 +159,32 @@ bbox_temp[2,] = c(-28,-33)
 
 bboxes[[4]] = bbox_temp
 names(bboxes) = c("KZN","EC","WC","NC")
+
+# depth contour legend line
+depth_xcoords <- c(33,34)
+depth_ycoords <- c(-37.1,-37.1)
+# create spatial points
+depth_points <- sp::SpatialPoints(cbind(depth_xcoords,depth_ycoords))
+# use as to convert to line
+depth_line <- as(depth_points,"SpatialLines")
+rm(depth_xcoords,depth_ycoords,depth_points)
+
+# iucn legend line
+iucn_xcoords <- c(33,34)
+iucn_ycoords <- c(-37.6,-37.6)
+# create spatial points
+iucn_points <- sp::SpatialPoints(cbind(iucn_xcoords,iucn_ycoords))
+# use as to convert to line
+iucn_line <- as(iucn_points,"SpatialLines")
+rm(iucn_xcoords,iucn_ycoords,iucn_points)
+
+# binary legend line
+binary_xcoords <- c(33,34)
+binary_ycoords <- c(-36.7,-36.7)
+# create spatial points
+binary_points <- sp::SpatialPoints(cbind(binary_xcoords,binary_ycoords))
+# use as to convert to line
+binary_line <- as(binary_points,"SpatialLines")
+rm(binary_xcoords,binary_ycoords,binary_points)
+
+
