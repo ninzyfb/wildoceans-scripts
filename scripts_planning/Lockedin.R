@@ -50,29 +50,33 @@ aggregations = projectRaster(aggregations,pu)
 
 # mpas (all of them)
 mpa_layer_all = st_read(list.files(pattern = "SAMPAZ_OR_2021_Q3.shp",recursive=TRUE,full.names = TRUE))
-# mpas (no-takes only)
-mpa_layer_fullyprotected = st_read(list.files(pattern = "mpa_layer_protected.shp",recursive=TRUE,full.names = TRUE))
 
 # remove prince edward islands and group by name
 mpa_layer_all = mpa_layer_all %>%
   filter(CUR_NME != "Prince Edward Island Marine Protected Area") %>%
-  group_by(CUR_NME) %>%
+  group_by(CUR_NME,CUR_ZON_TY) %>%
   summarise()
+
+# extract no take zones
+mpa_layer_fullyprotected = mpa_layer_all %>%
+  filter(CUR_ZON_TY %in% c("Wilderness","Restricted","Sanctuary"))
+
 # rasterize
-mpa_layer_all = rasterize(mpa_layer_all,pu)
-# convert all values to 1
-values(mpa_layer_all)[which(!is.na(values(mpa_layer_all)))] = 1
+mpa_layer_all = rasterize(mpa_layer_all,pu, getCover=TRUE)
 # rename layer
 names(mpa_layer_all) = "mpa_layer_all"
-mpa_layer_all = projectRaster(mpa_layer_all,pu)
-
+# only keep in cells wich are covered by 50% or more by the polygon
+values(mpa_layer_all)[which(values(mpa_layer_all)>=0.5)] = 1
+values(mpa_layer_all)[which(values(mpa_layer_all)<0.5)] = NA
 
 # mpas (only fully protected ones)
 # rasterize
-mpa_layer_fullyprotected = rasterize(mpa_layer_fullyprotected,pu)
+mpa_layer_fullyprotected = rasterize(mpa_layer_fullyprotected,pu,getCover=TRUE)
 # rename layer
 names(mpa_layer_fullyprotected) = "mpa_layer_fullyprotected"
-values(mpa_layer_fullyprotected)[which(!is.na(values(mpa_layer_fullyprotected)))]=1
+# only keep in cells wich are covered by 50% or more by the polygon
+values(mpa_layer_fullyprotected)[which(values(mpa_layer_fullyprotected)>=0.5)] = 1
+values(mpa_layer_fullyprotected)[which(values(mpa_layer_fullyprotected)<0.5)] = NA
 
 # ---------------------------------
 # FORMATTING
