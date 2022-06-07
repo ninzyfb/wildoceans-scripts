@@ -30,8 +30,8 @@ sa  <- getData("GADM",country="South Africa",level=1)
 # Names of coastal cities
 places = shapefile(list.files(pattern="ebert_placenames.shp", recursive = TRUE, full.names=TRUE)) 
 
-# South African continetnal marine protected areas
-mpas = st_read(list.files(pattern ="SAMPAZ_OR_2021_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+# South African continental marine protected areas
+mpas = st_read(list.files(pattern ="SAMPAZ_OR_2021_Q3.shp" ,recursive = TRUE, full.names = TRUE)[1])
 # ---------------------------------
 
 
@@ -54,9 +54,6 @@ contours = contours[which(contours$DEPTH=="-250"),]
 # simplify provinces to reduce the weight of the file
 sa = st_as_sf(sa)
 sa <- st_simplify(sa,dTolerance=100, preserveTopology = TRUE)
-sa = sa %>%
-  # only keep coastal provinces
-  filter(NAME_1 %in% c("Eastern Cape","KwaZulu-Natal","Northern Cape","Western Cape"))
 sa = as(sa, Class = "Spatial")
 
 # PLACES # -----------
@@ -69,7 +66,7 @@ adjustedcoords[,2] = adjustedcoords[,2]+0.2
 # simplify MPA shapefile
 mpas = mpas %>%
   filter(CUR_NME != "Prince Edward Island Marine Protected Area") %>%
-  group_by(CUR_ZON_NM,CUR_NME,CUR_ZON_TY,GIS_AREA) %>%
+  group_by(CUR_NME,CUR_ZON_TY,CUR_ZON_NM,GIS_AREA) %>%
   summarise()
 # simplify mpas
 mpas = st_simplify(mpas,dTolerance = 100)
@@ -83,20 +80,7 @@ mpas_notake = as(mpas_notake, Class = "Spatial")
 
 # add take and no-take specification to mpas dataframe
 mpas@data = mpas@data %>%
-  mutate(type = ifelse(CUR_ZON_NM %in% mpas_notake$CUR_ZON_NM,"no-take","take"))
-
-# mpa labels
-mpa_labels = st_as_sf(mpas)
-mpa_labels = mpa_labels %>%
-  group_by(CUR_NME) %>%
-  summarise()
-mpa_labels$CUR_NME = str_split(mpa_labels$CUR_NME," Marine Protected Area", simplify = TRUE)[,1]
-mpa_labels$number = as.numeric(as.factor(mpa_labels$CUR_NME))
-mpa_labels = as(mpa_labels, Class = "Spatial")
-
-# label dot
-label_coords = data.frame(mpa_labels$number)
-coordinates(label_coords) = data.frame(coordinates(mpa_labels))
+  mutate(type = ifelse(CUR_ZON_TY %in% mpas_notake$CUR_ZON_TY,"no-take","take"))
 
 
 # OTHER # -----------
@@ -120,7 +104,7 @@ rm(points)
 
 # blank template (for raw plots script)
 blank_template = raster(list.files(pattern = "template_10km.tif", recursive = TRUE, full.names = TRUE))
-values(blank_template) = 0
+values(blank_template) = NA
 
 # legend coordinates (for raw plots script)
 legend = data.frame()
@@ -130,6 +114,8 @@ legend[2,1] = 36
 legend[2,2] = -37
 legend[3,1] = 36
 legend[3,2] = -37.5
+legend[4,1] = 36
+legend[4,2] = -38
 coordinates(legend) <- ~V1+V2
 
 # color palette
