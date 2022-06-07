@@ -1,0 +1,512 @@
+# legend title and
+scale_linetype_manual(values = c("dotted","dashed","solid","twodash"),labels = feature.labs) +
+scale_color_manual(values = c(brewer.pal(4, "Set1")),labels = feature.labs) +
+# 10% of EEZ
+geom_hline(yintercept = 10)+
+# 20% of EEZ
+geom_hline(yintercept = 20)+
+# 30% of EEZ
+geom_hline(yintercept = 30)+
+ylab("EEZ area required to meet target (%)")+
+xlab("Protection target per species (%)")+
+#theme_classic()+
+scale_x_continuous(breaks = seq(0,100,10))+
+scale_y_continuous(breaks = seq(0,100,10))+
+facet_grid(~lockedin,labeller = labeller(lockedin = mpa.labs))+
+theme_bw()+
+theme(legend.position=c(0.3, 0.8),
+legend.title = element_text(size=14),
+legend.text = element_text(size=10),
+axis.text.x = element_text(size=10),
+axis.text.y = element_text(size=10),
+strip.text.x = element_text(size = 14),
+legend.background = element_rect(linetype = 1, size = 0.5, colour = 1))
+scenario_sheet %>%
+filter(lockedin=="mpa_layer_fullyprotected")%>%
+ggplot(aes(x = targets, y = area_required, col = features, linetype = features))+
+geom_path(aes())+
+# legend title and
+scale_linetype_manual(values = c("dotted","dashed","twodash","solid"),labels = feature.labs) +
+scale_color_manual(values = c(brewer.pal(4, "Set1")),labels = feature.labs) +
+# 10% of EEZ
+geom_hline(yintercept = 10)+
+# 20% of EEZ
+geom_hline(yintercept = 20)+
+# 30% of EEZ
+geom_hline(yintercept = 30)+
+ylab("EEZ area required to meet target (%)")+
+xlab("Protection target per species (%)")+
+#theme_classic()+
+scale_x_continuous(breaks = seq(0,100,10))+
+scale_y_continuous(breaks = seq(0,100,10))+
+facet_grid(~lockedin,labeller = labeller(lockedin = mpa.labs))+
+theme_bw()+
+theme(legend.position=c(0.3, 0.8),
+legend.title = element_text(size=14),
+legend.text = element_text(size=10),
+axis.text.x = element_text(size=10),
+axis.text.y = element_text(size=10),
+strip.text.x = element_text(size = 14),
+legend.background = element_rect(linetype = 1, size = 0.5, colour = 1))
+png(file="protectionestimates.png",width=3000, height=2000, res=300)
+plot = scenario_sheet %>%
+filter(lockedin=="mpa_layer_fullyprotected")%>%
+ggplot(aes(x = targets, y = area_required, col = features, linetype = features))+
+geom_path(aes())+
+# legend title and
+scale_linetype_manual(values = c("dotted","dashed","twodash","solid"),labels = feature.labs) +
+scale_color_manual(values = c(brewer.pal(4, "Set1")),labels = feature.labs) +
+# 10% of EEZ
+geom_hline(yintercept = 10)+
+# 20% of EEZ
+geom_hline(yintercept = 20)+
+# 30% of EEZ
+geom_hline(yintercept = 30)+
+ylab("EEZ area required to meet target (%)")+
+xlab("Protection target per species (%)")+
+#theme_classic()+
+scale_x_continuous(breaks = seq(0,100,10))+
+scale_y_continuous(breaks = seq(0,100,10))+
+facet_grid(~lockedin,labeller = labeller(lockedin = mpa.labs))+
+theme_bw()+
+theme(legend.position=c(0.3, 0.8),
+legend.title = element_text(size=14),
+legend.text = element_text(size=10),
+axis.text.x = element_text(size=10),
+axis.text.y = element_text(size=10),
+strip.text.x = element_text(size = 14),
+legend.background = element_rect(linetype = 1, size = 0.5, colour = 1))
+print(plot)
+dev.off()
+plot = scenario_sheet %>%
+filter(lockedin=="mpa_layer_fullyprotected")%>%
+ggplot(aes(x = targets, y = area_required, col = features, linetype = features))+
+geom_path(aes())+
+# legend title and
+scale_linetype_manual(values = c("dotted","dashed","twodash","solid"),labels = feature.labs, names = "Distributions used") +
+scale_color_manual(values = c(brewer.pal(4, "Set1")),labels = feature.labs,names = "Distributions used") +
+# 10% of EEZ
+geom_hline(yintercept = 10)+
+# 20% of EEZ
+geom_hline(yintercept = 20)+
+# 30% of EEZ
+geom_hline(yintercept = 30)+
+ylab("EEZ area required to meet target (%)")+
+xlab("Protection target per species (%)")+
+#theme_classic()+
+scale_x_continuous(breaks = seq(0,100,10))+
+scale_y_continuous(breaks = seq(0,100,10))+
+facet_grid(~lockedin,labeller = labeller(lockedin = mpa.labs))+
+theme_bw()+
+theme(legend.position=c(0.3, 0.8),
+legend.title = element_text(size=14),
+legend.text = element_text(size=10),
+axis.text.x = element_text(size=10),
+axis.text.y = element_text(size=10),
+strip.text.x = element_text(size = 14),
+legend.background = element_rect(linetype = 1, size = 0.5, colour = 1))
+plot = scenario_sheet %>%
+filter(lockedin=="mpa_layer_fullyprotected")%>%
+ggplot(aes(x = targets, y = area_required, col = features, linetype = features))+
+geom_path(aes())+
+# legend title and
+scale_linetype_manual(values = c("dotted","dashed","twodash","solid"),labels = feature.labs,name = "Distributions used") +
+scale_color_manual(values = c(brewer.pal(4, "Set1")),labels = feature.labs,name = "Distributions used") +
+# 10% of EEZ
+geom_hline(yintercept = 10)+
+# 20% of EEZ
+geom_hline(yintercept = 20)+
+# 30% of EEZ
+geom_hline(yintercept = 30)+
+ylab("EEZ area required to meet target (%)")+
+xlab("Protection target per species (%)")+
+#theme_classic()+
+scale_x_continuous(breaks = seq(0,100,10))+
+scale_y_continuous(breaks = seq(0,100,10))+
+facet_grid(~lockedin,labeller = labeller(lockedin = mpa.labs))+
+theme_bw()+
+theme(legend.position=c(0.3, 0.8),
+legend.title = element_text(size=14),
+legend.text = element_text(size=10),
+axis.text.x = element_text(size=10),
+axis.text.y = element_text(size=10),
+strip.text.x = element_text(size = 14),
+legend.background = element_rect(linetype = 1, size = 0.5, colour = 1))
+print(plot)
+png(file="protectionestimates.png",width=3000, height=2000, res=300)
+plot = scenario_sheet %>%
+filter(lockedin=="mpa_layer_fullyprotected")%>%
+ggplot(aes(x = targets, y = area_required, col = features, linetype = features))+
+geom_path(aes())+
+# legend title and
+scale_linetype_manual(values = c("dotted","dashed","twodash","solid"),labels = feature.labs,name = "Distributions used") +
+scale_color_manual(values = c(brewer.pal(4, "Set1")),labels = feature.labs,name = "Distributions used") +
+# 10% of EEZ
+geom_hline(yintercept = 10)+
+# 20% of EEZ
+geom_hline(yintercept = 20)+
+# 30% of EEZ
+geom_hline(yintercept = 30)+
+ylab("EEZ area required to meet target (%)")+
+xlab("Protection target per species (%)")+
+#theme_classic()+
+scale_x_continuous(breaks = seq(0,100,10))+
+scale_y_continuous(breaks = seq(0,100,10))+
+facet_grid(~lockedin,labeller = labeller(lockedin = mpa.labs))+
+theme_bw()+
+theme(legend.position=c(0.3, 0.8),
+legend.title = element_text(size=14),
+legend.text = element_text(size=10),
+axis.text.x = element_text(size=10),
+axis.text.y = element_text(size=10),
+strip.text.x = element_text(size = 14),
+legend.background = element_rect(linetype = 1, size = 0.5, colour = 1))
+print(plot)
+dev.off()
+# South African continetnal marine protected areas
+mpas = st_read(list.files(pattern ="SAMPAZ_OR_2021_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+LIBRARY(SF)
+library(sf)
+# South African continetnal marine protected areas
+mpas = st_read(list.files(pattern ="SAMPAZ_OR_2021_Q3.shp" ,recursive = TRUE, full.names = TRUE))
+mpas$geometry = NULL
+library(dplyr)
+# AREA BY ZONE TYPE
+area_zonetype = mpas %>%
+group_by(CUR_ZON_TY) %>%
+summarise(sum(GIS_AREA))
+# AREA BY MPA
+areas_zone = mpas %>%
+group_by(CUR_NME,CUR_ZON_TY) %>%
+summarise(area_zone = sum(GIS_AREA))
+# AREA BY MPA zone
+areas_name = mpas %>%
+group_by(CUR_NME) %>%
+summarise(area_total = sum(GIS_AREA))
+View(areas_name)
+areas_all = left_join(areas_zone,areas_name)
+View(mpas)
+# all zones
+mpas
+# all zones
+mpas[,c(2,3,4,11)]
+# all zones
+mpas_all = mpas[,c(2,3,4,11)]
+View(mpas_all)
+table(mpas_all$CUR_ZON_TY)
+View(mpas)
+write.csv(mpas_all,"allmpas.csv")
+list.files(pattern = "scenario_performance.csv", recursive = TRUE, full.names = TRUE)
+# load packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+lapply(requiredpackages,require, character.only = TRUE)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+list.files(pattern = "scenario_performance.csv", recursive = TRUE, full.names = TRUE)
+list.files(path = paste0(my.directory,"/wildoceans-scripts/"),pattern = "scenario_performance.csv", recursive = TRUE, full.names = TRUE)
+paste0(my.directory,"/wildoceans-scripts/")
+list.files(path = paste0(my.directory,"/Planning/"),pattern = "scenario_performance.csv", recursive = TRUE, full.names = TRUE)
+cover = list.files(path = paste0(my.directory,"/Planning/"),pattern = "scenario_performance.csv", recursive = TRUE, full.names = TRUE)
+all = data.frame()
+for(i in 1:length(cover)){
+temp = read.csv(cover[i])
+all = rbind(all,temp)
+}
+View(all)
+all = data.frame()
+for(i in 1:12){
+temp = read.csv(cover[i])
+all = rbind(all,temp)
+}
+col_means(all)
+?col_means
+col_means(all[,c(3:9)])
+all %>%
+group_by(SPECIES_SCIENTIFIC)%>%
+summarise(mean(target_achieved))
+look = all %>%
+group_by(SPECIES_SCIENTIFIC)%>%
+summarise(mean(target_achieved),
+mean(absolute_held_avg))
+View(look)
+View(all)
+cover[i]
+View(all)
+cover
+# scenarios
+scenario_sheet = read_xlsx(path=paste0(path,"Dropbox/6-WILDOCEANS/Planning/scenarios.xlsx"),sheet = 1)
+View(scenario_sheet)
+i=1
+temp = read.csv(cover[i])
+View(temp)
+scenario_sheet$lockedin[i]
+all = data.frame()
+for(i in 1:24){
+temp = read.csv(cover[i])
+temp$lockedin = scenario_sheet$lockedin[i]
+temp$features = scenario_sheet$features[i]
+temp$costs = scenario_sheet$costs[i]
+all = rbind(all,temp)
+}
+View(all)
+look = all %>%
+group_by(SPECIES_SCIENTIFIC, lockedin,features)%>%
+summarise(mean(target_achieved),
+mean(absolute_held_avg))
+View(look)
+look = all %>%
+group_by(lockedin,features,costs)%>%
+summarise(mean(target_achieved),
+mean(absolute_held_avg),
+sd(target_achieved),
+sd(absolute_held_avg),  )
+View(look)
+look = all %>%
+group_by(lockedin,features,costs)%>%
+summarise(mean(target_achieved),
+(mean(absolute_held_avg)/10809)*100,
+sd(target_achieved),
+sd(absolute_held_avg),  )
+View(all)
+mean(absolute_held_avg,
+View(look)
+View(look)
+# list of required packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+# check which packages you need to install
+requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
+# install packages
+install.packages(requiredpackages)
+# load packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# ---------------------------------
+# SPECIES INFO
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE),sheet = 1)
+# ---------------------------------
+# CONSERVATION FEATURES
+# ---------------------------------
+source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE))
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# load packages
+requiredpackages = c("rgeos","sf","dplyr","tidyr","prioritizr","gurobi","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# ---------------------------------
+# DATA
+# ---------------------------------
+# species distribution file names (continuous)
+files = list.files(path = paste0(getwd(),"/wildoceans-scripts/"),pattern = "ensemblemean.tif", recursive = TRUE,full.names = TRUE)
+# create raster stack
+feature_stack = stack()
+for(i in 1:length(files)){
+temp = raster(files[i])
+temp = projectRaster(temp,pu)
+feature_stack = addLayer(feature_stack,temp)
+}
+rm(i,files,temp) # remove unnecessary variables
+# threshold values (to turn continuous distributions to binary)
+threshs = list.files(path = paste0(path,"Dropbox/6-WILDOCEANS/wildoceans-scripts/"),pattern = "thresh.csv", recursive = TRUE, full.names = TRUE)
+# ---------------------------------
+# FORMATTING
+# ---------------------------------
+# turn all NA values to 0 (prioritizr does not like NA values)
+values(feature_stack)[is.na(values(feature_stack))] = 0
+# mask with pu
+feature_stack = stack(mask(feature_stack,pu))
+# extract scientific name from stack of distributions
+featurenames = as.data.frame(names(feature_stack))
+colnames(featurenames) = "featurename"
+for(i in 1:nrow(featurenames)){
+# extract model type
+featurenames$modeltype[i] = strsplit(featurenames$featurename,"_")[[i]][3]
+featurenames$modeltype[i] = strsplit(featurenames$modeltype,"ensemblemean")[[i]][1]
+# extract scientific name by pasting genus and species name from file name
+featurenames$species_scientific[i] = paste(strsplit(featurenames$featurename,"_")[[i]][1] ,strsplit(featurenames$featurename,"_")[[i]][2])}
+rm(i) # remove unnecessary variables
+# turn species names to upper case
+featurenames$species_scientific = toupper(featurenames$species_scientific)
+# turn headers to capital
+colnames(featurenames) = toupper(colnames(featurenames))
+# turn model type (season) to upper case
+featurenames$MODELTYPE = toupper(featurenames$MODELTYPE)
+# divide all values by 1000 to get actual probability values between 0 and 1
+# only divide non NA values by 1000
+for(i in 1:nlayers(feature_stack)){
+values(feature_stack[[i]])[!is.na(values(feature_stack[[i]]))] = values(feature_stack[[i]])[!is.na(values(feature_stack[[i]]))]/1000
+}
+# turn any negative values to 0
+for(i in 1:nlayers(feature_stack)){
+feature_stack[[i]][values(feature_stack[[i]])<0] = 0
+}
+# clamp values to turn extremely small values to 0
+feature_stack = raster::clamp(feature_stack, lower = 1e-6, useValues = TRUE)
+feature_stack = stack(feature_stack)
+rm(i) # remove unnecessary variables
+# create feature stack where threshold values are used to filter low probability portion of occurences
+feature_stack_thresholds = stack()
+for(i in 1:nlayers(feature_stack)){
+temp = feature_stack[[i]]
+thresh_value = read.csv(threshs[i])
+thresh_value = (thresh_value$thresh)/1000
+values(temp)[values(temp)<thresh_value] = 0
+feature_stack_thresholds = addLayer(feature_stack_thresholds,temp)
+}
+rm(temp)
+# filter to only keep aseasonal features
+keep = str_detect(names(feature_stack),"Aseasonal")  # identify aseasonal layers in stack
+idx = which(keep == FALSE) # find out layer number with feature to omit
+feature_stack_aseasonal = dropLayer(feature_stack,idx)
+rm(idx,keep) # remove
+# filter to only keep aseasonal features of threshold stack
+keep = str_detect(names(feature_stack_thresholds),"Aseasonal")  # identify aseasonal layers in stack
+idx = which(keep == FALSE) # find out layer number with feature to omit
+feature_stack_aseasonal_thresholds = dropLayer(feature_stack_thresholds,idx)
+rm(idx,keep) # remove
+# remove redundant feature stacks
+rm(feature_stack,feature_stack_thresholds,i,idx, thresh_value,threshs)
+# add endemism and iucn status to feature names
+master_temp = master[,c("SPECIES_SCIENTIFIC","ENDEMIC.STATUS","STATUS")]
+# ---------------------------------
+# SPECIES INFO
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE),sheet = 1)
+# add endemism and iucn status to feature names
+master_temp = master[,c("SPECIES_SCIENTIFIC","ENDEMIC.STATUS","STATUS")]
+featurenames = left_join(featurenames,master_temp)
+rm(master_temp)
+View(featurenames)
+# ---------------------------------
+# IUCN FEATURES
+# ---------------------------------
+source(list.files(pattern = "iucnmaps.R", recursive = TRUE))
+mining=list.files(pattern = "mining_2,shp")
+getwd()
+mining=list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS",pattern = "mining_2,shp")
+mining=st_read(list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS",pattern = "mining_2,shp",recursive = TRUE,full.names=TRUE))
+mining=st_read(list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS",pattern = "mining_2.shp",recursive = TRUE,full.names=TRUE))
+plot(mining)
+crop(iucn_stack_all,mining)
+plot(crop(iucn_stack_all,mining))
+plot(clip(iucn_stack_all,mining))
+plot(crop(iucn_stack_all,mining))
+plot(mask(iucn_stack_all,mining))
+iucn_overlay = mask(iucn_stack_all,mining)
+models_overlay = mask(feature_stack_aseasonal_thresholds,mining)
+plot(models_overlay)
+sum(models_overlay)
+?cellStats
+cellStats(iucn_overlay,"sum")
+iucn_overlay_cover = cellStats(iucn_overlay,"sum")
+models_overlay_cover = cellStats(models_overlay,"sum")
+iucn_overlay_cover = as.data.frame(cellStats(iucn_overlay,"sum"))
+View(iucn_overlay_cover)
+models_overlay_cover = as.data.frame(cellStats(models_overlay,"sum"))
+rownames(iucn_overlay_cover)
+str_split(rownames(iucn_overlay_cover),".",simplify = TRUE)
+str_remove(rownames(iucn_overlay_cover),".",simplify = TRUE)
+str_replace(rownames(iucn_overlay_cover),".",simplify = TRUE)
+str_replace(rownames(iucn_overlay_cover),"."," ",simplify = TRUE)
+str_replace(rownames(iucn_overlay_cover),"//."," ",simplify = TRUE)
+str_replace(rownames(iucn_overlay_cover),"//."," ")
+str_replace(rownames(iucn_overlay_cover),"\\."," ")
+iucn_overlay_cover$SPECIES_SCIENTIFIC = str_replace(rownames(iucn_overlay_cover),"\\."," ")
+models_overlay_cover
+models_overlay_cover$SPECIES_SCIENTIFIC = str_replace(rownames(models_overlay_cover),"_Aseasonal_res10_ensemblemean","")
+models_overlay_cover$SPECIES_SCIENTIFIC
+str_replace(models_overlay_cover$SPECIES_SCIENTIFIC,"_"," ")
+models_overlay_cover$SPECIES_SCIENTIFIC = str_replace(models_overlay_cover$SPECIES_SCIENTIFIC,"_"," ")
+View(master)
+master[,c(2,3,8,9)]
+left_join(models_overlay_cover,master[,c(2,3,8,9)])
+models_overlay_cover = left_join(models_overlay_cover,master[,c(2,3,8,9)])
+iucn_overlay_cover = left_join(iucn_overlay_cover,master[,c(2,3,8,9)])
+View(iucn_overlay_cover)
+# get cover per species distribution
+iucn_overlay_cover = as.data.frame(cellStats(iucn_overlay,"sum"))
+models_overlay_cover = as.data.frame(cellStats(models_overlay,"sum"))
+iucn_overlay_cover
+# change column name
+colnames(iucn_overlay_cover)
+colnames(models_overlay_cover)
+# change column name
+colnames(iucn_overlay_cover) = "cover"
+colnames(models_overlay_cover)= "cover"
+iucn_overlay_cover
+# remove any cover of 0
+iucn_overlay_cover = iucn_overlay_cover %>%
+filter(cover != 0 )
+models_overlay_cover = models_overlay_cover %>%
+filter(cover != 0 )
+# extract species name from row names
+iucn_overlay_cover$SPECIES_SCIENTIFIC = str_replace(rownames(iucn_overlay_cover),"\\."," ")
+models_overlay_cover$SPECIES_SCIENTIFIC = str_replace(rownames(models_overlay_cover),"_Aseasonal_res10_ensemblemean","")
+models_overlay_cover$SPECIES_SCIENTIFIC = str_replace(models_overlay_cover$SPECIES_SCIENTIFIC,"_"," ")
+# add IUCN status
+models_overlay_cover = left_join(models_overlay_cover,master[,c(2,3,8,9)])
+iucn_overlay_cover = left_join(iucn_overlay_cover,master[,c(2,3,8,9)])
+models_overlay_cover
+# add column to describe where data came from
+models_overlay_cover$origin = "models"
+# add column to describe where data came from
+models_overlay_cover$origin = "model_range"
+iucn_overlay_cover$origin = "iucn_range"
+full_join(models_overlay_cover,iucn_overlay_cover)
+# add column to describe where data came from
+models_overlay_cover$model_range = "model_range"
+iucn_overlay_cover$iucn_range = "iucn_range"
+full_join(models_overlay_cover,iucn_overlay_cover)
+full_join(models_overlay_cover,iucn_overlay_cover)
+models_overlay_cover$origin = NULL
+iucn_overlay_cover$origin = NULL
+full_join(models_overlay_cover,iucn_overlay_cover)
+# remove cover
+models_overlay_cover$cover = NULL
+iucn_overlay_cover$cover = NULL
+look = full_join(models_overlay_cover,iucn_overlay_cover)
+View(look)
+# join dataframes
+spp_affected = full_join(models_overlay_cover,iucn_overlay_cover)
+spp_affected %>%
+filter(STATUS %in% c("CR","EN","VU"))
+spp_affected = spp_affected %>%
+filter(STATUS %in% c("CR","EN","VU"))
+# save
+write.csv(spp_affected,"spp_affected.csv")

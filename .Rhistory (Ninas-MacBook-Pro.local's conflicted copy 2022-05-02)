@@ -1,0 +1,512 @@
+plot(temp_shp[[1]])
+plot(temp_shp[1])
+plot(temp_shp[2])
+plot(temp_shp)
+View(temp_shp)
+plot(temp_shp@polygons[[2]])
+plot(temp_shp@polygons[2])
+?disaggregate
+length(temp_shp)
+st_as_sf(temp_shp)
+temp_shp = st_as_sf(temp_shp)
+temp_shp$geometry
+temp_shp$geometry[1]
+plot(temp_shp$geometry[1])
+plot(temp_shp)
+area(temp_shp)
+st_area(temp_shp)
+ggplot(temp_shp) +
+geom_sf(aes(fill = AREA)) +
+geom_sf_label(aes(label = NAME))
+library(ggplot2)
+ggplot(temp_shp) +
+geom_sf(aes(fill = AREA)) +
+geom_sf_label(aes(label = NAME))
+st_area(temp_shp)
+st_area(temp_shp)
+temp_shp$AREA = st_area(temp_shp)
+ggplot(temp_shp) +
+geom_sf(aes(fill = AREA)) +
+geom_sf_label(aes(label = NAME))
+library(units)
+ggplot(temp_shp) +
+geom_sf(aes(fill = AREA)) +
+geom_sf_label(aes(label = NAME))
+temp_shp
+seq(1,58,1)
+temp_shp$ID = seq(1,58,1)
+ggplot(temp_shp) +
+geom_sf(aes(fill = AREA)) +
+geom_sf_label(aes(label = ID))
+ggplot(temp_shp) +
+geom_sf(aes(fill = AREA))
+ggplot(temp_shp) +
+geom_sf()
+ggplot(temp_shp) +
+geom_sf(aes(col = AREA))
+ggplot(temp_shp) +
+geom_sf(aes(col = id))
+ggplot(temp_shp) +
+geom_sf(aes(col = ID))
+ggplot(temp_shp) +
+geom_sf(aes(fil = ID))
+ggplot(temp_shp) +
+geom_sf(aes(fill = ID))
+temp_shp$ID = as.factor(seq(1,58,1))
+ggplot(temp_shp) +
+geom_sf(aes(fill = ID))
+ggplot(temp_shp) +
+geom_sf(aes(fill = ID)) +
+geom_sf_label(aes(label = ID))
+plot(st_area(temp_shp))
+plot(sort(st_area(temp_shp)))
+range(st_area(temp_shp))
+quantile(st_area(temp_shp))
+write_sf(temp_shp,"temp.shp")
+temp_shp$AREA_km = st_area(temp_shp)/100000
+View(temp_shp)
+?st_area
+units(temp_shp)
+units(temp_shp$AREA)
+set_units(temp_shp$AREA,km^2)
+temp_shp$AREA
+temp_shp$AREA = set_units(temp_shp$AREA,km^2)
+temp_shp$AREA
+temp_shp$AREA_km = NULL
+range(st_area(temp_shp))
+range(temp_shp$AREA)
+# Small = <100km2 for hotspots, Large = 100-100,000km2 optimal
+range(temp_shp$AREA)
+plot(temp_shp$AREA)
+ggplot(temp_shp) +
+geom_sf(aes(fill = ID)) +
+geom_sf_label(aes(label = AREA))
+AREA
+round(temp_shp$AREA,1)
+round(temp_shp$AREA,0)
+temp_shp$area_rounded = round(temp_shp$AREA,0)
+ggplot(temp_shp) +
+geom_sf(aes(fill = ID)) +
+geom_sf_label(aes(label = area_rounded))
+cut(temp_shp$AREA)
+cut(temp_shp$AREA,breaks = "pretty")
+?cut
+# Small = <100km2 for hotspots, Large = 100-100,000km2 optimal
+range(temp_shp$AREA)
+cut(temp_shp$AREA,breaks = c(0,100,500,1000,5000,10000))
+temp_shp$area_groups = cut(temp_shp$AREA,breaks = c(0,100,500,1000,5000,10000))
+temp_shp$area_groups
+ggplot(temp_shp) +
+geom_sf(aes(fill = area_groups)) +
+geom_sf_label(aes(label = area_groups))
+ggplot(temp_shp) +
+geom_sf(aes(fill = area_groups))
+plot(temp)
+# ---------------------------------
+# DEFINE WORKING DIRECTORY
+# ---------------------------------
+# set directory to same parent folder where sub-scripts are found
+# the subs-scripts can be in folders within this directory as the code will look through all the folders
+path =  "/Users/nfb/" # path for mac
+my.directory = paste0(path,"Dropbox/6-WILDOCEANS")
+# set directory
+setwd(my.directory)
+# ---------------------------------
+# PLANNING UNITS
+# ---------------------------------
+# Load the planning unit grid at 10 x 10 km or 5 x 5 km resolution
+# Each grid cell has a value of 1 which represents the cost of that grid cell
+pu = raster(list.files(pattern = "template_10km.tif",full.names = TRUE,recursive = TRUE))
+# ---------------------------------
+# SPECIES INFO
+# ---------------------------------
+# load data summary sheet
+master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE),sheet = 1)
+# ---------------------------------
+# CONSERVATION FEATURES
+# ---------------------------------
+source(list.files(pattern = "Conservationfeatures.R", recursive = TRUE))
+# ---------------------------------
+# TARGETS
+# ---------------------------------
+targets = read_xlsx(list.files(pattern = "perc_targets", recursive = TRUE,full.names = TRUE))
+targets = targets %>%
+pivot_longer(!STATUS,names_to = "ENDEMIC.STATUS",values_to = "target")
+featurenames = left_join(featurenames,targets)
+# extract target species
+# that means endangered, critical and endemics (SA)
+special_species_1 = featurenames %>%
+filter(ENDEMIC.STATUS %in% c("1") | STATUS %in% c("CR","EN"))
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_1$FEATURENAME)
+feature_stack_specialspp1 = subset(feature_stack_aseasonal_thresholds,idx)
+# add common name
+special_species_1 = left_join(special_species_1,master[,c(2,3,6)])
+# remove pelagics for first run of core areas
+special_species_1 = special_species_1 %>%
+filter(Zone != "Pelagic")
+# re-filter stack
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_1$FEATURENAME)
+feature_stack_specialspp1 = subset(feature_stack_aseasonal_thresholds,idx)
+# that means endangered, critical, vulnerable and endemics (SA and Southern Africa)
+special_species_2 = featurenames %>%
+filter(ENDEMIC.STATUS %in% c("1","2") | STATUS %in% c("CR","EN","VU"))
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_2$FEATURENAME)
+feature_stack_specialspp2 = subset(feature_stack_aseasonal_thresholds,idx)
+# add common name
+special_species_2 = left_join(special_species_2,master[,c(2,3,6)])
+# that means endangered, critical, vulnerable and endemics (SA and Southern Africa)
+special_species_2 = featurenames %>%
+filter(ENDEMIC.STATUS %in% c("1","2") | STATUS %in% c("CR","EN","VU"))
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_2$FEATURENAME)
+feature_stack_specialspp2 = subset(feature_stack_aseasonal_thresholds,idx)
+# add common name
+special_species_2 = left_join(special_species_2,master[,c(2,3,6)])
+# remove pelagics for first run of core areas
+special_species_2 = special_species_2 %>%
+filter(Zone != "Pelagic")
+# re-filter stack
+idx = which(names(feature_stack_aseasonal_thresholds) %in% special_species_2$FEATURENAME)
+feature_stack_specialspp2 = subset(feature_stack_aseasonal_thresholds,idx)
+nlayers(feature_stack_specialspp2)
+plot(temp)
+temp = raster(irraplaceability_scores[2])
+plot(temp)
+values(temp)[values(temp) == 0] = NA
+plot(temp)
+table(values(temp))
+values(temp)[values(temp) < 1] = NA
+plot(temp)
+# look at each areas species importance
+mask(feature_stack_specialspp2,temp)
+# look at each areas species importance
+spp_cover = mask(feature_stack_specialspp2,temp)
+plot(spp_cover)
+plot(spp_cover[[1]])
+values(spp_cover)[values(spp_cover) == 0] = NA
+plot(spp_cover[1])
+plot(spp_cover[[1]])
+extract(temp, spp_cover[[1]], fun = sum, na.rm = TRUE )
+temp_shp = rasterToPolygons(temp, dissolve = T)
+temp_shp = disaggregate(temp_shp)
+temp_shp = st_as_sf(temp_shp)
+temp_shp
+extract(temp_shp, spp_cover[[1]], fun = sum, na.rm = TRUE )
+?extract
+extract(spp_cover[[1]],temp_shp, fun = sum, na.rm = TRUE )
+plot(spp_cover[[1]])
+plot(temp_shp, add = T)
+sum(values(spp_cover[[1]]))
+sum(values(spp_cover[[1]]),na.rm=T)
+test = extract(spp_cover[[1]],temp_shp, fun = sum, na.rm = TRUE )
+test
+sum(test[1,])
+test[1,]
+sum(test[,1])
+1:nlayers(spp_cover)
+all_cover = data.frame()
+all_cover = data.frame()
+for(i in 1:nlayers(spp_cover)){
+temp_cover = extract(spp_cover[[i]],temp_shp, fun = sum, na.rm = TRUE )
+all_cover = cbind(all_cover,temp_cover)
+}
+all_cover = data.frame()
+for(i in 1:nlayers(spp_cover)){
+temp_cover = extract(spp_cover[[i]],temp_shp, fun = sum, na.rm = TRUE )
+all_cover = full_join(all_cover,temp_cover)
+}
+?cbind
+all_cover = NULL
+for(i in 1:nlayers(spp_cover)){
+temp_cover = extract(spp_cover[[i]],temp_shp, fun = sum, na.rm = TRUE )
+all_cover = cbind(all_cover,temp_cover)
+}
+View(all_cover)
+names(feature_stack_specialspp2)
+names(special_species_2)
+special_species_2$SPECIES_SCIENTIFIC
+all_cover
+View(all_cover)
+all_cover = as.data.frame(all_cover)
+colnames(all_cover) = special_species_2$SPECIES_SCIENTIFIC
+View(all_cover)
+rowsum(all_cover)
+rowSums(all_cover)
+spp_cover
+# look at each areas species importance
+spp_cover = mask(feature_stack_specialspp2,temp)
+values(spp_cover)[values(spp_cover) == 0] = NA
+values(spp_cover)[is.na(values(spp_cover))] = 1
+plot(spp_cover[[1]])
+# look at each areas species importance
+spp_cover = mask(feature_stack_specialspp2,temp)
+plot(spp_cover[[1]])
+values(spp_cover)[values(spp_cover) == 0] = NA
+plot(spp_cover[[1]])
+values(spp_cover)[!is.na(values(spp_cover))] = 1
+plot(spp_cover[[1]])
+all_cover = NULL
+for(i in 1:nlayers(spp_cover)){
+temp_cover = extract(spp_cover[[i]],temp_shp, fun = sum, na.rm = TRUE )
+all_cover = cbind(all_cover,temp_cover)
+}
+all_cover = as.data.frame(all_cover)
+colnames(all_cover) = special_species_2$SPECIES_SCIENTIFIC
+View(all_cover)
+plot(temp_shp)
+rowSums(all_cover)
+rownames(all_cover)
+all_cover$area_number= rownames(all_cover)
+View(all_cover)
+all_cover %>%
+group_by(area_number)%>%
+summarise(n_distinct())
+?pivot_longer
+all_cover %>%
+pivot_longer(!area_number,names_to = "species",values_to = "count")
+all_cover = all_cover %>%
+pivot_longer(!area_number,names_to = "species",values_to = "count")
+View(all_cover)
+all_cover = all_cover %>%
+pivot_longer(!area_number,names_to = "species",values_to = "count") %>%
+filter(count != 0)
+all_cover = all_cover %>%
+filter(count != 0)
+View(all_cover)
+all_cover %>%
+group_by(area_number)
+all_cover %>%
+group_by(area_number) %>%
+summarise(n())
+all_cover_nspecies = all_cover %>%
+group_by(area_number) %>%
+summarise(n_species = n())
+View(all_cover_nspecies)
+all_cover_nspecies
+# add this to shapefile
+temp_shp$n_species = all_cover_nspecies$n_species
+# plot
+ggplot(temp_shp) +
+geom_sf(aes(fill = n_species))
+all_cover_nspecies
+all_cover
+View(all_cover)
+# number of different areas per species
+all_cover %>%
+group_by(species) %>%
+summarise(n_areas = n())
+# number of different areas per species
+n_areas = all_cover %>%
+group_by(species) %>%
+summarise(n_areas = n())
+View(n_areas)
+temp_shp
+temp_shp$AREA = st_area(temp_shp)
+temp_shp$AREA = set_units(temp_shp$AREA,km^2)
+temp_shp$AREA
+temp_shp$ID = as.factor(seq(1,58,1))
+temp_shp
+table(temp_shp$AREA)
+# plot
+temp_shp %>%
+filter(AREA>200)%>%
+ggplot() +
+geom_sf(aes(fill = n_species))
+temp_shp %>%
+filter(AREA>200)
+# plot
+temp_shp$AREA = as.numeric(temp_shp$AREA)
+temp_shp$AREA
+temp_shp %>%
+filter(AREA>200)%>%
+ggplot() +
+geom_sf(aes(fill = n_species))
+# number of different areas per species
+temp_shp %>%
+filter(AREA>200)
+# number of different areas per species
+temp_shp %>%
+filter(AREA>200)%>%
+group_by(ID)
+# number of different areas per species
+temp_shp %>%
+filter(AREA>200)%>%
+group_by(ID) %>%
+summarise()
+# number of different areas per species
+which(temp_shp$AREA>200)
+# number of different areas per species
+ids = which(temp_shp$AREA>200)
+n_areas
+View(all_cover)
+all_cover$area_number %in% ids
+whihc(all_cover$area_number %in% ids)
+which(all_cover$area_number %in% ids)
+all_cover[which(all_cover$area_number %in% ids),]
+ids
+all_cover_reduced = all_cover[which(all_cover$area_number %in% ids),]
+unique(all_cover_reduced$area_number)
+n_areas = all_cover_reduced %>%
+group_by(species) %>%
+summarise(n_areas = n())
+View(n_areas)
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+# list of required packages
+requiredpackages = c("colorspace","gridExtra","rgeos","sf","dplyr","tidyr","stringr","rasterVis","viridis","raster","scales","readxl","fasterize","sdmvspecies","RColorBrewer")
+# load packages
+lapply(requiredpackages,require, character.only = TRUE)
+rm(requiredpackages)
+# ---------------------------------
+# PLOTTING PARAMETERS
+# ---------------------------------
+source(list.files(pattern = "plottingparameters.R", recursive = TRUE, full.names= TRUE))
+# plotting settings
+settings = latticeExtra::layer(sp.polygons(mpas,col = "black",lwd = 1))+
+# mpa no-take fill
+#latticeExtra::layer(sp.polygons(mpas_notake, fill = "purple",alpha = 0.1))+
+# mpa no-take outline
+latticeExtra::layer(sp.polygons(mpas_notake,col = "red",lwd = 0.7))+
+# eez
+latticeExtra::layer(sp.polygons(eez,col = "black",lwd = 1))+
+# sa coast
+latticeExtra::layer(sp.polygons(sa,col = "black",lwd= 1, fill = NA))+
+# points for main cities
+latticeExtra::layer(sp.points(places[c(1:3,5,6,18,20:22,10,14),],col = "black",pch = 20))+
+# coordinates and city names
+# done in three lines as a "pretty" position varies based on their place on the map
+latticeExtra::layer(sp.text(coordinates(places)[c(1:3,5,6),],places$Location[c(1:3,5,6)],col = "black",pch = 20,pos=4,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(places)[c(18,20,21,22),],places$Location[c(18,20,21,22)],col = "black",pch = 20,pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(adjustedcoords,places$Location[c(10,14)],col = "black",pch = 20, pos=2,cex = 0.5))+
+latticeExtra::layer(sp.text(coordinates(legend)[1,],paste0("Percentage of EEZ = ",prop_eez,"%"),col = "black",pch = 20, pos=2,cex = 1))+
+latticeExtra::layer(sp.text(coordinates(legend)[2,],paste0("Current MPAs included = ",inclusion),col = "black",pch = 20, pos=2,cex = 1))
+levelplot(temp,
+xlab = NULL,
+ylab = NULL,
+colorkey=FALSE,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE,)+
+settings+
+latticeExtra::layer(sp.polygons(temp_shp,fill=temp_shp$n_species, lwd = 1))
+levelplot(temp,
+xlab = NULL,
+ylab = NULL,
+colorkey=FALSE,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE,)+
+latticeExtra::layer(sp.polygons(temp_shp,fill=temp_shp$n_species, lwd = 1))
+levelplot(temp,
+xlab = NULL,
+ylab = NULL,
+colorkey=FALSE,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE,)+
+latticeExtra::layer(sp.polygons(as(temp_shp, Class = "Spatial"),fill=temp_shp$n_species, lwd = 1))
+levelplot(temp,
+xlab = NULL,
+ylab = NULL,
+colorkey=TRUE,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE,)+
+latticeExtra::layer(sp.polygons(as(temp_shp, Class = "Spatial"),fill=temp_shp$n_species, lwd = 1))
+?sp.polygons
+levelplot(temp,
+xlab = NULL,
+ylab = NULL,
+colorkey=FALSE,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE,)+
+latticeExtra::layer(sp.polygons(as(temp_shp, Class = "Spatial"),
+fill=temp_shp$n_species,
+lwd = 1,
+colorkey=list(space="bottom")))
+levelplot(temp,
+xlab = NULL,
+ylab = NULL,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE,)+
+latticeExtra::layer(sp.polygons(as(temp_shp, Class = "Spatial"),
+fill=temp_shp$n_species,
+lwd = 1,
+colorkey=list(space="bottom")))
+levelplot(sp.polygons(as(temp_shp, Class = "Spatial")),
+xlab = NULL,
+ylab = NULL,
+#main = paste0(scenario," scenario | Species protection: ",t,"%"),
+margin = FALSE)
+n_areas
+all_cover_reduced
+View(all_cover_reduced)
+all_cover_reduced
+ggplot(all_cover_reduced,
+aes(species, area_number, col=area_number)) +
+geom_point()
+# analysis
+all_cover_reduced$species = as.numeric(all_cover_reduced$species)
+ggplot(all_cover_reduced,
+aes(species, area_number, col=area_number)) +
+geom_point()
+# analysis
+all_cover_reduced$species = as.factor(all_cover_reduced$species)
+ggplot(all_cover_reduced,
+aes(species, area_number, col=area_number)) +
+geom_point()
+# number of different areas per species
+ids = which(temp_shp$AREA>200)
+all_cover_reduced = all_cover[which(all_cover$area_number %in% ids),]
+# analysis
+all_cover_reduced$species = as.factor(all_cover_reduced$species)
+ggplot(all_cover_reduced,
+aes(species, area_number, col=area_number)) +
+geom_point()
+cluster.spp <- kmeans(all_cover_reduced[,1:2], 3, nstart = 20)
+all_cover_reduced[,1:2]
+?kmeans
+cluster.spp <- kmeans(all_cover_reduced[,1:2])
+cluster.spp <- kmeans(all_cover_reduced[,1:2],10)
+all_cover_reduced$species = as.numeric(all_cover_reduced$species)
+cluster.spp <- kmeans(all_cover_reduced[,1:2],10)
+as.factor(cluster.spp$cluster)
+cluster.spp$cluster <- as.factor(cluster.spp$cluster)
+ggplot(all_cover_reduced,
+aes(species, area_number, color=cluster.spp$cluster)) +
+geom_point()
+# ---------------------------------
+# PACKAGES
+# ---------------------------------
+library(dplyr)
+library(lubridate)
+library(stringr)
+library(plyr)
+library(sf)
+library(ggplot2)
+library(anytime)
+library(readxl)
+setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
+# ---------------------------------
+# DIRECTORY
+# ---------------------------------
+# define your path
+path =  "/Users/nfb/" # path for mac
+# ---------------------------------
+# DATA
+# ---------------------------------
+# list all csv files, each csv file is a different cleaned dataset
+temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/OccurenceData/2-Cleaned_data/Point_data",pattern="*.csv", recursive = TRUE, full.names = TRUE)
+# ---------------------------------
+# FORMATTING
+# ---------------------------------
+# read all files into a list
+myfiles = lapply(temp, read.csv, header = TRUE)
+# turn all headers to capital
+for(i in 1:length(myfiles)){colnames(myfiles[[i]]) = toupper(colnames(myfiles[[i]]))}
+# combine all files in one dataset
+library(plyr)
+summary = do.call(rbind.fill,myfiles)
+detach("package:plyr")
+rm(myfiles, temp,i)
+summary[,c(7,8)]
+unique(summary[,c(7,8)])
+look = unique(summary[,c(7,8)])
+View(look)
+write.csv(look,"datasets.csv")
