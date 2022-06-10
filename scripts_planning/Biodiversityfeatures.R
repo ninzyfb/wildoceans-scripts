@@ -77,13 +77,13 @@ feature_stack = stack(feature_stack)
 rm(i) # remove unnecessary variables
 
 # create feature stack where threshold values are used to filter low probability portion of occurences
-feature_stack_thresholds = stack()
+sdms_thresholds = stack()
 for(i in 1:nlayers(feature_stack)){
   temp = feature_stack[[i]]
   thresh_value = read.csv(threshs[i])
   thresh_value = (thresh_value$thresh)/1000
   values(temp)[values(temp)<thresh_value] = 0
-  feature_stack_thresholds = addLayer(feature_stack_thresholds,temp)
+  sdms_thresholds = addLayer(sdms_thresholds,temp)
 }
 rm(temp)
 
@@ -92,17 +92,18 @@ keep = str_detect(names(feature_stack),"Aseasonal")  # identify aseasonal layers
 idx = which(keep == FALSE) # find out layer number with feature to omit
 feature_stack_aseasonal = dropLayer(feature_stack,idx)
 rm(idx,keep) # remove
+names(feature_stack_aseasonal) = featurenames$SPECIES_SCIENTIFIC
 
 # filter to only keep aseasonal features of threshold stack
-keep = str_detect(names(feature_stack_thresholds),"Aseasonal")  # identify aseasonal layers in stack
+keep = str_detect(names(sdms_thresholds),"Aseasonal")  # identify aseasonal layers in stack
 idx = which(keep == FALSE) # find out layer number with feature to omit
-feature_stack_aseasonal_thresholds = dropLayer(feature_stack_thresholds,idx)
+sdms_thresholds = dropLayer(sdms_thresholds,idx)
 rm(idx,keep) # remove
+names(sdms_thresholds) = featurenames$SPECIES_SCIENTIFIC
 
 # remove redundant feature stacks
-rm(feature_stack,feature_stack_thresholds,i,idx, thresh_value,threshs)
+rm(feature_stack,feature_stack_aseasonal,feature_stack_thresholds,i,idx, thresh_value,threshs,featurenames)
 
-# add endemism and iucn status to feature names
-master_temp = master[,c("SPECIES_SCIENTIFIC","ENDEMIC.STATUS","STATUS")]
-featurenames = left_join(featurenames,master_temp)
-rm(master_temp)
+# remove problem species
+idx = which(str_replace(names(sdms_thresholds),"\\."," ") %in% problem_species)
+sdms_thresholds = dropLayer(sdms_thresholds,idx)
