@@ -55,7 +55,7 @@ plot(pts_sub@coords,pch=19,col=pal(nrow(pts_sub))[pts_sub$order])
 legend("topright",col=pal(2),pch=19,legend = c(round(range(pts_sub$scaled_date),1)))
 # remove order variable
 pts_sub$order=NULL
-rm(scaled_date,cols,presencecells)
+rm(scaled_date,cols,presencecells,pal)
 # ---------------------------------
 
 

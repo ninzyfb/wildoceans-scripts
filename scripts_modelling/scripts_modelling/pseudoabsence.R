@@ -51,7 +51,7 @@ vars = as.data.frame(raster::extract(stack_subset, pa[,c(2,3)]))
 # add to dataframe
 pts_env = cbind(pa,vars) 
 
-rm(pts_sub,vars,pa, absences,cells)
+rm(pts_sub,vars,pa, absences,cells,n_bckg_pts)
 
 # create background points (seasonal points)
 # random background cells

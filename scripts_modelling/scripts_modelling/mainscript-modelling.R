@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------
 # AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
 # PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
-# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
+# CONTACT: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 
@@ -32,17 +32,18 @@
 # PACKAGES
 # ---------------------------------
 # list of required packages
-requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+requiredpackages = c("RColorBrewer","scales","devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # check which packages you need to install
 requiredpackages = requiredpackages[which(!(requiredpackages %in% installed.packages()))]
 # install packages
 install.packages(requiredpackages)
 # list of required packages
-requiredpackages = c("devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
+requiredpackages = c("RColorBrewer","scales","devtools","readxl","viridis","devtools","fuzzySim","dismo","rgdal","rgeos","sf","rasterVis","ggplot2","raster","stringr","readxl", "raster", "sp", "dplyr", "lubridate")
 # load packages
 lapply(requiredpackages,require, character.only = TRUE)
-# intsall latest version of biomod2
-devtools::install_github("biomodhub/biomod2", dependencies = TRUE)
+# install latest version of biomod2
+options(timeout=10000) # increase max timeout so that it lets you install the package
+install_github("biomodhub/biomod2", dependencies = TRUE)
 rm(requiredpackages)
 # ---------------------------------
 
@@ -61,9 +62,10 @@ setwd(my.directory)
 # ---------------------------------
 #  - ENVIRONMENTAL VARIABLES 
 # ---------------------------------
-# specify model resolution
-# we chose between a grid of 5 x 5 km (res = 5) or 10 x 10 km (res = 10)  
-res = 10
+# output is a RasterStack object of 18 layers named stack_subset
+# all models are run on the same subset of environmental variables
+# these are detailed in selectedvariables_all.csv
+# these were chosen after testing for collinearity across 27 variables using the independentvariableselection.R script
 source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
 
@@ -74,15 +76,9 @@ source(list.files(pattern = "envnt_variable_stack.R", recursive = TRUE, full.nam
 # read master file with species-specific modelling parameters
 # this sheet contains a list of all species with some additional data details
 master = read_xlsx(list.files(pattern = "data_summary_master.xlsx", recursive = TRUE,full.names = TRUE))
-# filter master sheet to keep species with a minimum prevalence of 1
-# the prevalence value indicates how much data there is for this species relative to entire modeling surface
-# i.e. it is the percentage of cells with data out of total cells, so the lower your resolution, the higher the prevalence
-if(res == 5){
-  master_keep = master %>%
-    filter(rounded >=1)}
-if(res ==10){
-  master_keep = master %>%
-    filter(rounded_10 >=1)}
+# you can filter master sheet to keep species you want to model
+# prevalence value indicates % of cells with data out of all cells in the EEZ
+master_keep = master
 # ---------------------------------
 
 
@@ -93,26 +89,36 @@ if(res ==10){
 # this loop is based around the master_keep sheet which is a data frame of species names
 
 # IMPORTANT: to run the loop with the example data make sure exampledata = "yes"
-exampledata = "no"
+exampledata = "yes"
+if(exampledata == "yes"){master_keep = master_keep %>% filter(SPECIES_SCIENTIFIC == "ACROTERIOBATUS ANNULATUS")}
+# remember to set i = 1 when you are running example code
+i = 1
 
 for(i in 1:nrow(master_keep)){
   
   # MODEL PARAMATERS
   target = master_keep$SPECIES_SCIENTIFIC[i] # species name
-  substrate = master_keep$Substrate[i] # specifies if substrate layer is to be included
-  seasonal = "no"
-  #seasonal = master_keep$Seasonality[i] # specifies if seasonal (summer & winter) models are too also be run
+  substrate = "yes" # specifies if substrate layer is to be included
+  seasonal = "no" # specifies if you should run a seasonal model as well
 
   # OCCURRENCE DATA
+  # output is a SpatialPointsDataFrame object named obs.data
   source(list.files(pattern = "species_data.R", recursive = TRUE, full.names = TRUE)) 
   
-  # SAMPLING BIAS
+  # SPATIAL THINNING
+  # output is a SpatialPoints object named pts.sub
+  # this object contains all the data which has been filtered to only retain one presence per gridcell
+  # this is to deal with sampling bias
   source(list.files(pattern = "subsampling.R", recursive = TRUE, full.names = TRUE))
   
   # BACKGROUND SAMPLE
+  # output is a DataFrame object named pts_env
+  # this is object contains all data as well as background points with associated envnt variables at each cell
   source(list.files(pattern ="pseudoabsence.R", recursive = TRUE, full.names = TRUE))
   
   # BIOMOD OBJECT CREATION
+  # output is a Biomod object named biomod_obj
+  # this packages all the data in a format that the biomod2 functions can understand
   source(list.files(pattern = "Biomod.R", recursive = TRUE, full.names = TRUE))
   
   # ASEASONAL MODEL RUNS AND PROJECTIONS
@@ -139,6 +145,5 @@ for(i in 1:nrow(master_keep)){
 # ---------------------------------
 source(list.files(pattern = "datavisualisation.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
-
 
 # END OF SCRIPT

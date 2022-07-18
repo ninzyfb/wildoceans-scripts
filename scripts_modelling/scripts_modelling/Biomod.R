@@ -135,4 +135,6 @@ for(i in 1:length(pts_env_seasons)){
                                                     # for high specificity pseudo-absences should be randomly selected 
                                                     # OR they can also be chosen at a minimal and maximum distance from presence points
                                                     PA.strategy = 'random')}}} 
+
+rm(pa_xy,pts_env,exp,pa,pseudoabsences)
 # ---------------------------------

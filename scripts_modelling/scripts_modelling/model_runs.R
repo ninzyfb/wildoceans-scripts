@@ -50,19 +50,22 @@ rasterfolder = paste0(my.directory,"/Outputs/modelling/rasters/")
 
 # it takes ~ 24 min to run 3 algorithms on nb.rep = 1
 # on a pc with 11th Gen Intel® Core™ i7-1165G7 @ 2.80GHz × 8 and Memory of 15.4 GB
+library(doParallel)
+cl = makeCluster(8)
+doParallel::registerDoParallel(cl)
 
 static_models <- BIOMOD_Modeling(
   data, # your biomod object
   var.import = 5,
   models = c('GAM','GLM','MAXENT.Phillips'), # 3 modelling algorithms run for project
   bm.options  = mxtPh, # modified model parameters, unnecessary if you are happy with default biomod2 parameters
-  nb.rep = 10, # 10-fold cross validation (number of evaluations to run)
+  nb.rep = 5, # 5-fold cross validation (number of evaluations to run)
   data.split.perc = 75, # 75% of data used for calibration, 25% for testing
   metric.eval  = c('TSS'), # evaluation method, TSS is True Statistics Skill
   save.output  = TRUE, # keep all results on hard drive 
   scale.models = FALSE, # if true, all model prediction will be scaled with a binomial GLM
   modeling.id = target, # name of model = species name (target)
-  nb.cpu = 8
+  nb.cpu = 8,
   ) 
 
 # get important variables
