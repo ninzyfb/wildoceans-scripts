@@ -31,7 +31,7 @@
 * The occurrence data used to run the conservation plan is confidential and not available for download
 * If you wish to run the code there is an **example.csv** file provided which allows for the modelling scripts to be run on freely available data from GBIF and OBIS for *Acroteriobatus annulatus*. Steps to use the example.csv file are as follows:  
   + make sure exampledata = "yes" in `mainscript-modelling.R` - this ensures that `species_data.R` runs on the example data
-  + since the script is built to run on a loop going through each species, however this is not useful if wanting to learn what each script does, so i suggest running through each line and subscript individually rather than running the loop
+  + the script is built to run on a loop going through each species and calling all subscripts in order, however this is not useful if wanting to learn what each script does, so i suggest manullay setting i=1 and running through each line and subscript individually rather than running the whole loop
 * If you wish to run the code on your own data, ensure your data has the same headings as the example.csv file and simply replace example_data.csv with your filename.
 
 **!!IMPORTANT 2!! installing the mecofun package to run the variable selection procedure**:  
