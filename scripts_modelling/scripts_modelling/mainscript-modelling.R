@@ -124,6 +124,8 @@ for(i in 1:nrow(master_keep)){
   # ASEASONAL MODEL RUNS AND PROJECTIONS
   model_type = "Aseasonal" # specify model_type
   data = biomod_obj # specify which biomod_obj
+  # there are many outputs to this script
+  # these will all be saved in an output folder
   source(list.files(pattern = "model_runs.R", recursive = TRUE, full.names = TRUE))
 
   # SEASONAL MODEL RUNS AND PROJECTIONS
@@ -140,10 +142,9 @@ for(i in 1:nrow(master_keep)){
   rm(stack_new)}
 # ---------------------------------
 
+
 # ---------------------------------
 #  PLOTTING
 # ---------------------------------
 source(list.files(pattern = "datavisualisation.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
-
-# END OF SCRIPT
