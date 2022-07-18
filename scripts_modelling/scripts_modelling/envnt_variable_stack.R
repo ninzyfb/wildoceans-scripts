@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------
 # AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
 # PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
-# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
+# CONTACT: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 
@@ -16,27 +16,14 @@
 # ---------------------------------
 # ENVIRONMENTAL VARIABLES
 # ---------------------------------
-# load appropriate variable rasters based on chosen resolution
-# resolution is defined in the parents script
-if(res == 5){
-# 5 x 5 km raster layers
-  temp_dir = list.dirs()[which(str_detect(list.dirs(),"ALLLAYERS5kmresolution"))]
-  variable_names = list.files(path = temp_dir,pattern = ".tif", recursive = TRUE, full.names = TRUE)
-  # stack all rasters 
-  stack = stack(variable_names) 
-  # turn substrate layer to a factor
-  stack$substrate_simplified = as.factor(stack$substrate_simplified)
-  rm(variable_names)}
-
-if(res ==10){
-  # 10 x 10 km raster layers
-  temp_dir = list.dirs()[which(str_detect(list.dirs(),"ALLLAYERS10kmresolution"))]
-  variable_names = list.files(path = temp_dir,pattern = ".tif", recursive = TRUE, full.names = TRUE)
-  # stack all rasters 
-  stack = stack(variable_names)
-  # turn substrate layer to a factor
-  stack$substrate_simplified = as.factor(stack$substrate_simplified)
-  rm(variable_names)}
+# 10 x 10 km raster layers
+temp_dir = list.dirs()[which(str_detect(list.dirs(),"ALLLAYERS10kmresolution"))]
+variable_names = list.files(path = temp_dir,pattern = ".tif", recursive = TRUE, full.names = TRUE)
+# stack all rasters 
+stack = stack(variable_names)
+# turn substrate layer to a factor
+stack$substrate_simplified = as.factor(stack$substrate_simplified)
+rm(variable_names)
 # ---------------------------------
 
 # ---------------------------------

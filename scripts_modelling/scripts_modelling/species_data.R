@@ -12,6 +12,7 @@
 # this script also adds season to the dataset
 # Summer months: Sep,Oct,Nov,Dec,Jan,Feb
 # Winter months: Mar,Apr,May,Jun,Jul,Aug
+# the outputs of this script is a spatialpointsdataframe named obs.data
 # ---------------------------------
 
 
@@ -41,7 +42,7 @@ if(exampledata == "no"){
   # file name
   FILENAME = paste(toupper(target),".rds",sep="")
   # identifies location of occurrence file on computer
-  file = list.files(pattern = FILENAME,recursive = TRUE, full.names = TRUE)
+  file = list.files(path =str_remove(my.directory,"/wildoceans-scripts"),pattern = FILENAME,recursive = TRUE, full.names = TRUE)
   }
 # ---------------------------------
 
@@ -84,8 +85,6 @@ print(table(dups))
 # remove duplicates from data
 obs.data = obs.data[!dups,]
 rm(dups)
-# save number of occurrence points as variable
-abundance = nrow(obs.data)
 
 # add month variable from Date
 obs.data = obs.data %>%
