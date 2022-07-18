@@ -7,23 +7,25 @@
 * A paper is being written for publication and will be referenced here when applicable.
 
 ## Description of each folder contents
-There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
+* There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts.
+* The *Outputs* folder will contain all the outputs fro the modelling and planning code (outputsfrom the plannning scenarios will remain confidential untill publication of the manuscript
+* See below for a detailed description of the contents of each folder
 
-### 1. scripts_occurencedata
+### 1. scripts_occurencedata folder
 * Initial data cleaning and exploration (raw occurrence data are confidential) 
 * `merging_datasets.R` is the script used to combine data from the various datasets and output one file per species. These output files are used as input in the modelling scripts.
 
-### 2. scripts_modelling
-* Producing the species distribution models (SDMs). This folder itself contains two subfolders, one to prpepare the environemntal variables and the other to build and run the models.
+### 2. scripts_modelling folder
+* Producing the species distribution models (SDMs). This folder itself contains three subfolders
+* All the distribution models produced are availabe as .JPG or as .tif files in the **outputs** folder
 
-- **scripts_envtvariablprep**
+- **scripts_envtvariablprep folder**
   + Preparation and processing of environmental variable rasters
   + Outputs are raster files of environmental variables at 10x10km resolution which are available in the main WILDOCEANS-scripts repository in folders  *ALLLAYERS10kmresolution*
   
-- **scripts_modelling**
+- **scripts_modelling folder**
   + Running the species distribution models
   + To run, start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for.  
-  
   
 **!!IMPORTANT 1!! how to run scripts on your own data or example data provided**:  
 * The occurrence data used to run the conservation plan is confidential and not available for download
@@ -40,17 +42,17 @@ Currently, all models are run on the same subset of environmental variables deta
 **IMPORTANT 3: installing java may be required**:  
 To run the modelling scripts as is, java is required to run MaxEnt as one of the modelling algorithms. If you do not wish to install java, then it may be that maxent will not be able to run.
 
-### 3. scripts_planning
+### 3. scripts_planning folder
 This folder contains the code to run the spatial planning algorithm *prioritizr*. The *prioritizr* package has an [online tutorial](https://prioritizr.net/articles/prioritizr.html) and [github page](https://github.com/prioritizr/prioritizr).  
-Similar to the modelling scripts, start with`mainscript-planning.R` as this is the parent script through which the other scripts are run.
+Similar to the modelling scripts, start with`mainscript-planning.R` as this is the parent script through which the other scripts are run. All the input species distributon files to run the plannign script are available in the **Outputs** folder
 
-### 4. IUCN
+### 4. IUCN folder
 Contains range maps for several shark and ray species in South Africa. This script can be used to run the spatial planning scripts instead of using the modelled distributions.
 
-### 5. ALLLAYERS 5 & 10 kmresolution
+### 5. ALLLAYERS 5 & 10 kmresolution folder
 This folder contains the environmental rasters to run the distribution models at 5 or 10 km resolution. A reference to these data is available in the project report.
 
-### 6. plotting_features
+### 6. plotting_features folder
 This folder contains the layers necessary to produce plots with outputs from the modelling and planning scripts. The modelling and planning scripts produce rasters which can be plotted as annotated maps using the features from plotting parameters.
 
 
