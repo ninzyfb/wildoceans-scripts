@@ -37,7 +37,7 @@ setwd(paste0(path,"Dropbox/6-WILDOCEANS"))
 # DATA
 # ---------------------------------
 # list all csv files, each csv file is a different cleaned dataset
-temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/Point_data",pattern="*.csv", recursive = TRUE, full.names = TRUE)
+temp = list.files(path = "/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/OccurenceData/2-Cleaned_data/Point_data",pattern="*.csv", recursive = TRUE, full.names = TRUE)
 # ---------------------------------
 
 
@@ -145,7 +145,7 @@ observation_counts = summary3 %>%
 # find any species with only genus
 names = as.data.frame(str_split(observation_counts$SPECIES_SCIENTIFIC, " ", simplify = TRUE))
 observation_counts = cbind(observation_counts,names)
-groups = observation_counts[which(observation_counts$V2 %in% c("","SP.","SPP","SPP.")),]
+groups = observation_counts[which(observation_counts$V2 %in% c("","SP.","SPP","SPP.","_MISID")),]
 rm(names)
 
 # write sheet to use for keeping track of species groups not included
@@ -153,7 +153,7 @@ write.csv(groups, "/Users/nfb/Dropbox/6-WILDOCEANS/data_summary_excludedspeciesg
 rm(groups)
 
 # filter observation counts to only keep full species
-observation_counts = observation_counts[which(!(observation_counts$V2 %in% c("","SP.","SPP","SPP."))),]
+observation_counts = observation_counts[which(!(observation_counts$V2 %in% c("","SP.","SPP","SPP.","_MISID"))),]
 observation_counts$V1 = NULL
 observation_counts$V2 = NULL
 # ---------------------------------
@@ -170,6 +170,7 @@ summary3 = unique(summary3)
 # DATE FILTERING
 # ---------------------------------
 # plot of which years each dataset have
+# creating order of dataset
 temp = summary3 %>%
   group_by(DATASET, year) %>%
   summarise()%>%
@@ -177,9 +178,7 @@ temp = summary3 %>%
   summarise(n = n()) %>%
   arrange(desc(n))
 names = temp$DATASET
-temp = summary3 
-temp$DATASET = as.factor(temp$DATASET, levels = names)
-png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=7, height=5, res=300)
+png("/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset.png", units="in", width=7, height=5, res=300)
 ggplot(summary3, aes(x = factor(DATASET,level = names),year, colour = DATASET))+
   geom_point()+
   theme_bw()+
@@ -192,7 +191,7 @@ ggplot(summary3, aes(x = factor(DATASET,level = names),year, colour = DATASET))+
 dev.off()
 
 # second plot from 1950 onwards
-png("/Users/nfb/Dropbox/6-WILDOCEANS/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=7, height=5, res=300)
+png("/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/OccurenceData/2-Cleaned_data/data_explorationplots/summaryplot_yearsperdataset_1950onwards.png", units="in", width=7, height=5, res=300)
 ggplot(summary3, aes(x = factor(DATASET,level = names),year, colour = DATASET))+
   geom_point()+
   theme_bw()+
@@ -222,6 +221,8 @@ range(summary3$DATE, na.rm = TRUE)
 
 # extract species names
 sp = unique(observation_counts$SPECIES_SCIENTIFIC, ignore.case = TRUE)
+# remove misidentification thanks to code _MISID
+sp = sp[!(str_detect(sp, "_MISID"))]
 ls = list() # empty list
 for(i in sp){
   # extract all data for one species
@@ -230,13 +231,13 @@ for(i in sp){
     filter(!is.na(as.numeric(LONGITUDE))) %>%
     filter(!is.na(as.numeric(LATITUDE)))
   # save as R object to be used in modeling
-  saveRDS(temp,file = paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i, ".rds", sep=""))
+  saveRDS(temp,file = paste("/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/Modelling/speciesdata/",i, ".rds", sep=""))
   # save as csv file for that species
-  write.csv(temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,"_rawdata.csv",sep=""), row.names = FALSE)
+  write.csv(temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/Modelling/speciesdata/",i,"_rawdata.csv",sep=""), row.names = FALSE)
   # also save important information on that species
   summary_temp = temp %>%
     group_by(DATASET)%>%
     summarise(Start = as.Date(first(DATE)), End = as.Date(last(DATE)),datapoints = n())%>%
     arrange(desc(datapoints))
-  write.csv(summary_temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/Modelling/speciesdata/",i,".csv",sep=""))
+  write.csv(summary_temp,file =paste("/Users/nfb/Dropbox/6-WILDOCEANS/ConservationPlan/Modelling/speciesdata/",i,".csv",sep=""))
 }
