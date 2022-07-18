@@ -8,7 +8,7 @@
 
 ## Description of each folder contents
 * There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts.
-* The *Outputs* folder will contain all the outputs fro the modelling and planning code (outputsfrom the plannning scenarios will remain confidential untill publication of the manuscript
+* The *Outputs* folder will contain all the outputs from the modelling and planning code (some outputs will remain confidential until publication of the manuscript
 * See below for a detailed description of the contents of each folder
 
 ### 1. scripts_occurencedata folder
