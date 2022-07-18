@@ -114,4 +114,5 @@ coordinates(obs.data) =  ~ cbind(obs.data$LONGITUDE,obs.data$LATITUDE)
 if(unique(obs.data$SPECIES_SCIENTIFIC) != target){print("SPECIES NAME IN MASTER SHEET AND IN DATA DO NOT MATCH")}
 
 }else{length(file) = 0}}
+rm(FILENAME,file,exampledata,temp_dir)
 # ---------------------------------

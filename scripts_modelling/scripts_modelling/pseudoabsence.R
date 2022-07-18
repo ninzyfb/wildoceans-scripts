@@ -15,12 +15,11 @@
 # ---------------------------------
 # FORMATTING
 # ---------------------------------
-# pick number of background points to choose from during model development (we went with 20% of modelling surface)
+# pick number of background points to choose from during model development (we went with 5,000 points)
 # pseudo-absences choice procedure: Barbet-Messin et al., 2012
-if(res == 5){n_bckg_pts = 0.2*length(which(values(!is.na(stack_subset[[1]]))))}
-if(res == 10){n_bckg_pts = 0.2*length(which(values(!is.na(stack_subset[[1]]))))}
+n_bckg_pts = 5000
 
-# isolate these n background points randomly across all cells in the EEZ using randomPoints()
+# isolate background points randomly across all cells in the EEZ using randomPoints()
 cells = randomPoints(stack_subset, n_bckg_pts,cellnumbers=TRUE, ext = extent(stack_subset))
 
 # get xy coordinates from these cells
@@ -52,7 +51,7 @@ vars = as.data.frame(raster::extract(stack_subset, pa[,c(2,3)]))
 # add to dataframe
 pts_env = cbind(pa,vars) 
 
-rm(pts_sub,vars,pa, absences)
+rm(pts_sub,vars,pa, absences,cells)
 
 # create background points (seasonal points)
 # random background cells

@@ -1,7 +1,7 @@
 # ---------------------------------------------------------------------------------
 # AUTHORS: Nina Faure Beaulieu, Dr. Victoria Goodall (2021)
 # PROJECT: Shark and ray protection project, WILDOCEANS a programme of the WILDLANDS CONSERVATION TRUST
-# CONTACTs: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
+# CONTACT: ninab@wildtrust.co.za; victoria.goodall@mandela.ac.za 
 # ---------------------------------------------------------------------------------
 
 
@@ -23,6 +23,44 @@ library(dismo)
 
 # ---------------------------------
 # FORMATTING
+# ---------------------------------
+# assign grid cell id to each data point
+obs.data$cellid = cellFromXY(stack_subset,obs.data)
+# get most recent date for each grid cell with data point
+presencecells = obs.data@data %>%
+  group_by(cellid)%>%
+  summarise(date_recent = max(DATE))%>%
+  filter(!is.na(cellid))
+# create spatial points object from presence cell ids
+pts_sub = SpatialPoints(xyFromCell(stack_subset,presencecells$cellid))
+# ---------------------------------
+
+
+# ---------------------------------
+# DISTRIBUTION OF POINTS BY DATE (for interest only)
+# ---------------------------------
+# scale date from 0 to 1
+presencecells$date_recent = as.Date(presencecells$date_recent)
+scaled_date = scales::rescale(presencecells$date_recent)
+# add to presence cells
+presencecells= cbind(presencecells,scaled_date)
+# add to filtered points
+pts_sub$scaled_date = scaled_date
+# plot to show scaled points by date (dark blue will be most recent)
+cols = brewer.pal(4,"Blues")
+pal = colorRampPalette(cols)
+pts_sub$order = findInterval(pts_sub$scaled_date,sort(pts_sub$scaled_date))
+plot(pts_sub@coords,pch=19,col=pal(nrow(pts_sub))[pts_sub$order])
+# legend
+legend("topright",col=pal(2),pch=19,legend = c(round(range(pts_sub$scaled_date),1)))
+# remove order variable
+pts_sub$order=NULL
+rm(scaled_date,cols,presencecells)
+# ---------------------------------
+
+
+# ---------------------------------
+# SPATIAL THINNING
 # ---------------------------------
 # Subsample one occurrence point per grid cell across entire dataset
 crs(obs.data) = crs(stack_subset)
@@ -61,3 +99,4 @@ pts_sub_seasons = list()
   }
 rm(temp, seasons,i,obs.data)
 }else{rm(obs.data)}
+# ---------------------------------

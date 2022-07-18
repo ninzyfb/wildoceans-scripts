@@ -43,7 +43,7 @@ pts_env = na.omit(pts_env)
 pa = pts_env$pa 
 
 # convert 0 to NAs
-# this is important as it means they ar eseen as background points and not true absences
+# this is important as it means they are seen as background points and not true absences
 pa[which(pa == 0)] = NA
 
 # isolate presence/background points coordinates
@@ -56,23 +56,23 @@ exp =  pts_env[,-c(1:3)]
 # pick the same number as your number of presence points
 # this is because for each model run we chose to have the same number of presences as number of background points
 # and we run each model with 2 sets of background points (specified by PA.nb.rep = 2)
-pseudoabsences = length(which(pa==1))
+pseudoabsences = 5000
 
 # make sure substrate is a factor
 exp$substrate_simplified = as.factor(exp$substrate_simplified)
 
 # keep or remove substrate layer
+# this was specified in main script
 if(!is.na(substrate) & substrate == "no"){
   stack_model = dropLayer(stack_subset,"substrate_simplified")
   exp$substrate_simplified = NULL}else{stack_model = stack_subset}
 
-# reduce number of environmental variables if prevalence is less than 100 grid cells
+# reduce number of environmental variables to 8 if less than 100 grid cells
 if(length(which(pa==1))<100){
   reducedvar = read.csv(list.files(pattern = "reducedvariables.csv", recursive=TRUE, full.names = TRUE))
   stack_model = dropLayer(stack_model,reducedvar$x)
   exp = exp[,which(!(colnames(exp) %in% reducedvar$x))]
   rm(reducedvar)}
-
 
 # biomod object
 biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
@@ -82,9 +82,10 @@ biomod_obj =  BIOMOD_FormatingData(resp.var = pa, # presence/background data
                                    # this will pick the pseudo-absences from your NAs in pa
                                    PA.nb.absences = pseudoabsences,
                                    # two sets of pseudoabsences to be chosen
-                                   PA.nb.rep = 2,
+                                   PA.nb.rep = 1,
                                    # for high specificity pseudo-absences should be randomly selected 
-                                   PA.strategy = 'random') 
+                                   PA.strategy = 'random'
+                                   ) 
 
 # Formatting the seasonal data as a BIOMOD object
 # the following code follows the exact same procedure as above
