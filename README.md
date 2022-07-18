@@ -8,17 +8,19 @@ A report of this project will be available to download in the coming weeks or by
 There are three folders containing scripts in this repository, as well as additional folders which contain data and layers necessary to run the scripts. 
 
 ### 1. scripts_occurencedata
-This folder contains two scripts that were used for initial data cleaning and data exploration of the raw occurrence data. The raw occurrence data are confidential but the scripts are provided to show how it was cleaned and formatted.  
-`merging_datasets.R` is the script used to combine data from the various different data providers and output one file per species. These output files are used as input in the modelling scripts.
+* Initial data cleaning and exploration (raw occurrence data are confidential) 
+* `merging_datasets.R` is the script used to combine data from the various datasets and output one file per species. These output files are used as input in the modelling scripts.
 
 ### 2. scripts_modelling
-This folder contains scripts that were used to produce and plot the species distribution models (SDMs). This folder itself contains two subfolders.
+* Producing the species distribution models (SDMs). This folder itself contains two subfolders, one to prpepare the environemntal variables and the other to build and run the models.
 
 - **scripts_envtvariablprep**
-  Code for the preparation and processing of the environmental variable rasters. The outputs from these scripts were raster files used to build a rasterstack of environmental variables at 5x5km and 10x10km resolution. These prepared raster files are available in the main WILDOCEANS-scripts repository in folders named *ALLLAYERS5kmresolution* and *ALLLAYERS10kmresolution*. These are sufficient to run the modelling scripts. 
+  + Preparation and processing of environmental variable rasters
+  + Outputs are raster files of environmental variables at 10x10km resolution which are available in the main WILDOCEANS-scripts repository in folders  *ALLLAYERS10kmresolution*
   
 - **scripts_modelling**
-  Code to run all the distribution models. Start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for.  
+  + Running the species distribution models
+  + To run, start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for.  
   
   
 **IMPORTANT 1: how to run scripts on your own data or example data provided**:  
