@@ -146,5 +146,5 @@ for(i in 1:nrow(master_keep)){
 # ---------------------------------
 #  PLOTTING
 # ---------------------------------
-source(list.files(pattern = "datavisualisation.R", recursive = TRUE, full.names = TRUE))
+source(list.files(pattern = "sdm_plots.R", recursive = TRUE, full.names = TRUE))
 # ---------------------------------
