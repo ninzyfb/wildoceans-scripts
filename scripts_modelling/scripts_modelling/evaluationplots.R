@@ -3,9 +3,6 @@ if(!require(devtools)) install.packages("devtools")
 devtools::install_github("kassambara/ggpubr")
 library(ggpubr)
 
-# set directory to dropbox folder (where model folders are kept)
-setwd("/Users/nfb/Dropbox/6-WILDOCEANS/")
-
 # all files
 models_all = list.files(pattern = "models.out", full.names = TRUE, recursive = TRUE)
 
