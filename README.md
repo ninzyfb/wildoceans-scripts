@@ -16,17 +16,10 @@
 * `merging_datasets.R` is the script used to combine data from the various datasets and output one file per species. These output files are used as input in the modelling scripts.
 
 ### 2. scripts_modelling folder
-* Producing the species distribution models (SDMs). This folder itself contains three subfolders
-* All the distribution models produced are availabe as .JPG or as .tif files in the **outputs** folder
-
-- **scripts_envtvariablprep folder**
-  + Preparation and processing of environmental variable rasters
-  + Outputs are raster files of environmental variables at 10x10km resolution which are available in the main WILDOCEANS-scripts repository in folders  *ALLLAYERS10kmresolution*
-  + All models are run on the same subset of environmental variables detailed in *selectedvariables_all.csv*. These were chosen by testing for collinearity using the `independentvariableselection.R` script
-  
-- **scripts_modelling folder**
-  + Running the species distribution models
-  + To run, start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for.  
+* Producing the species distribution models (SDMs)
+* To run, start with `mainscript-modelling.R` as this is the parent script through which the other scripts are run. This script contains the orders in which to run the scripts and also describes what each one is for.
+* All models were run on the same subset of environmental variables detailed in *selectedvariables_all.csv*. These were chosen by testing for collinearity using the `independentvariableselection.R` script and are available in the folder  *ALLLAYERS10kmresolution*
+* All the distribution models produced are availabe as .tif files in the **outputs** folder or as .JPG from a [dropbox folder](https://www.dropbox.com/sh/ranc3035p3jn5hv/AADWr_6ef47qrpfR1HwVUCNpa?dl=0)
   
 **!!IMPORTANT 1!! how to run scripts on your own data or example data provided**:  
 * The occurrence data used to run the conservation plan is confidential and not available for download
